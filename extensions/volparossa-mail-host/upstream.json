@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "component": "independently-authored-stalwart-jmap-adapter",
+  "license": "GPL-3.0-only",
+  "upstream": {
+    "repository": "https://github.com/stalwartlabs/stalwart",
+    "tag": "v0.16.24",
+    "revision": "af37a234981722493b74623a983581691d2b70b6",
+    "role": "interoperability-source-reference; server code is not bundled or installed",
+    "licenses": [
+      "AGPL-3.0-only",
+      "LicenseRef-SEL"
+    ],
+    "files": [
+      {
+        "path": "crates/http/src/request.rs",
+        "url": "https://raw.githubusercontent.com/stalwartlabs/stalwart/af37a234981722493b74623a983581691d2b70b6/crates/http/src/request.rs",
+        "bytes": 41219,
+        "sha256": "18fa999fe5030c6ed08a32035da196515d54a0f579f9683e031a9a98a5b5370b"
+      },
+      {
+        "path": "crates/jmap-proto/src/request/capability.rs",
+        "url": "https://raw.githubusercontent.com/stalwartlabs/stalwart/af37a234981722493b74623a983581691d2b70b6/crates/jmap-proto/src/request/capability.rs",
+        "bytes": 19450,
+        "sha256": "c5576a3975ee5892176c57d4884b578908e2a90c138c3d9cb4434ecd11a17f1d"
+      },
+      {
+        "path": "crates/http/src/auth/authenticate.rs",
+        "url": "https://raw.githubusercontent.com/stalwartlabs/stalwart/af37a234981722493b74623a983581691d2b70b6/crates/http/src/auth/authenticate.rs",
+        "bytes": 5729,
+        "sha256": "3c487fafd2118d52d932aa3273d483b2987cb1d14cfc327aca9bd0cc5de54396"
+      },
+      {
+        "path": "crates/jmap-proto/src/method/import.rs",
+        "url": "https://raw.githubusercontent.com/stalwartlabs/stalwart/af37a234981722493b74623a983581691d2b70b6/crates/jmap-proto/src/method/import.rs",
+        "bytes": 4287,
+        "sha256": "158a1c9d99c236b6276a84dcc205cbc8ff2af357fad70ed2c5923a1a994f6833"
+      },
+      {
+        "path": "crates/jmap/src/email/import.rs",
+        "url": "https://raw.githubusercontent.com/stalwartlabs/stalwart/af37a234981722493b74623a983581691d2b70b6/crates/jmap/src/email/import.rs",
+        "bytes": 8928,
+        "sha256": "0935fa319433fce581a126cd25f623bb7e1af2f8aa395a33f2cae8c5c3dea596"
+      },
+      {
+        "path": "LICENSES/AGPL-3.0-only.txt",
+        "url": "https://raw.githubusercontent.com/stalwartlabs/stalwart/af37a234981722493b74623a983581691d2b70b6/LICENSES/AGPL-3.0-only.txt",
+        "bytes": 34020,
+        "sha256": "d8a6cc31abc16b6748c7a21f21611f5a1ec33f67d22ca23d7da1c19b95496bee"
+      },
+      {
+        "path": "LICENSES/LicenseRef-SEL.txt",
+        "url": "https://raw.githubusercontent.com/stalwartlabs/stalwart/af37a234981722493b74623a983581691d2b70b6/LICENSES/LicenseRef-SEL.txt",
+        "bytes": 23129,
+        "sha256": "4ba82ae0a9465f919bc59c1f2e0ab6190ad81fd020101c6089c79a6dde5e38b3"
+      }
+    ]
+  },
+  "runtime_evidence": {
+    "real_stalwart_server_executed": false,
+    "real_thunderbird_extension_executed": false,
+    "full_self_hosting": false,
+    "decentralized_gateway": false
+  },
+  "protocol": {
+    "discovery": "explicit origin + /jmap/session, no redirects",
+    "authentication": "transient user/app password over HTTPS or literal-loopback HTTP; not management API keys",
+    "methods": [
+      "Mailbox/get",
+      "Email/import",
+      "Email/get"
+    ],
+    "message_limit_bytes": 8388608,
+    "response_limit_bytes": 2097152
+  }
+}

@@ -1,0 +1,28 @@
+/* SPDX-License-Identifier: GPL-3.0-only */
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; --line: #8a80734a; --accent: #90691e; }
+body { margin: 0; background: Canvas; color: CanvasText; }
+main { max-width: 850px; margin: 0 auto; padding: 32px 24px 52px; }
+h1 { font-size: clamp(1.65rem, 4vw, 2.25rem); line-height: 1.2; margin: 10px 0 16px; }
+h2 { font-size: 1.15rem; margin: 0 0 20px; }
+.eyebrow { font-size: .78rem; text-transform: uppercase; letter-spacing: .15em; color: var(--accent); }
+header > p:not(.eyebrow) { max-width: 65ch; }
+.notice { border-left: 3px solid var(--accent); background: #a57d2410; padding: 16px 20px; margin: 28px 0; font-size: .92rem; }
+.notice strong { display: block; margin-bottom: 4px; }
+section { border: 1px solid var(--line); border-radius: 12px; padding: 24px; margin: 20px 0; }
+label { display: block; font-size: .92rem; font-weight: 600; margin: 16px 0 6px; }
+input:not([type=checkbox]), select { box-sizing: border-box; width: 100%; font: inherit; padding: 9px 10px; border: 1px solid var(--line); border-radius: 6px; background: Field; color: FieldText; }
+.columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.check { display: flex; align-items: flex-start; gap: 10px; font-weight: 400; }
+.check input { flex-shrink: 0; margin-top: 6px; }
+.hint, footer { font-size: .8rem; opacity: .76; }
+.hint { margin: 8px 0 14px; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; }
+button { font: inherit; font-size: .88rem; padding: 10px 14px; border: 1px solid var(--line); border-radius: 6px; background: ButtonFace; color: ButtonText; margin-top: 14px; cursor: pointer; }
+button:disabled { opacity: .55; cursor: default; }
+button:not(:disabled):hover { border-color: var(--accent); }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#mailboxes { padding-left: 22px; font-size: .9rem; max-height: 260px; overflow: auto; }
+#mailboxes li { overflow-wrap: anywhere; }
+#status { border: 1px solid var(--line); padding: 14px 18px; border-radius: 8px; overflow-wrap: anywhere; }
+footer { text-align: center; padding-top: 16px; }
+@media (max-width: 620px) { .columns { grid-template-columns: 1fr; gap: 0; } main { padding: 20px 14px; } section { padding: 18px; } }

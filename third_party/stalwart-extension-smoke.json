@@ -1,0 +1,100 @@
+{
+  "version": 1,
+  "kind": "stalwart-community-extension-live-jmap-proof",
+  "date_utc": "2026-09-30",
+  "upstream_revision": "af37a234981722493b74623a983581691d2b70b6",
+  "upstream_release": "v0.16.24",
+  "build": {
+    "passed": true,
+    "profile": "dev",
+    "rust_version": "1.98.1",
+    "toolchain_manifest_sha256": "a7c8774a5fd8441c997d94c029776cbc5eb111e9d72ab5d256fa69866644347e",
+    "source_archive_sha256": "507ee7e79a799311f0e9a9be8971b03ec83d641b5046c4ca675756e4a0ca8f93",
+    "cargo_lock_sha256": "a44513b6728b95007bd40e761b934f84d7c6cde7327ba713c4ef15f911d4d505",
+    "command": ["cargo", "build", "--offline", "--locked", "-p", "stalwart", "--no-default-features", "--features", "sqlite"],
+    "default_features": false,
+    "enterprise_requested": false,
+    "compiler_jobs": 2,
+    "source_read_only": true,
+    "build_network_enabled": false,
+    "executable_bytes": 297063840,
+    "executable_sha256": "59b1a85c40bbe3c88d6af342c4e1f11e3424c759b2fac4c43389b26a9575e37a",
+    "owner_receipt": {
+      "path": "build/stalwart-community-dev/BUILD_OWNER.json",
+      "sha256": "d381a096e9cdaeb2e6e99c53f0ecb0ab4347bfc688cb6ff3ce001c0cdd597ba9"
+    },
+    "compile_receipt": {
+      "path": "build/stalwart-community-dev/compile-1790780274899048412.json",
+      "sha256": "f9583afc04eefba4cf289eefdc403362c9f2664f898b6324c34ed06ac736cfbc"
+    },
+    "release_build_or_msrv_proven": false
+  },
+  "runtime_inputs": {
+    "node_version": "24.19.0",
+    "node_sha256": "bc17c508ffeed0ec622934f9b7fa72f8e78da65350e63c3eceb56fa688aa5e12",
+    "extension_path": "extensions/volparossa-mail-host/jmap.mjs",
+    "extension_sha256": "9a091750b5b25cafeb941aa333ac66122e8a28ac8830c0237ad0a11fe9f48201",
+    "fixture_path": "scripts/smoke_stalwart.py",
+    "fixture_sha256": "b05b896b30549266dc2fa223af1ecee18fa012c62dbb16dcb66484ddcf878467",
+    "fixture_tests_path": "tests/test_stalwart_smoke.py",
+    "fixture_tests_sha256": "36c1fd6b333f00559042017e06052619f05b8ac243726b7963e6996986550b28",
+    "focused_fixture_tests_passed": 6
+  },
+  "live_proof": {
+    "passed": true,
+    "original_directory": "build/stalwart-live-20260930T152100Z",
+    "original_receipts": {
+      "plan.json": {"bytes": 853, "sha256": "c60ca378c82c449747e94f263e138e88046e06ebbcb43cfbdd273e394a65f7a5"},
+      "result.json": {"bytes": 647, "sha256": "8d19d5587e14bbf4e8dd6f67939db85024c80889a0ce8c37b9a81af15ea82c86"},
+      "extension.json": {"bytes": 153, "sha256": "7d3f74e00eb0aaf1170aec733f8770b9b14bf137adebd280d2a3ef53d8a49609"},
+      "boundary.json": {"bytes": 169, "sha256": "ed3fc634fa95f685be249f502eb3de747a7253ab7780d3e89344fcc20fcb959c"}
+    },
+    "real_server_and_extension_adapter": true,
+    "management_api": ["x:Domain/set", "x:Account/set"],
+    "management_capability": "urn:stalwart:jmap",
+    "owner_permissions": ["authenticate", "jmapMailboxGet", "jmapMailboxCreate", "jmapEmailGet", "jmapEmailImport", "jmapBlobGet", "jmapBlobUpload"],
+    "owner_api": ["/jmap/session", "Mailbox/set", "Mailbox/get", "/jmap/upload/{accountId}/", "Email/import", "Email/get"],
+    "metadata_readback": true,
+    "independent_raw_readback": true,
+    "raw_readback_is_extension_feature": false,
+    "fixture_bytes": 313,
+    "fixture_sha256": "67075b1d0a40b1ac5618f2af7d0cc9c229e8fc9755ab595d31de46bbec3e7790",
+    "recovery_mode": true,
+    "fresh_user_network_pid_ipc_uts_namespaces": true,
+    "only_loopback_interface_observed": true,
+    "external_network_available": false,
+    "listener_inside_namespace_only": "[::]:8080",
+    "upstream_webui_fetch_network_blocked": true,
+    "inner_process_groups_joined": true,
+    "namespace_process_group_joined": true,
+    "host_routes_and_dns_snapshot_unchanged": true,
+    "private_database_passwords_messages_and_logs_removed": true,
+    "raw_private_data_copied_to_this_report": false
+  },
+  "fixture_corrections": [
+    {
+      "cause": "The original /work mount target did not exist beneath the read-only root. An exact bwrap-only reproduction failed with a read-only filesystem error.",
+      "fix": "New mount targets and private fixture paths use /opt/work inside the existing disposable /opt tmpfs; no host permissions or network authority changed.",
+      "failed_receipt": "build/stalwart-live-20260930T150723Z/boundary.json",
+      "failed_receipt_sha256": "a51558d45953bdedf1255b852f76f072060b16785465b7767b6b254be85f05e7"
+    },
+    {
+      "cause": "Stalwart rejected volparossa.invalid as invalidPatch on name. The pinned is_valid_domain implementation explicitly permits .test but not .invalid.",
+      "fix": "Use only synthetic volparossa.test addresses, without DNS or external delivery.",
+      "source": "crates/utils/src/lib.rs::is_valid_domain",
+      "failed_receipt": "build/stalwart-live-20260930T151800Z/result.json",
+      "failed_receipt_sha256": "2ed4b440149b4f4f8dc00fc7a678a1b1f89847b65ed95909a469a5f2392c2fc2"
+    }
+  ],
+  "not_proven": [
+    "SMTP sending or receiving",
+    "Native Thunderbird extension UI operation",
+    "VOLPAROSSA overlay or Signal Protocol message delivery",
+    "Automatic production account/bootstrap lifecycle",
+    "Installed background-service lifetime, recovery or persistence",
+    "Private offline Internet reception or always-available delivery",
+    "Confidentiality from the operator of an ordinary SMTP receiving server"
+  ],
+  "privacy_boundary": "The tested Stalwart instance is deliberately owner-controlled. Arbitrary custody/storage peers must receive only authenticated encrypted objects, including private headers; this test does not implement that transport or make ordinary SMTP reception opaque to its operator.",
+  "originals": "Private local proof receipts are hashed here, not copied with credentials or raw logs. This report records one observed run, not a claim that arbitrary environments pass."
+}

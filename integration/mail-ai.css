@@ -1,0 +1,20 @@
+/* SPDX-License-Identifier: GPL-3.0-only */
+:root { color-scheme: light dark; font: message-box; }
+body { margin: 0 auto; padding: 1.4rem; max-width: 54rem; background: Canvas; color: CanvasText; }
+header, footer { color: GrayText; line-height: 1.5; }
+.eyebrow { font-weight: 650; letter-spacing: .04em; }
+h2 { margin-block: .4rem; }
+section { display: flex; flex-direction: column; gap: .7rem; }
+label { font-weight: 550; }
+textarea, select { box-sizing: border-box; width: 100%; font: inherit; color: FieldText; background: Field; border: 1px solid GrayText; border-radius: .35rem; padding: .6rem; }
+textarea { resize: vertical; }
+button { font: inherit; padding: .55rem .8rem; border: 1px solid GrayText; border-radius: .35rem; }
+button:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid Highlight; outline-offset: 2px; }
+.volparossa-consent-row { display: flex; gap: .65rem; align-items: flex-start; }
+.volparossa-consent-row input { flex: none; margin-block-start: .2rem; }
+.volparossa-consent-row label { font-weight: normal; line-height: 1.4; }
+.volparossa-compute-actions { display: flex; gap: .6rem; flex-wrap: wrap; }
+.volparossa-public-warning { border-inline-start: .25rem solid #bf7d27; padding-inline-start: .8rem; line-height: 1.45; }
+#volparossa-public-answer { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.5; padding: .8rem; border: 1px solid GrayText; border-radius: .35rem; }
+#volparossa-public-answer:empty { display: none; }
+footer { margin-block-start: 1rem; border-block-start: 1px solid GrayText; padding-block-start: .5rem; }

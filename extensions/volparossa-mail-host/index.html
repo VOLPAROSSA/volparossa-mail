@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VOLPAROSSA Mail host</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="ui.mjs"></script>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">Project VOLPAROSSA · Mail integration</p>
+    <h1>Your mail host, explicitly connected</h1>
+    <p>Connect a Stalwart user account, view its mailboxes and import a message file you select.</p>
+  </header>
+  <aside class="notice">
+    <strong>Development connector — not a decentralised mail gateway.</strong>
+    Prefer a Stalwart server on your own device. A remote origin connects to that server's operator;
+    use it only when you deliberately trust that operator with your mail, never a randomly selected peer.
+    The selected server can read imported messages unless their contents are already end-to-end encrypted.
+    Stalwart encryption at rest does not hide plaintext from an SMTP receiver.
+    This screen does not send mail, configure a server, forward
+    messages through peers, or publish email to the cooperative AI. Existing Thunderbird accounts are untouched.
+  </aside>
+
+  <section aria-labelledby="connect-title">
+    <h2 id="connect-title">1. Connect your account</h2>
+    <form id="connect-form" autocomplete="off">
+      <label for="server">Stalwart server origin</label>
+      <input id="server" type="url" placeholder="Your own server origin; nothing is selected automatically" required maxlength="2048" spellcheck="false" autocomplete="off">
+      <p class="hint">An HTTPS origin only, including an optional port. HTTP is accepted only on the literal loopback addresses 127.0.0.1 and [::1]. No redirects or alternate server origins.</p>
+      <div class="columns">
+        <div><label for="username">Account username</label><input id="username" required maxlength="320" autocomplete="off" spellcheck="false"></div>
+        <div><label for="password">User app password</label><input id="password" type="password" required maxlength="4096" autocomplete="off"></div>
+      </div>
+      <label class="check"><input id="owner-confirmed" type="checkbox" required> I operate this server or deliberately trust its operator with this account's mail. I am authorised to use the account and am supplying a user/app password, not a server-administrator password or API key.</label>
+      <p class="hint">The password stays in this tab's memory only until disconnect or tab close. No account credentials are saved by this extension. Thunderbird may remember the separate host-access permission.</p>
+      <div class="actions"><button id="connect" type="submit">Grant host access &amp; connect</button><button id="disconnect" type="button" disabled>Disconnect</button></div>
+    </form>
+  </section>
+
+  <section aria-labelledby="account-title">
+    <h2 id="account-title">2. Choose an account</h2>
+    <label for="account">Available mail account</label>
+    <select id="account" disabled><option value="">Connect first</option></select>
+    <button id="load-mailboxes" type="button" disabled>Confirm account &amp; load mailboxes</button>
+    <p class="hint">Nothing is read from other Thunderbird accounts. Mailbox names and message counts appear only after this confirmation; message bodies are not retrieved.</p>
+    <ul id="mailboxes" aria-label="Mailboxes"></ul>
+  </section>
+
+  <section aria-labelledby="import-title">
+    <h2 id="import-title">3. Import a selected message</h2>
+    <label for="mailbox">Destination mailbox</label>
+    <select id="mailbox" disabled><option value="">Load mailboxes first</option></select>
+    <label for="message-file">RFC 5322 message file (.eml)</label>
+    <input id="message-file" type="file" accept=".eml,message/rfc822" disabled>
+    <p id="size-limit" class="hint">Maximum 8 MiB, or the server's smaller upload limit.</p>
+    <label class="check"><input id="import-confirmed" type="checkbox" disabled> I selected this file and confirm that its contents may be stored in the account and mailbox shown above. This imports a message; it does not send it.</label>
+    <button id="import" type="button" disabled>Import once &amp; check stored metadata</button>
+    <p class="hint">No automatic retries. If completion is uncertain, inspect the mailbox before importing again to avoid duplicates. A metadata readback is not a raw-message integrity check.</p>
+  </section>
+  <p id="status" role="status" aria-live="polite">Disconnected. No network requests have been made.</p>
+  <footer>Independent JMAP adapter · Stalwart v0.16.24 interoperability source pin · Development scope</footer>
+</main>
+</body>
+</html>

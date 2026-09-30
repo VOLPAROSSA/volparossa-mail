@@ -1,0 +1,36 @@
+--- a/mail/base/content/messenger-menubar.inc.xhtml
++++ b/mail/base/content/messenger-menubar.inc.xhtml
+@@ -1150,6 +1150,9 @@
+               accesskey="&savedFiles.accesskey;"
+               key="key_savedFiles"
+               oncommand="openSavedFilesWnd();"/>
++    <menuitem id="volparossaCooperativeAI"
++              label="VOLPAROSSA AI (public cooperative tasks)"
++              oncommand="window.openDialog('chrome://messenger/content/volparossa/mail-ai.html', '_blank', 'chrome,resizable,centerscreen,width=760,height=820');"/>
+     <menuitem id="addonsManager"
+               data-l10n-id="menu-addons-and-themes"
+               oncommand="openAddonsMgr();"/>
+--- a/mail/modules/moz.build
++++ b/mail/modules/moz.build
+@@ -50,6 +50,9 @@
+     "TransportErrorUrlListener.sys.mjs",
+     "UIDensity.sys.mjs",
+     "UIFontSize.sys.mjs",
++    "VolparossaCooperativeCompute.sys.mjs",
++    "VolparossaCooperativePanel.sys.mjs",
++    "VolparossaMailAI.sys.mjs",
+     "XULStoreUtils.sys.mjs",
+ ]
+ 
+--- a/mail/base/jar.mn
++++ b/mail/base/jar.mn
+@@ -1,6 +1,9 @@
+ #filter substitution
+ 
+ messenger.jar:
++    content/messenger/volparossa/mail-ai.html       (content/volparossa/mail-ai.html)
++    content/messenger/volparossa/mail-ai.mjs        (content/volparossa/mail-ai.mjs)
++    content/messenger/volparossa/mail-ai.css        (content/volparossa/mail-ai.css)
+ % content messagebody %content/messagebody/ contentaccessible=yes
+ % content messenger %content/messenger/
+ % override chrome://messagebody/skin/messageBody.css chrome://messenger/skin/messageBody.css
