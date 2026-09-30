@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "application": "Thunderbird",
+  "version": "157.0",
+  "repository": "https://github.com/thunderbird/thunderbird-desktop",
+  "revision": "c747bb0160f873ab78692b2450612b232d38c30e",
+  "tag": "THUNDERBIRD_157_0_RELEASE",
+  "platform": {
+    "repository": "https://hg.mozilla.org/releases/mozilla-release",
+    "revision": "8eb25af4acf031ab1e06abf1a912275083c820ed",
+    "ref": "FIREFOX_157_0_BUILD1"
+  },
+  "files": {
+    "mail/base/content/messenger-menubar.inc.xhtml": {
+      "size": 63304,
+      "sha256": "6532d67c3eab04edd4cdc2565b89d62718336184e0a38b4e7d3c1f8fa757fa87"
+    },
+    "mail/modules/moz.build": {
+      "size": 1947,
+      "sha256": "d059204bf80cc3aef10cd08ffb62b636fcf8e46a9c66f50ae3d927ef0bfb4cdd"
+    },
+    "mail/base/jar.mn": {
+      "size": 12234,
+      "sha256": "8f39efddb0ab838d9c7d8d92c8a96168efe80ad33cd9b5a9c0f319e8391cf2bd"
+    },
+    ".gecko_rev.yml": {
+      "size": 1171,
+      "sha256": "9a9c63b8e948fc80b48eed8bab20c5891377700dd50f2dcba1e0dcf15aee5d11"
+    }
+  },
+  "license": {
+    "id": "MPL-2.0",
+    "notice": "third_party/MPL-2.0.txt",
+    "sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85",
+    "url": "https://www.mozilla.org/media/MPL/2.0/index.815ca599c9df.txt"
+  },
+  "integration": {
+    "original_code_license": "GPL-3.0-only",
+    "browser_transport_origin": "https://github.com/VOLPAROSSA/volparossa-browser",
+    "browser_transport_revision": "3c7894168ce6c1f28e96ce5b95bc99928e6c4304",
+    "native_assist_provider_api": false,
+    "native_entrypoint": "Tools → VOLPAROSSA AI (public cooperative tasks)",
+    "confidential_peer_inference": false,
+    "native_accounts_modified": false
+  }
+}

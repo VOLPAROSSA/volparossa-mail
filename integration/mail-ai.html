@@ -1,0 +1,24 @@
+<!doctype html>
+<!-- SPDX-License-Identifier: GPL-3.0-only -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src chrome: resource:; style-src chrome:; connect-src 'none'; img-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'" />
+    <title>Project VOLPAROSSA — Cooperative AI</title>
+    <link rel="stylesheet" href="chrome://messenger/content/volparossa/mail-ai.css" />
+    <script type="module" src="chrome://messenger/content/volparossa/mail-ai.mjs"></script>
+  </head>
+  <body>
+    <header>
+      <p class="eyebrow">Project VOLPAROSSA · Thunderbird integration</p>
+      <p>Work with the cooperative network on text you are authorized to make public.</p>
+      <p>No email, address, account, draft or attachment is read automatically. Ordinary mail continues to use Thunderbird's existing accounts.</p>
+    </header>
+    <main id="volparossa-mail-ai"></main>
+    <footer>
+      <p>This is a native Tools integration, not an upstream Thunderbird Assist provider. Private correspondence is not supported by the public cooperative service.</p>
+      <p>Configure <code>mail.volparossa.compute.public_socket</code> with the same-user core public-task Unix socket. There is no automatic cloud or local-only substitute.</p>
+      <button type="button" id="volparossa-mail-close">Close</button>
+    </footer>
+  </body>
+</html>
