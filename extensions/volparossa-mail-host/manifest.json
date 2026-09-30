@@ -1,0 +1,15 @@
+{
+  "manifest_version": 2,
+  "name": "Project VOLPAROSSA — Mail host connector",
+  "version": "0.1.0",
+  "description": "Explicit Stalwart user-account session, mailbox view and selected-file import. Development integration, not an offline mail gateway.",
+  "browser_specific_settings": {
+    "gecko": {"id": "volparossa-mail-host@volparossa.local", "strict_min_version": "140.0"}
+  },
+  "browser_action": {"default_title": "VOLPAROSSA Mail host"},
+  "background": {"scripts": ["background.js"]},
+  "options_ui": {"page": "index.html", "open_in_tab": true},
+  "permissions": [],
+  "optional_permissions": ["https://*/*", "http://127.0.0.1/*", "http://[::1]/*"],
+  "content_security_policy": "default-src 'none'; script-src 'self'; style-src 'self'; connect-src https: http://127.0.0.1:* http://[::1]:*; object-src 'none'; base-uri 'none'; form-action 'none'"
+}

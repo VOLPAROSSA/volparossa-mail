@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "upstream": "https://github.com/stalwartlabs/stalwart",
+  "release": "v0.16.24",
+  "release_date": "2026-09-27",
+  "revision": "af37a234981722493b74623a983581691d2b70b6",
+  "archive": {
+    "url": "https://codeload.github.com/stalwartlabs/stalwart/tar.gz/af37a234981722493b74623a983581691d2b70b6",
+    "sha256": "507ee7e79a799311f0e9a9be8971b03ec83d641b5046c4ca675756e4a0ca8f93",
+    "size": 8731436,
+    "entries": 2010,
+    "regular_files": 1714,
+    "unpacked_bytes": 23855896
+  },
+  "license": {
+    "main_package": "AGPL-3.0-only OR LicenseRef-SEL",
+    "selected_community_terms": "AGPL-3.0-only",
+    "copyright": "2020 Stalwart Labs LLC <hello@stalw.art>",
+    "per_file_and_snippet_notices_apply": true,
+    "enterprise_only_sections_are_not_relicensed": true
+  },
+  "preserved_notices": {
+    "third_party/stalwart/AGPL-3.0-only.txt": {
+      "upstream_path": "LICENSES/AGPL-3.0-only.txt",
+      "size": 34020,
+      "sha256": "d8a6cc31abc16b6748c7a21f21611f5a1ec33f67d22ca23d7da1c19b95496bee"
+    },
+    "third_party/stalwart/LicenseRef-SEL.txt": {
+      "upstream_path": "LICENSES/LicenseRef-SEL.txt",
+      "size": 23129,
+      "sha256": "4ba82ae0a9465f919bc59c1f2e0ab6190ad81fd020101c6089c79a6dde5e38b3"
+    },
+    "third_party/stalwart/README.upstream.md": {
+      "upstream_path": "README.md",
+      "size": 14876,
+      "sha256": "69b580d7dd97f1147810c794ce5ef162922163a300a087e5d330797129cf4a15"
+    }
+  },
+  "source_files": {
+    "Cargo.toml": {"size": 1380, "sha256": "33b80000c54786ee07ba76bc51b4e1fcaf254fa4adbc30de4556cf2edc941d08"},
+    "Cargo.lock": {"size": 248226, "sha256": "a44513b6728b95007bd40e761b934f84d7c6cde7327ba713c4ef15f911d4d505"},
+    "crates/main/Cargo.toml": {"size": 2933, "sha256": "5d33dbd1aa9fc374ef5089d2417a041cd0a5298663b362d1b611d75303fa1ac6"},
+    "crates/http/src/request.rs": {"size": 41219, "sha256": "18fa999fe5030c6ed08a32035da196515d54a0f579f9683e031a9a98a5b5370b"},
+    "crates/http/src/auth/authenticate.rs": {"size": 5729, "sha256": "3c487fafd2118d52d932aa3273d483b2987cb1d14cfc327aca9bd0cc5de54396"},
+    "crates/common/src/config/server/listener.rs": {"size": 13305, "sha256": "e9cafca0f85460f40613b651b7dc34e0a086074a42c4682cf7556ceaa7bfebc1"},
+    "crates/jmap-proto/src/request/capability.rs": {"size": 19450, "sha256": "c5576a3975ee5892176c57d4884b578908e2a90c138c3d9cb4434ecd11a17f1d"},
+    "crates/store/src/build/registry.rs": {"size": 5466, "sha256": "33ad2721f06515c24bacdf8f78b98f8a2d6d876b85aa793e9e882d8835f97809"},
+    "crates/store/src/registry/local.rs": {"size": 4010, "sha256": "6e067be5f9477215ab7fefa81990b8ddeaa324e633f754614f08fb567194e354"},
+    "crates/registry/src/schema/structs.rs": {"size": 194516, "sha256": "e460e2423b4ff83e17d4b57ba2f0b5cf34f81e0d6bb4a59077a7f93e04ad717f"},
+    "Dockerfile.build": {"size": 9192, "sha256": "192c61f8a7d4b0ef282f97ae596762a7b59290e13ae604cbc8af091de2451667"}
+  },
+  "community_build": {
+    "argv": ["cargo", "build", "--locked", "--release", "-p", "stalwart", "--no-default-features", "--features", "sqlite"],
+    "upstream_default_features": ["rocks", "enterprise"],
+    "requested_features": ["sqlite"],
+    "enterprise_requested": false,
+    "main_rust_edition": "2024",
+    "upstream_rust_version_declared": null,
+    "upstream_rust_toolchain_file": null,
+    "upstream_docker_rust_image": "rust:slim-trixie",
+    "minimum_supported_compiler_verified": false,
+    "compiler_and_dependency_graph_provisioned": false,
+    "compiled": false,
+    "notes": "Source preparation only. Choose and verify an exact available compiler before the first build. No rust-version or rust-toolchain pin exists in this archive; the edition alone does not establish its actual MSRV. Do not execute upstream Docker installation/download steps."
+  },
+  "source_verified_api": {
+    "session_discovery": "/.well-known/jmap",
+    "discovery_redirect": "/jmap/session",
+    "jmap_api": "/jmap/",
+    "authentication": ["Basic", "Bearer"],
+    "management_capability": "urn:stalwart:jmap",
+    "warning": "Use the discovered same-origin apiUrl. Current generated management documentation shows /api, but the pinned source dispatches JMAP through /jmap/. Management credentials and mail credentials are separate scopes."
+  },
+  "source_verified_bootstrap": {
+    "config_parser": "crates/store/src/registry/local.rs::RegistryStoreInner::read_data_store",
+    "config_type": "registry::schema::structs::DataStore",
+    "sqlite_shape": {"@type": "Sqlite", "path": "<explicit owned data directory>"},
+    "missing_config": "Creates an ephemeral recovery store; generated admin credentials are printed unless an explicit recovery credential is supplied.",
+    "recovery_mode_variable": "STALWART_RECOVERY_MODE",
+    "recovery_credential_variable": "STALWART_RECOVERY_ADMIN",
+    "recovery_bind": "[::]:8080 by default, port override STALWART_RECOVERY_MODE_PORT; not loopback-only",
+    "recovery_listener_source": "crates/common/src/config/server/listener.rs",
+    "service_started": false,
+    "public_smtp_or_dns_enabled": false,
+    "notes": "Future executable proof belongs in a disposable VM. Private credentials/logs must not enter evidence artifacts. Owner-local mail hosting does not prove private remote SMTP ingress or offline Internet delivery."
+  }
+}

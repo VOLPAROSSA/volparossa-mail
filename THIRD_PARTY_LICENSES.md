@@ -36,3 +36,8 @@ Thunderbird, Gecko or Stalwart code.
   source to its users.
 - Source preparation and the mail extension are development candidates. No Stalwart
   executable is shipped or automatically downloaded by the Thunderbird AI overlay.
+- Exact archive hashes and the unchanged AGPL/SEL texts are retained in
+  [the source manifest](third_party/stalwart-source.json) and
+  [provenance directory](third_party/stalwart/NOTICE.md). The independently written JMAP
+  adapter records the source-verified protocol paths in
+  [its interoperability pin](extensions/volparossa-mail-host/upstream.json).

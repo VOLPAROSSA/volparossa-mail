@@ -1,0 +1,31 @@
+name: Mail integration source checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  source-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Identify test tools
+        run: |
+          python3 --version
+          node --version
+      - name: Check source, licenses and inert integration contracts
+        run: python3 -B -m unittest discover -s tests -v
+      - name: Check Stalwart mail connector contracts
+        run: node --test extensions/volparossa-mail-host/tests/jmap_contract.mjs
+
+# Uses the runner's Python/Node for source tests only. This does not download,
+# compile or start Thunderbird, Stalwart or the VOLPAROSSA daemon, and does not
+# prove SMTP, Signal Protocol, confidential peer inference or offline delivery.

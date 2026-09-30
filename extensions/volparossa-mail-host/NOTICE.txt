@@ -1,0 +1,53 @@
+Project VOLPAROSSA Mail host connector
+Original adapter, UI and tests: GPL-3.0-only; see ../../LICENSE.
+
+This is an independently written JMAP client, not a copy of Stalwart server code.
+Its interoperability reference is Stalwart v0.16.24, commit
+af37a234981722493b74623a983581691d2b70b6. Exact source hashes and URLs are
+recorded in upstream.json. Pinning a source revision is not proof that the
+connected server runs that revision; its API responses are still validated.
+
+Stalwart upstream notices remain with the separately recorded upstream source:
+SPDX-FileCopyrightText: 2020 Stalwart Labs LLC <hello@stalw.art>
+SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-SEL
+Some upstream files have different REUSE declarations. This interoperability
+reference does not relicense Stalwart or grant its commercial features.
+Full upstream license texts and provenance are preserved by this repository in
+../../third_party/stalwart/ and ../../third_party/stalwart-source.json.
+No Stalwart server executable or source implementation is bundled in this addon.
+
+Development use: open Thunderbird's Add-ons debugging / Load Temporary Add-on
+and choose this directory's manifest.json. No server is downloaded, installed,
+configured, or started by the addon. Open VOLPAROSSA Mail host from its toolbar
+action or extension options, explicitly grant access to your own server origin,
+and authenticate using a user app password. Disconnect before leaving a shared
+device. Credentials are transient JavaScript strings, not guaranteed zeroized
+or protected against a compromised Thunderbird process.
+
+The optional host permission is granted per host, not per port. The client
+additionally enforces the exact origin, including port, and strict Stalwart
+session/API/upload paths. HTTPS is required except for literal loopback HTTP.
+An HTTP loopback server can receive plaintext on that local device. Do not
+substitute an untrusted gateway. The extension never bypasses TLS validation.
+An HTTPS remote origin is an operator-trusted mail server, not a private or
+random-peer ingress route. The owner explicitly confirms this trust boundary.
+Stalwart at-rest encryption does not hide SMTP plaintext from the receiver.
+No random peer or remote SMTP ingress is selected or enabled automatically.
+
+Executable scope: session discovery, explicit account selection, mailbox names
+and counts, and one explicitly selected RFC 5322 file uploaded and imported into
+an explicitly confirmed writable mailbox. Successful Email/get checks stored
+metadata, not raw message equality. Email/import is not sending email. A failed
+or cancelled import may already have taken effect; there are no automatic
+retries or automatic deletion. An uploaded blob can remain until server expiry.
+
+Not implemented here: mail-server installation, account/domain administration,
+DNS/MX/TLS provisioning, native account autoconfiguration, email submission,
+Volparossa address binding, encrypted peer custody, offline delivery, stable
+message deduplication, or encrypted public ingress. Private email is never
+automatically submitted to compute, public cache or arbitrary storage peers.
+Existing Thunderbird account configuration and delivery are unchanged.
+
+Validation: tests/jmap_contract.mjs uses offline HTTP doubles. These test data
+are not a production backend. No actual Stalwart/Thunderbird runtime success
+is claimed until a separately recorded functional run is completed.
