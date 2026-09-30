@@ -32,10 +32,11 @@ export function permissionOrigin(origin) {
 }
 
 function endpoint(origin, value, expectedPath) {
+  if (!text(value, 2048)) fail("invalid_session");
   let url;
-  try { url = new URL(value); } catch { fail("invalid_session"); }
+  try { url = new URL(value, origin); } catch { fail("invalid_session"); }
   if (url.origin !== origin || url.username || url.password || url.search || url.hash ||
-      !expectedPath(url.pathname)) fail("invalid_session");
+      !expectedPath(url.pathname) || (value !== url.href && value !== url.pathname)) fail("invalid_session");
   return url.href;
 }
 
@@ -52,10 +53,11 @@ function sessionRecord(origin, value) {
   if (!accounts.length || !accounts.some(account => account.id === value.primaryAccounts[MAIL])) fail("invalid_session");
   const api = endpoint(origin, value.apiUrl, path => path === "/jmap/" || path === "/jmap");
   // Validate the template without granting the server another origin or arbitrary route.
-  if (typeof value.uploadUrl !== "string" || value.uploadUrl !== `${origin}/jmap/upload/{accountId}/`) fail("invalid_session");
+  const uploadPath = "/jmap/upload/{accountId}/";
+  if (value.uploadUrl !== uploadPath && value.uploadUrl !== `${origin}${uploadPath}`) fail("invalid_session");
   const maxUpload = value.capabilities[CORE].maxSizeUpload;
   if (!Number.isSafeInteger(maxUpload) || maxUpload <= 0) fail("invalid_session");
-  return Object.freeze({accounts: Object.freeze(accounts), api, upload: value.uploadUrl,
+  return Object.freeze({accounts: Object.freeze(accounts), api, upload: `${origin}${uploadPath}`,
     primary: value.primaryAccounts[MAIL], maxUpload: Math.min(maxUpload, LIMITS.message)});
 }
 

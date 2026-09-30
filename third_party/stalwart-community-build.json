@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "observed_date": "2026-09-30",
+  "status": "community_development_executable_compiled",
+  "source": {
+    "release": "v0.16.24",
+    "revision": "af37a234981722493b74623a983581691d2b70b6",
+    "archive_sha256": "507ee7e79a799311f0e9a9be8971b03ec83d641b5046c4ca675756e4a0ca8f93",
+    "lock_sha256": "a44513b6728b95007bd40e761b934f84d7c6cde7327ba713c4ef15f911d4d505",
+    "inventory_report": "build/stalwart-0.16.24/SOURCE_REPORT.json",
+    "inventory_report_sha256": "93aeb436ca2fcd906454d97067e798095aeeb31a31c1b94bfaf27162c92ba214",
+    "original_files_revalidated_unchanged": 1714,
+    "local_upstream_patches": []
+  },
+  "compiler": {
+    "pin": "third_party/stalwart-rust-toolchain.json",
+    "rustc": "1.98.1 (48a229cea 2026-09-01)",
+    "cargo": "1.98.1 (797e8a9bc 2026-08-05)",
+    "host": "x86_64-unknown-linux-gnu",
+    "llvm": "22.1.8",
+    "inventory_report": "build/stalwart-rust-1.98.1/TOOLCHAIN_REPORT.json",
+    "inventory_report_sha256": "f994b853cae209236bd522735903f66a4a01f5cc8c04632d36aa45449ca367ac",
+    "files": 155,
+    "system_installation": false
+  },
+  "build": {
+    "command": ["cargo", "build", "--offline", "--locked", "-p", "stalwart", "--no-default-features", "--features", "sqlite"],
+    "profile": "dev",
+    "jobs": 2,
+    "debug": 0,
+    "incremental": false,
+    "actual_main_features": ["sqlite"],
+    "compiled_enterprise_fingerprints": 0,
+    "fetch_elapsed_seconds": 24.88,
+    "compile_elapsed_seconds": 311.09,
+    "build_state_bytes_after_compile": 3755604722,
+    "compile_network_disabled": true,
+    "source_compiler_and_host_read_only": true,
+    "writable_paths": ["build/stalwart-community-dev", "disposable /tmp"],
+    "original_owner_binding_sha256": "d381a096e9cdaeb2e6e99c53f0ecb0ab4347bfc688cb6ff3ce001c0cdd597ba9",
+    "original_fetch_receipt": "build/stalwart-community-dev/fetch-1790780249103126622.json",
+    "original_fetch_receipt_sha256": "58f04b44b60a52f3d1485899244035e244f01dd412342ea55771b29006e2ad2f",
+    "original_compile_receipt": "build/stalwart-community-dev/compile-1790780274899048412.json",
+    "original_compile_receipt_sha256": "f9583afc04eefba4cf289eefdc403362c9f2664f898b6324c34ed06ac736cfbc",
+    "compile_log_sha256": "d0b2c007301c9765af57792eb8352b9a1eef6d9bb9c0f20e06320d4f58995364",
+    "process_group_absent_after_completion": true
+  },
+  "executable": {
+    "path": "build/stalwart-community-dev/target/debug/stalwart",
+    "size": 297063840,
+    "sha256": "59b1a85c40bbe3c88d6af342c4e1f11e3424c759b2fac4c43389b26a9575e37a",
+    "dynamic_dependencies_observed_without_execution": ["libgcc_s.so.1", "libm.so.6", "libc.so.6", "ld-linux-x86-64.so.2"]
+  },
+  "not_proven": {
+    "server_started": false,
+    "bootstrap_or_mailbox_lifecycle_tested": false,
+    "thunderbird_jmap_integration_tested": false,
+    "public_smtp_or_dns_enabled": false,
+    "private_offline_internet_reception_proven": false,
+    "release_optimized_build": false
+  },
+  "notes": "Observed development-build summary, not a release or mail-delivery proof. Original receipts and compiler/source archives remain under ignored build/. No Stalwart executable was run on the development host. Source-preparation reports remain source-only reports."
+}

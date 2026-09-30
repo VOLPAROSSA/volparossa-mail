@@ -98,11 +98,28 @@ test("explicit mailbox confirmation and selected-file import use real JMAP opera
   client.disconnect();
 });
 
+test("Stalwart relative session endpoints stay bound to the exact confirmed origin", async () => {
+  for (const apiUrl of ["/jmap", "/jmap/"]) {
+    const value = session(); value.apiUrl = apiUrl; value.uploadUrl = "/jmap/upload/{accountId}/";
+    const {client, calls} = backend({session: value});
+    await client.connect(); await client.mailboxes("42", true);
+    const result = await client.importMessage({accountId: "42", mailboxId: "inbox", bytes: message, confirmed: true});
+    assert.equal(result.metadataReadback, true); assert.equal(calls.length, 5);
+    assert.equal(calls[1].url, origin + apiUrl);
+    assert.equal(calls[2].url, origin + "/jmap/upload/42/");
+    client.disconnect();
+  }
+});
+
 test("cross-origin, alternate-port, redirected and arbitrary-path session endpoints are rejected before credentials reach them", async () => {
   for (const mutation of [s => {s.apiUrl = "https://other.example.test/jmap/";},
     s => {s.apiUrl = "https://mail.example.test/jmap/";}, s => {s.apiUrl = origin + "/api/";},
     s => {s.uploadUrl = "https://other.example.test/jmap/upload/{accountId}/";},
-    s => {s.uploadUrl += "?secret=1";}, s => {delete s.capabilities[MAIL];}]) {
+    s => {s.uploadUrl += "?secret=1";}, s => {delete s.capabilities[MAIL];},
+    ...["//other.example.test/jmap", "//mail.example.test:8443/jmap", "jmap", "/other/../jmap", "/jmap?x", "/jmap#x", "/jmap\n"]
+      .map(value => s => {s.apiUrl = value;}),
+    ...["//mail.example.test:8443/jmap/upload/{accountId}/", "jmap/upload/{accountId}/", "/jmap/upload/{accountId}/?x"]
+      .map(value => s => {s.uploadUrl = value;})]) {
     const value = session(); mutation(value);
     const {client, calls} = backend({session: value});
     await assert.rejects(client.connect(), code("invalid_session")); assert.equal(calls.length, 1); client.disconnect();

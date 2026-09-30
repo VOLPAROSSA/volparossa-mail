@@ -65,9 +65,37 @@ extension does not send mail, collect existing Thunderbird account credentials, 
 Stalwart or start an SMTP service. An uncertain import is not silently retried.
 
 For development, load the extension's `manifest.json` as a temporary Thunderbird add-on.
-It still needs validation in actual Thunderbird against the pinned Stalwart server. The
-offline adapter tests establish request/response behavior, not a working self-hosted or
+The adapter has now passed a real Stalwart test; loading and operating the interface in
+actual Thunderbird still needs validation. Neither establishes a complete self-hosted or
 offline mail deployment.
+
+### Verified: a real mailbox round trip
+
+The pinned **Stalwart v0.16.24 Community** executable was built from unchanged source
+with Rust 1.98.1, locked dependencies, SQLite and no Enterprise/default features. Its
+development build then passed a disposable, loopback-only test on 30 September 2026:
+
+- Provision a synthetic domain, restricted owner account and mailbox through Stalwart's
+  current JMAP management API—not the outdated `/api` examples.
+- Run the actual extension adapter with real network requests: discover the account,
+  list its mailboxes, upload a selected message, import it and read its metadata back.
+- Independently download the stored message and compare all **313 original MIME bytes**.
+- Stop the processes, remove the temporary database, passwords, message and raw logs,
+  and confirm that the host's route/DNS snapshot is unchanged.
+
+The extension itself still promises metadata verification only; full-byte comparison was
+an additional fixture check. The test uses recovery mode inside fresh user, network and
+process namespaces. Its `[::]:8080` listener cannot reach the host or Internet, and the
+upstream default web-interface download has no external network access. New mount targets
+live under disposable `/opt/work`; synthetic addresses use `.test`, which the pinned
+server accepts as a reserved domain. No real mail account or public SMTP service is used.
+
+This proves the **connector's live JMAP import/readback**, not SMTP sending or receiving,
+the Thunderbird interface, Signal Protocol/overlay delivery, offline Internet reception,
+or the lifetime and recovery of an installed background mail service. Trusted mail hosting
+remains distinct from opaque, encrypted storage on untrusted peers. Exact build, fixture
+and evidence hashes are recorded in the
+[scoped proof receipt](third_party/stalwart-extension-smoke.json).
 
 ## Source development
 
@@ -97,7 +125,15 @@ See [third-party provenance](THIRD_PARTY_LICENSES.md).
 Stalwart Community is separately pinned to **v0.16.24**,
 `af37a234981722493b74623a983581691d2b70b6`, with its original licenses and complete source
 inventory retained. Preparation requires a fresh output directory and an explicit source
-download or already verified archive. Its Community build, account/bootstrap lifecycle and
-native mailbox proof remain unfinished. Bootstrap first belongs in a disposable VM: the
-upstream recovery listener is not loopback-only. See the
+download or already verified archive. The source-preparation manifest records that earlier
+stage; the proof receipt above records the later passing development build and live test.
+Production provisioning, account/bootstrap lifecycle and native Thunderbird integration
+remain unfinished. Recovery testing belongs in a disposable VM or isolated namespace:
+the upstream recovery listener is not loopback-only. See the
 [source preparation boundary](third_party/stalwart/NOTICE.md).
+
+`scripts/smoke_stalwart.py` requires explicit paths and independently verified SHA-256
+hashes for an existing Stalwart executable and Node runtime, plus a fresh directory under
+`build/`. By default it validates inputs and prints the intended changes; `--execute`
+runs the isolated test. It downloads or installs nothing. Run its offline fixture checks
+with `python3 -B tests/test_stalwart_smoke.py`.
