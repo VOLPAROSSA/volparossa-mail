@@ -1,3 +1,5 @@
+![VOLPAROSSA Mail banner with a fox and sealed envelope in a vintage postage-stamp design](docs/assets/banner-volparossa-mail.png)
+
 # Project VOLPAROSSA Mail
 
 Thunderbird integration for the VOLPAROSSA **Decentralized Intelligent Cooperative
