@@ -2,9 +2,17 @@
 
 # Project VOLPAROSSA Mail
 
-Thunderbird integration for the VOLPAROSSA **Decentralized Intelligent Cooperative
-Network**: familiar mail accounts, cooperative intelligence and a path toward private,
-decentralized delivery and self-hosted mail.
+**Keep your email address. Work toward more control over how mail arrives and stays.**
+
+Changing mail infrastructure should not require abandoning the accounts and
+contacts you already use. VOLPAROSSA Mail builds on Thunderbird, aiming to keep
+ordinary email alongside encrypted delivery between compatible participants and
+an owner-controlled mailbox using Stalwart.
+
+The reusable [VOLPAROSSA core](https://github.com/VOLPAROSSA/volparossa) is intended
+to handle peer delivery, encrypted offline custody and cooperative intelligence.
+A real Stalwart mailbox round trip has passed; joining those pieces in the actual
+Thunderbird interface remains work for contributors who care about usable mail.
 
 **Development integration, not a finished mail client.** No production account, mail
 server, DNS record or network participation is activated by this repository.
