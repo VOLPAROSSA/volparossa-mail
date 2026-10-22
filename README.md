@@ -1,6 +1,6 @@
 ![VOLPAROSSA Mail banner with a fox and sealed envelope in a vintage postage-stamp design](docs/assets/banner-volparossa-mail.png)
 
-# Project VOLPAROSSA Mail
+# VOLPAROSSA Mail
 
 **Keep your email address. Work toward more control over how mail arrives and stays.**
 
