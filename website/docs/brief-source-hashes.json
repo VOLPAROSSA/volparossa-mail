@@ -1,0 +1,13 @@
+{
+  "MANIFEST.sha256": "fc1fced68597a1cab346672ca5798e4e2360546ad0a2f4bcab0e1c711379b01e",
+  "ASSET-BRIEF.txt": "df7e85103f9547528d5cda56a9b2106a5f3bb2916cdfbcc954fef29bde99e9a2",
+  "ACCEPTANCE-CHECKLIST.txt": "c0627462fc28153e3ec273f18f58960abd54f9ea60f08c147f40ebb924526478",
+  "START-HERE.txt": "76e027a575ebd7ca743bf2f67093e32bf52cf9fd9b03e5c2143d9f69780c67a2",
+  "BUILD-INSTRUCTIONS.txt": "232e5b25ae58f5957f9e876122ccc9843a628836a8a24cf3c807774fc7ea5cd3",
+  "SOURCES.txt": "6b6846c3f10625efc135597db00b735346e3e499ca0a75e54bf6512eb652386e",
+  "CONTENT-BOUNDARIES.txt": "6cc04a3b7db8d20d0ba4af93c157e65dd606b00f6bc802000e6faabf1988f62a",
+  "references/mail-mesh-mobile.svg": "074bbdc99de49750d206f3d3a0ef632c4f7b36255f46e2d8882c681a66dd801d",
+  "references/01-harbour-of-letters-original.png": "39f115019e0e4a45d94fe925e852ebc62e57ffc215b50005e1b0746e4d809a3c",
+  "references/mail-mesh-desktop.svg": "466762766bbd0175065fbef0fff787f0c3c8229656f90533a37af734923eccfc",
+  "references/mail-mesh.json": "b1eb126d3b8116537427fc134dd1bda59e16db8d81d64306d1a4045371cf678e"
+}

@@ -1,0 +1,3 @@
+Thunderbird is an upstream project. Its name and logo belong to their respective trademark owner. The unmodified product mark links to the official Thunderbird website. VOLPAROSSA Mail is independent and is not officially associated with Thunderbird or Mozilla.
+
+Source and applicable trademark policy are recorded in source.json. Trademark permission is distinct from open-source code licensing.

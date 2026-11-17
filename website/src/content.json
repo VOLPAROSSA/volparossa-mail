@@ -1,0 +1,10 @@
+{
+  "title": "VOLPAROSSA Mail | Your mail. More possibilities.",
+  "description": "Built on Thunderbird. Explore VOLPAROSSA Mail's developing peer delivery, optional Stalwart hosting and shared intelligence, with clear privacy boundaries.",
+  "repository": "https://github.com/VOLPAROSSA/volparossa-mail",
+  "docs_url": "https://volparossa.org/docs/#mail",
+  "social_alt": "A writing room overlooking a harbour at dusk, with a fox beside a sealed letter.",
+  "theme_commit": "f498f26a06bec792e809e77704b4802bf5f54fbb",
+  "evidence_url": "https://github.com/VOLPAROSSA/volparossa-mail/blob/main/third_party/stalwart-extension-smoke.json",
+  "theme_version": "1.0.3"
+}

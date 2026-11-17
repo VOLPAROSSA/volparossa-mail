@@ -1,0 +1,53 @@
+{
+  "width": 390,
+  "height": 844,
+  "deviceScaleFactor": 2,
+  "initial": 309158,
+  "full": 759500,
+  "images": [
+    {
+      "source": "http://127.0.0.1:8781/volparossa-mail/assets/logo.png",
+      "width": 168
+    },
+    {
+      "source": "http://127.0.0.1:8781/volparossa-mail/assets/mail/hero-harbour-mobile-768.avif",
+      "width": 390
+    },
+    {
+      "source": "http://127.0.0.1:8781/volparossa-mail/assets/upstream/thunderbird.png",
+      "width": 257
+    },
+    {
+      "source": "http://127.0.0.1:8781/volparossa-mail/assets/mail/delivery-harbour-mobile-768.avif",
+      "width": 390
+    },
+    {
+      "source": "http://127.0.0.1:8781/volparossa-mail/assets/mail/custody-encrypt-mobile-768.avif",
+      "width": 390
+    },
+    {
+      "source": "http://127.0.0.1:8781/volparossa-mail/assets/mail/custody-hold-mobile-768.avif",
+      "width": 390
+    },
+    {
+      "source": "http://127.0.0.1:8781/volparossa-mail/assets/mail/custody-retrieve-mobile-768.avif",
+      "width": 390
+    },
+    {
+      "source": "http://127.0.0.1:8781/volparossa-mail/assets/mail/own-mailbox-mobile-768.avif",
+      "width": 390
+    },
+    {
+      "source": "http://127.0.0.1:8781/volparossa-mail/assets/mail/shared-brain-harbour-mobile-768.avif",
+      "width": 390
+    },
+    {
+      "source": "http://127.0.0.1:8781/volparossa-mail/assets/mail/closing-harbour-mobile-768.avif",
+      "width": 390
+    },
+    {
+      "source": "http://127.0.0.1:8781/volparossa-mail/assets/logo.png",
+      "width": 168
+    }
+  ]
+}
