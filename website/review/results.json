@@ -1,0 +1,352 @@
+{
+  "checkedAt": "2026-11-17T17:10:03.451Z",
+  "url": "http://127.0.0.1:8781/volparossa-mail/",
+  "results": [
+    {
+      "engine": "chromium",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 1440,
+      "height": 900,
+      "initialTransfer": 465594,
+      "total": 814694,
+      "images": 651630,
+      "fonts": 47140,
+      "errors": [],
+      "failures": [],
+      "external": []
+    },
+    {
+      "engine": "chromium",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 390,
+      "height": 844,
+      "initialTransfer": 304872,
+      "total": 462474,
+      "images": 299410,
+      "fonts": 47140,
+      "errors": [],
+      "failures": [],
+      "external": []
+    },
+    {
+      "engine": "chromium",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 320,
+      "height": 740,
+      "initialTransfer": 262399,
+      "total": 462474,
+      "images": 299410,
+      "fonts": 47140,
+      "errors": [],
+      "failures": [],
+      "external": []
+    },
+    {
+      "engine": "chromium",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 768,
+      "height": 1024,
+      "initialTransfer": 407405,
+      "total": 759681,
+      "images": 596617,
+      "fonts": 47140,
+      "errors": [],
+      "failures": [],
+      "external": []
+    },
+    {
+      "engine": "chromium",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 1920,
+      "height": 1080,
+      "initialTransfer": 711871,
+      "total": 941460,
+      "images": 778396,
+      "fonts": 47140,
+      "errors": [],
+      "failures": [],
+      "external": []
+    },
+    {
+      "engine": "chromium",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 844,
+      "height": 390,
+      "initialTransfer": 309339,
+      "total": 759681,
+      "images": 596617,
+      "fonts": 47140,
+      "errors": [],
+      "failures": [],
+      "external": []
+    },
+    {
+      "type": "no-js",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 390,
+      "height": 900,
+      "passed": true
+    },
+    {
+      "type": "text-200-percent",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 1440,
+      "height": 900,
+      "passed": true
+    },
+    {
+      "type": "zoom-400-percent",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 320,
+      "height": 225,
+      "passed": true
+    },
+    {
+      "type": "images-disabled",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [
+        "http://127.0.0.1:8781/volparossa-mail/assets/logo.png",
+        "http://127.0.0.1:8781/volparossa-mail/assets/mail/hero-harbour-mobile-480.avif",
+        "http://127.0.0.1:8781/volparossa-mail/assets/upstream/thunderbird.png",
+        "http://127.0.0.1:8781/volparossa-mail/assets/mail/delivery-harbour-mobile-480.avif",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        "http://127.0.0.1:8781/volparossa-mail/assets/logo.png"
+      ],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 390,
+      "height": 900,
+      "passed": true
+    },
+    {
+      "engine": "firefox",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 390,
+      "height": 844,
+      "initialTransfer": 217100,
+      "total": 462474,
+      "images": 299410,
+      "fonts": 47140,
+      "errors": [],
+      "failures": [],
+      "external": []
+    },
+    {
+      "engine": "firefox",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 1440,
+      "height": 900,
+      "initialTransfer": 330719,
+      "total": 814694,
+      "images": 651630,
+      "fonts": 47140,
+      "errors": [],
+      "failures": [],
+      "external": []
+    },
+    {
+      "engine": "firefox",
+      "overflow": false,
+      "headerOverlap": false,
+      "missingImages": [],
+      "interfaceFits": true,
+      "meshPlaneAligned": true,
+      "upstreamClear": true,
+      "ordinaryLabelsClear": true,
+      "meshNodes": [
+        {
+          "peers": 6,
+          "edges": 11,
+          "endpoints": 2
+        }
+      ],
+      "width": 2560,
+      "height": 1440,
+      "initialTransfer": 536907,
+      "total": 1157135,
+      "images": 994071,
+      "fonts": 47140,
+      "errors": [],
+      "failures": [],
+      "external": []
+    }
+  ],
+  "accessibility": [
+    {
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "expanded": true,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "violations": []
+    },
+    {
+      "width": 390,
+      "expanded": true,
+      "violations": []
+    }
+  ]
+}

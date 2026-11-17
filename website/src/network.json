@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "purpose": "Illustration of possible routes, not a runtime network or delivery guarantee",
+  "directed": false,
+  "nodes": [
+    {
+      "id": "sender",
+      "label": "Sender",
+      "role": "endpoint",
+      "desktop": [
+        90,
+        270
+      ],
+      "mobile": [
+        210,
+        70
+      ]
+    },
+    {
+      "id": "a",
+      "label": "Peer A",
+      "role": "peer",
+      "desktop": [
+        220,
+        100
+      ],
+      "mobile": [
+        85,
+        200
+      ]
+    },
+    {
+      "id": "b",
+      "label": "Peer B",
+      "role": "peer",
+      "desktop": [
+        450,
+        70
+      ],
+      "mobile": [
+        85,
+        340
+      ]
+    },
+    {
+      "id": "c",
+      "label": "Peer C",
+      "role": "peer",
+      "desktop": [
+        680,
+        100
+      ],
+      "mobile": [
+        85,
+        480
+      ]
+    },
+    {
+      "id": "recipient",
+      "label": "Recipient",
+      "role": "endpoint",
+      "desktop": [
+        810,
+        270
+      ],
+      "mobile": [
+        210,
+        620
+      ]
+    },
+    {
+      "id": "f",
+      "label": "Peer F",
+      "role": "peer",
+      "desktop": [
+        680,
+        430
+      ],
+      "mobile": [
+        335,
+        480
+      ]
+    },
+    {
+      "id": "e",
+      "label": "Peer E",
+      "role": "peer",
+      "desktop": [
+        450,
+        460
+      ],
+      "mobile": [
+        335,
+        340
+      ]
+    },
+    {
+      "id": "d",
+      "label": "Peer D",
+      "role": "peer",
+      "desktop": [
+        220,
+        430
+      ],
+      "mobile": [
+        335,
+        200
+      ]
+    }
+  ],
+  "edges": [
+    [
+      "sender",
+      "a"
+    ],
+    [
+      "a",
+      "b"
+    ],
+    [
+      "b",
+      "c"
+    ],
+    [
+      "c",
+      "recipient"
+    ],
+    [
+      "recipient",
+      "f"
+    ],
+    [
+      "f",
+      "e"
+    ],
+    [
+      "e",
+      "d"
+    ],
+    [
+      "d",
+      "sender"
+    ],
+    [
+      "a",
+      "d"
+    ],
+    [
+      "b",
+      "e"
+    ],
+    [
+      "c",
+      "f"
+    ]
+  ],
+  "example_routes": [
+    {
+      "id": "route-one",
+      "nodes": [
+        "sender",
+        "a",
+        "b",
+        "c",
+        "recipient"
+      ],
+      "display": "solid"
+    },
+    {
+      "id": "route-two",
+      "nodes": [
+        "sender",
+        "d",
+        "e",
+        "f",
+        "recipient"
+      ],
+      "display": "dashed"
+    }
+  ],
+  "requirements": [
+    "Preserve all nodes and edges in both layouts",
+    "Six equal peers and two endpoints",
+    "Two internally node-disjoint example routes",
+    "No single peer is required by every sender-to-recipient route",
+    "Show development status and illustrative scope",
+    "Keep message envelope decoration out of the role of central hub"
+  ]
+}

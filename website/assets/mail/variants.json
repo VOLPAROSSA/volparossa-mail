@@ -1,0 +1,290 @@
+{
+  "hero-harbour": {
+    "desktop": [
+      {
+        "stem": "hero-harbour-desktop-640",
+        "width": 640,
+        "height": 320
+      },
+      {
+        "stem": "hero-harbour-desktop-960",
+        "width": 960,
+        "height": 480
+      },
+      {
+        "stem": "hero-harbour-desktop-1440",
+        "width": 1440,
+        "height": 720
+      },
+      {
+        "stem": "hero-harbour-desktop-1774",
+        "width": 1774,
+        "height": 887
+      }
+    ],
+    "mobile": [
+      {
+        "stem": "hero-harbour-mobile-480",
+        "width": 480,
+        "height": 640
+      },
+      {
+        "stem": "hero-harbour-mobile-768",
+        "width": 768,
+        "height": 1024
+      }
+    ]
+  },
+  "delivery-harbour": {
+    "desktop": [
+      {
+        "stem": "delivery-harbour-desktop-640",
+        "width": 640,
+        "height": 364
+      },
+      {
+        "stem": "delivery-harbour-desktop-960",
+        "width": 960,
+        "height": 546
+      },
+      {
+        "stem": "delivery-harbour-desktop-1440",
+        "width": 1440,
+        "height": 819
+      },
+      {
+        "stem": "delivery-harbour-desktop-1663",
+        "width": 1663,
+        "height": 946
+      }
+    ],
+    "mobile": [
+      {
+        "stem": "delivery-harbour-mobile-480",
+        "width": 480,
+        "height": 647
+      },
+      {
+        "stem": "delivery-harbour-mobile-768",
+        "width": 768,
+        "height": 1035
+      }
+    ]
+  },
+  "custody-encrypt": {
+    "desktop": [
+      {
+        "stem": "custody-encrypt-desktop-640",
+        "width": 640,
+        "height": 480
+      },
+      {
+        "stem": "custody-encrypt-desktop-960",
+        "width": 960,
+        "height": 720
+      },
+      {
+        "stem": "custody-encrypt-desktop-1440",
+        "width": 1440,
+        "height": 1080
+      },
+      {
+        "stem": "custody-encrypt-desktop-1448",
+        "width": 1448,
+        "height": 1086
+      }
+    ],
+    "mobile": [
+      {
+        "stem": "custody-encrypt-mobile-480",
+        "width": 480,
+        "height": 360
+      },
+      {
+        "stem": "custody-encrypt-mobile-768",
+        "width": 768,
+        "height": 576
+      }
+    ]
+  },
+  "custody-hold": {
+    "desktop": [
+      {
+        "stem": "custody-hold-desktop-640",
+        "width": 640,
+        "height": 480
+      },
+      {
+        "stem": "custody-hold-desktop-960",
+        "width": 960,
+        "height": 720
+      },
+      {
+        "stem": "custody-hold-desktop-1440",
+        "width": 1440,
+        "height": 1080
+      },
+      {
+        "stem": "custody-hold-desktop-1448",
+        "width": 1448,
+        "height": 1086
+      }
+    ],
+    "mobile": [
+      {
+        "stem": "custody-hold-mobile-480",
+        "width": 480,
+        "height": 360
+      },
+      {
+        "stem": "custody-hold-mobile-768",
+        "width": 768,
+        "height": 576
+      }
+    ]
+  },
+  "custody-retrieve": {
+    "desktop": [
+      {
+        "stem": "custody-retrieve-desktop-640",
+        "width": 640,
+        "height": 480
+      },
+      {
+        "stem": "custody-retrieve-desktop-960",
+        "width": 960,
+        "height": 720
+      },
+      {
+        "stem": "custody-retrieve-desktop-1440",
+        "width": 1440,
+        "height": 1080
+      },
+      {
+        "stem": "custody-retrieve-desktop-1448",
+        "width": 1448,
+        "height": 1086
+      }
+    ],
+    "mobile": [
+      {
+        "stem": "custody-retrieve-mobile-480",
+        "width": 480,
+        "height": 360
+      },
+      {
+        "stem": "custody-retrieve-mobile-768",
+        "width": 768,
+        "height": 576
+      }
+    ]
+  },
+  "own-mailbox": {
+    "desktop": [
+      {
+        "stem": "own-mailbox-desktop-640",
+        "width": 640,
+        "height": 320
+      },
+      {
+        "stem": "own-mailbox-desktop-960",
+        "width": 960,
+        "height": 480
+      },
+      {
+        "stem": "own-mailbox-desktop-1440",
+        "width": 1440,
+        "height": 720
+      },
+      {
+        "stem": "own-mailbox-desktop-1774",
+        "width": 1774,
+        "height": 887
+      }
+    ],
+    "mobile": [
+      {
+        "stem": "own-mailbox-mobile-480",
+        "width": 480,
+        "height": 473
+      },
+      {
+        "stem": "own-mailbox-mobile-768",
+        "width": 768,
+        "height": 757
+      }
+    ]
+  },
+  "shared-brain-harbour": {
+    "desktop": [
+      {
+        "stem": "shared-brain-harbour-desktop-640",
+        "width": 640,
+        "height": 427
+      },
+      {
+        "stem": "shared-brain-harbour-desktop-960",
+        "width": 960,
+        "height": 640
+      },
+      {
+        "stem": "shared-brain-harbour-desktop-1440",
+        "width": 1440,
+        "height": 960
+      },
+      {
+        "stem": "shared-brain-harbour-desktop-1536",
+        "width": 1536,
+        "height": 1024
+      }
+    ],
+    "mobile": [
+      {
+        "stem": "shared-brain-harbour-mobile-480",
+        "width": 480,
+        "height": 320
+      },
+      {
+        "stem": "shared-brain-harbour-mobile-768",
+        "width": 768,
+        "height": 512
+      }
+    ]
+  },
+  "closing-harbour": {
+    "desktop": [
+      {
+        "stem": "closing-harbour-desktop-640",
+        "width": 640,
+        "height": 237
+      },
+      {
+        "stem": "closing-harbour-desktop-960",
+        "width": 960,
+        "height": 356
+      },
+      {
+        "stem": "closing-harbour-desktop-1440",
+        "width": 1440,
+        "height": 534
+      },
+      {
+        "stem": "closing-harbour-desktop-2059",
+        "width": 2059,
+        "height": 764
+      }
+    ],
+    "mobile": [
+      {
+        "stem": "closing-harbour-mobile-480",
+        "width": 480,
+        "height": 640
+      },
+      {
+        "stem": "closing-harbour-mobile-768",
+        "width": 768,
+        "height": 1024
+      }
+    ]
+  }
+}

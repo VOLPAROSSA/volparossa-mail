@@ -1,0 +1,1252 @@
+{
+  "compositions": {
+    "hero-harbour": {
+      "desktop": {
+        "master": "hero-harbour.png",
+        "crop": [
+          0,
+          0,
+          1774,
+          887
+        ]
+      },
+      "mobile": {
+        "master": "hero-harbour-mobile.png",
+        "crop": [
+          0,
+          0,
+          1086,
+          1448
+        ]
+      }
+    },
+    "delivery-harbour": {
+      "desktop": {
+        "master": "delivery-harbour.png",
+        "crop": [
+          0,
+          0,
+          1663,
+          946
+        ]
+      },
+      "mobile": {
+        "master": "delivery-harbour-mobile.png",
+        "crop": [
+          0,
+          0,
+          1080,
+          1456
+        ]
+      }
+    },
+    "custody-encrypt": {
+      "desktop": {
+        "master": "custody-encrypt.png",
+        "crop": [
+          0,
+          0,
+          1448,
+          1086
+        ]
+      },
+      "mobile": {
+        "master": "custody-encrypt.png",
+        "crop": [
+          0,
+          0,
+          1448,
+          1086
+        ]
+      }
+    },
+    "custody-hold": {
+      "desktop": {
+        "master": "custody-hold.png",
+        "crop": [
+          0,
+          0,
+          1448,
+          1086
+        ]
+      },
+      "mobile": {
+        "master": "custody-hold.png",
+        "crop": [
+          0,
+          0,
+          1448,
+          1086
+        ]
+      }
+    },
+    "custody-retrieve": {
+      "desktop": {
+        "master": "custody-retrieve.png",
+        "crop": [
+          0,
+          0,
+          1448,
+          1086
+        ]
+      },
+      "mobile": {
+        "master": "custody-retrieve.png",
+        "crop": [
+          0,
+          0,
+          1448,
+          1086
+        ]
+      }
+    },
+    "own-mailbox": {
+      "desktop": {
+        "master": "own-mailbox.png",
+        "crop": [
+          0,
+          0,
+          1774,
+          887
+        ]
+      },
+      "mobile": {
+        "master": "own-mailbox.png",
+        "crop": [
+          0,
+          0,
+          900,
+          887
+        ]
+      }
+    },
+    "shared-brain-harbour": {
+      "desktop": {
+        "master": "shared-brain-harbour.png",
+        "crop": [
+          0,
+          0,
+          1536,
+          1024
+        ]
+      },
+      "mobile": {
+        "master": "shared-brain-harbour.png",
+        "crop": [
+          0,
+          0,
+          1536,
+          1024
+        ]
+      }
+    },
+    "closing-harbour": {
+      "desktop": {
+        "master": "closing-harbour.png",
+        "crop": [
+          0,
+          0,
+          2059,
+          764
+        ]
+      },
+      "mobile": {
+        "master": "closing-harbour-mobile.png",
+        "crop": [
+          0,
+          0,
+          1086,
+          1448
+        ]
+      }
+    }
+  },
+  "files": {
+    "masters/closing-harbour-mobile.png": {
+      "bytes": 2603313,
+      "sha256": "e6c95fa6f4da0251612ac340239deae8bd236b4247de629eb764be926e64a1b8",
+      "width": 1086,
+      "height": 1448
+    },
+    "masters/closing-harbour.png": {
+      "bytes": 2560146,
+      "sha256": "129d88011355ad565b94dc72f7d88a67e2ec093a6579b335405b503b9573eea9",
+      "width": 2059,
+      "height": 764
+    },
+    "masters/custody-encrypt.png": {
+      "bytes": 2316725,
+      "sha256": "faf9ceb6b5bbc6e21d77ded4a04ed246e1fb226325d4ec34da180bccdf6abcac",
+      "width": 1448,
+      "height": 1086
+    },
+    "masters/custody-hold.png": {
+      "bytes": 2651682,
+      "sha256": "01e24c2a4689b63a9db11393d080c343c185cf37559e1266ea2f29738112e5a3",
+      "width": 1448,
+      "height": 1086
+    },
+    "masters/custody-retrieve.png": {
+      "bytes": 2325679,
+      "sha256": "e39584cded96125ecc72674e21384d58e6646a04cae88005cccd9ce8a066c079",
+      "width": 1448,
+      "height": 1086
+    },
+    "masters/delivery-harbour-mobile.png": {
+      "bytes": 2581822,
+      "sha256": "1972cd096393f86cb786a56d61928d0b71835f8d3baa370d16f949931b5f427d",
+      "width": 1080,
+      "height": 1456
+    },
+    "masters/delivery-harbour.png": {
+      "bytes": 2719917,
+      "sha256": "96e9f71862487142a9b3fadc22c4fbff7f7d2106818998937c1239a13a9795b8",
+      "width": 1663,
+      "height": 946
+    },
+    "masters/design-reference.png": {
+      "bytes": 2681604,
+      "sha256": "39f115019e0e4a45d94fe925e852ebc62e57ffc215b50005e1b0746e4d809a3c",
+      "width": 793,
+      "height": 1983
+    },
+    "masters/generated-sources.json": {
+      "bytes": 1471,
+      "sha256": "7cff6295328bf05eb2380d0687fd43932dcca0ca266137fcf27510a878090b34"
+    },
+    "masters/generation.json": {
+      "bytes": 11741,
+      "sha256": "97d0d8a1e4a7d4b6b5ed7eee82d8b5a8b08b8ec42e6c3dc60e6ea2f6c5e69e91"
+    },
+    "masters/hero-harbour-mobile.png": {
+      "bytes": 2623257,
+      "sha256": "e2676cbecede433dd58607613aaa74f6dc366e54579ea26eeb5a56b0251494af",
+      "width": 1086,
+      "height": 1448
+    },
+    "masters/hero-harbour.png": {
+      "bytes": 2587804,
+      "sha256": "3fcef08f1ff3fca820daee5125fd64d13040be90e862d1cf2027dc23b01163e0",
+      "width": 1774,
+      "height": 887
+    },
+    "masters/mailbox-correction.json": {
+      "bytes": 1025,
+      "sha256": "d1aa04ab5db3d7c745697816fd7624b75397aab1d1923496bd0cc056eb889622"
+    },
+    "masters/own-mailbox-initial.png": {
+      "bytes": 2512218,
+      "sha256": "9190c2ebf9fb127f2facc2dd36b1b56509a8a7b670270b859dc0abc20f483195",
+      "width": 1774,
+      "height": 887
+    },
+    "masters/own-mailbox.png": {
+      "bytes": 2301450,
+      "sha256": "0333132faba882fa7d1fbe8374dbbf1d92e07aa9dcac05c4aaa2e008e9110362",
+      "width": 1774,
+      "height": 887
+    },
+    "masters/shared-brain-harbour.png": {
+      "bytes": 2877683,
+      "sha256": "26ea81d06eac9ed81a855f5b8dcd75a52ccad765b8276ba06c6e667f6945ebc8",
+      "width": 1536,
+      "height": 1024
+    },
+    "masters/social.html": {
+      "bytes": 1393,
+      "sha256": "8f40ae1dd6bc7aa459eb28dff85ce332d543870df32b73f24f546ea0f66da93d"
+    },
+    "assets/icons/lucide/LICENSE": {
+      "bytes": 3208,
+      "sha256": "b495047bd93a9b06913511076f504daba17d5bbeb3e0650f3bb53a4220329c57"
+    },
+    "assets/icons/lucide/archive.svg": {
+      "bytes": 340,
+      "sha256": "78c732e34e232db63af06a2330b4448045cfdf49b48b59f2d31922df54c7bb17"
+    },
+    "assets/icons/lucide/arrow-left-right.svg": {
+      "bytes": 313,
+      "sha256": "2d64da427cbb3f14e522658459903829575b09ec15162c1a69ea6ad341a4359a"
+    },
+    "assets/icons/lucide/brain-circuit.svg": {
+      "bytes": 744,
+      "sha256": "134231b12f68aca2943d6a7a6aa891dd2e26d89b5658a2c78c7094fbe29797e9"
+    },
+    "assets/icons/lucide/circle-check.svg": {
+      "bytes": 278,
+      "sha256": "9711e045a5999f8a3b0782eb88e09b04e0559bc7b379dcc0a4ae645223e10345"
+    },
+    "assets/icons/lucide/clock-3.svg": {
+      "bytes": 269,
+      "sha256": "0e097d0b66278965fb53bc14900575d95f5c21b9cca932028bbb33294b56c9e2"
+    },
+    "assets/icons/lucide/database.svg": {
+      "bytes": 329,
+      "sha256": "471eb14bc8d144896a82dfc4aa9daf350f769f0896f4bef33e50aabdbb51130d"
+    },
+    "assets/icons/lucide/git-merge.svg": {
+      "bytes": 313,
+      "sha256": "1199a8738328e9faa9d1e18b4053e6849a473aa9456117006c92681f6d547477"
+    },
+    "assets/icons/lucide/globe.svg": {
+      "bytes": 331,
+      "sha256": "82c6b8fa0b8e8d775ec9becd86f74a4e50bff7bee4c81f7362de45348504f14d"
+    },
+    "assets/icons/lucide/key-round.svg": {
+      "bytes": 453,
+      "sha256": "f8cdea843754ed360e36b04bf6aa2c2b3610935dd39ffc685a36c4d0a05be248"
+    },
+    "assets/icons/lucide/laptop.svg": {
+      "bytes": 405,
+      "sha256": "b8389056d3b7125670b60a4bd03e6d4ecc440e228f4140e7b66c4e97dcb0dc70"
+    },
+    "assets/icons/lucide/layers.svg": {
+      "bytes": 510,
+      "sha256": "ce16d0a955e3581cda17f6b2fd5c5bc2034b405f9cecc31c8ebb8495b4afc1bb"
+    },
+    "assets/icons/lucide/lock-keyhole.svg": {
+      "bytes": 337,
+      "sha256": "fc0b8b7590d1d9e9bb0112c5c2e15a78ade0bfeca6d6f8c79fbbe149236d74be"
+    },
+    "assets/icons/lucide/message-circle.svg": {
+      "bytes": 347,
+      "sha256": "146f39740fe50844394d56ae1f8821937655bcfff3842bf6fe8ffc0bcd324076"
+    },
+    "assets/icons/lucide/mic.svg": {
+      "bytes": 326,
+      "sha256": "9b940cd735d1ffa270ba670c4e677d9a09400f3fa81d6b3f405b12a3b67a59a8"
+    },
+    "assets/icons/lucide/network.svg": {
+      "bytes": 445,
+      "sha256": "626be730feea1e5ea7539fbf78b4a3fcb927ce5d7dc43364f2216908672ac792"
+    },
+    "assets/icons/lucide/phone.svg": {
+      "bytes": 437,
+      "sha256": "bd59dd10667cbe410a69e2fbbf4d9645d08abe862c8d89082bd4f533957859a8"
+    },
+    "assets/icons/lucide/settings.svg": {
+      "bytes": 586,
+      "sha256": "0ae27fd0f81999229e3127ac96c5b32edfea448e291d509e76212b917551d66b"
+    },
+    "assets/icons/lucide/shield-check.svg": {
+      "bytes": 415,
+      "sha256": "8d4fcdbde5bba4abb1a2f6fe53e37ceb6343a1d5449a9d88f6f97c1971d26c4e"
+    },
+    "assets/icons/lucide/source.json": {
+      "bytes": 5604,
+      "sha256": "5fa1508707a52630995aeeccf38b8b9dfadb278f37c0119eec3fa6b5e273ad75"
+    },
+    "assets/icons/lucide/sparkles.svg": {
+      "bytes": 567,
+      "sha256": "f5499f33f09d7158151e9bd2ec0faf79ff8fb57292f84fdd7286d96d0f0424d8"
+    },
+    "assets/icons/lucide/user-round.svg": {
+      "bytes": 279,
+      "sha256": "84870f26f3faf8da45da84174517519e81b9e8f00319c78954fcbb74f50038a1"
+    },
+    "assets/icons/lucide/users.svg": {
+      "bytes": 383,
+      "sha256": "eeed488a1ec95ba730dd69996536fb65061d6ea273afb2429ae47e65eebf401c"
+    },
+    "assets/icons/lucide/video.svg": {
+      "bytes": 350,
+      "sha256": "d4fb6587f282c1152b953fe9494cd8ccafdf1e9f44957fbb7fe8dc7af0457597"
+    },
+    "assets/icons/lucide/waypoints.svg": {
+      "bytes": 453,
+      "sha256": "97f4eefc2548f3886749778befcdfb0620c8d9619799cbe3f1d2bb566b67dea9"
+    },
+    "assets/mail/closing-harbour-desktop-1440.avif": {
+      "bytes": 84126,
+      "sha256": "5e82b78e71e25c98f685bf4490442e65fa355675296440157ea25a89e413d3e0",
+      "width": 1440,
+      "height": 534
+    },
+    "assets/mail/closing-harbour-desktop-1440.jpg": {
+      "bytes": 181099,
+      "sha256": "5506de5c546e3c8c8dc5260d0a7f66be3ffed334e3d3d648b83d54025100d5a1",
+      "width": 1440,
+      "height": 534
+    },
+    "assets/mail/closing-harbour-desktop-1440.webp": {
+      "bytes": 147920,
+      "sha256": "7b22c969eb9f3abcb624c8b52cc6d2afe26cd0885a00e762ca6dc2e3072104cb",
+      "width": 1440,
+      "height": 534
+    },
+    "assets/mail/closing-harbour-desktop-2059.avif": {
+      "bytes": 145295,
+      "sha256": "b4c4669ecbc2680ee45d77b6c5635ad7fc4a4be95797410aa750326cc6c99225",
+      "width": 2059,
+      "height": 764
+    },
+    "assets/mail/closing-harbour-desktop-2059.jpg": {
+      "bytes": 328415,
+      "sha256": "ccf5c776d3e9ffb5a31cbb62f61eb0b6d9677705a50e00df430aa99795c7ef56",
+      "width": 2059,
+      "height": 764
+    },
+    "assets/mail/closing-harbour-desktop-2059.webp": {
+      "bytes": 245146,
+      "sha256": "8e13373f6c264f11a6c2223c9a7a31fd88949ab2ebe4f76c69586f7e22799627",
+      "width": 2059,
+      "height": 764
+    },
+    "assets/mail/closing-harbour-desktop-640.avif": {
+      "bytes": 20268,
+      "sha256": "1a2fbb256f2ec59bc6d01ecb8ab70c6a0b2b57b45fbe9e0d4cec7727568fb348",
+      "width": 640,
+      "height": 237
+    },
+    "assets/mail/closing-harbour-desktop-640.jpg": {
+      "bytes": 41770,
+      "sha256": "a9fd36818d95623a2815c1bcef910ee579778d3709562ea99c7b6c7982930272",
+      "width": 640,
+      "height": 237
+    },
+    "assets/mail/closing-harbour-desktop-640.webp": {
+      "bytes": 37420,
+      "sha256": "713be8a6a5cd8560abe48ee46f0dd3dadc4aaa148909c71840b64594aa43445d",
+      "width": 640,
+      "height": 237
+    },
+    "assets/mail/closing-harbour-desktop-960.avif": {
+      "bytes": 42325,
+      "sha256": "99c666aeff9ff9c8b1ca848a5d03a922e8560bb5c4c22409fd7e77111670b89c",
+      "width": 960,
+      "height": 356
+    },
+    "assets/mail/closing-harbour-desktop-960.jpg": {
+      "bytes": 88173,
+      "sha256": "7f4f8c8734a35c9ce467ed416abec01f49a5f3a59d614d23dd92f46c001be724",
+      "width": 960,
+      "height": 356
+    },
+    "assets/mail/closing-harbour-desktop-960.webp": {
+      "bytes": 76452,
+      "sha256": "5aa85813acd0bfbe1ae465928a977536dea6b8ca107cf5cc77bba629fb186bb8",
+      "width": 960,
+      "height": 356
+    },
+    "assets/mail/closing-harbour-mobile-480.avif": {
+      "bytes": 38329,
+      "sha256": "e770ae686ac9385d1424c6cfca28f39e9cec2cfbb205476598b4ef030f3ffc26",
+      "width": 480,
+      "height": 640
+    },
+    "assets/mail/closing-harbour-mobile-480.jpg": {
+      "bytes": 80447,
+      "sha256": "d7bf3bd4493682ec3d3bdd0f07c5cacbccfa052baed4c07438f172950f2f0186",
+      "width": 480,
+      "height": 640
+    },
+    "assets/mail/closing-harbour-mobile-480.webp": {
+      "bytes": 72222,
+      "sha256": "0ff8a8118fc22560a6647d72d32f1285a00319640a5a2c3b14de822d08e09bb0",
+      "width": 480,
+      "height": 640
+    },
+    "assets/mail/closing-harbour-mobile-768.avif": {
+      "bytes": 87000,
+      "sha256": "467f3456acf5e57080e042c8717fb600231cd153ecc59c16c18b86e4a6cf1628",
+      "width": 768,
+      "height": 1024
+    },
+    "assets/mail/closing-harbour-mobile-768.jpg": {
+      "bytes": 189071,
+      "sha256": "37b67712707a5bdc3d4216ad91df476ef8b01d223bec57e85c4eb9d4691b7df1",
+      "width": 768,
+      "height": 1024
+    },
+    "assets/mail/closing-harbour-mobile-768.webp": {
+      "bytes": 159854,
+      "sha256": "f41a94d31bb0ab4ad223ba5102a76fb5657733002b0aad8217d71fa64aa54d5e",
+      "width": 768,
+      "height": 1024
+    },
+    "assets/mail/credits.html": {
+      "bytes": 2239,
+      "sha256": "6f397b1365944ae023e608f6a18fa4c51c803ef02eb52cb0ba5089e49003fa7c"
+    },
+    "assets/mail/custody-encrypt-desktop-1440.avif": {
+      "bytes": 110923,
+      "sha256": "7df7e93dbff367c3b733c2960af38caceb192db7b12d116448a672a20cd4b8b5",
+      "width": 1440,
+      "height": 1080
+    },
+    "assets/mail/custody-encrypt-desktop-1440.jpg": {
+      "bytes": 274860,
+      "sha256": "6242001a2964289c8a4a668c93f5f7b77f1d9de0e5b5fdae88d85213f33599b0",
+      "width": 1440,
+      "height": 1080
+    },
+    "assets/mail/custody-encrypt-desktop-1440.webp": {
+      "bytes": 194076,
+      "sha256": "bae8e00699ae660dc48f973f36c8a38c1e3bfeff84be02a884e6bb0d6aeb7ba3",
+      "width": 1440,
+      "height": 1080
+    },
+    "assets/mail/custody-encrypt-desktop-1448.avif": {
+      "bytes": 111757,
+      "sha256": "d9ab73287d9136f7977355d7231632d69bdd217d3c13beda52712d670ffcf2bf",
+      "width": 1448,
+      "height": 1086
+    },
+    "assets/mail/custody-encrypt-desktop-1448.jpg": {
+      "bytes": 276890,
+      "sha256": "817e424cb484d4c8efebbc862170e3f4742150641aaeb3024cafbd18199b9364",
+      "width": 1448,
+      "height": 1086
+    },
+    "assets/mail/custody-encrypt-desktop-1448.webp": {
+      "bytes": 195990,
+      "sha256": "ec7e8fef4c935112a4f91ed75d6799a8603e8a2ce8ccc9e8fdec4e88f30744d1",
+      "width": 1448,
+      "height": 1086
+    },
+    "assets/mail/custody-encrypt-desktop-640.avif": {
+      "bytes": 30605,
+      "sha256": "bb18641b0d56885c2e64e89e304ce0b35f0e67a5046028a213e433e44c36e683",
+      "width": 640,
+      "height": 480
+    },
+    "assets/mail/custody-encrypt-desktop-640.jpg": {
+      "bytes": 71945,
+      "sha256": "100286feb63d674536e995201125bc75272bb66072f1698dfbdd779f81761fff",
+      "width": 640,
+      "height": 480
+    },
+    "assets/mail/custody-encrypt-desktop-640.webp": {
+      "bytes": 57442,
+      "sha256": "f62cfe72547d072776fd0199c4d60f2b95427463766fc7c5ace86d11aa90ebbd",
+      "width": 640,
+      "height": 480
+    },
+    "assets/mail/custody-encrypt-desktop-960.avif": {
+      "bytes": 60126,
+      "sha256": "bef467009b0f3d95a53aa59267b2e1dfecbcbbb580beb9955f406aa0bbdeea24",
+      "width": 960,
+      "height": 720
+    },
+    "assets/mail/custody-encrypt-desktop-960.jpg": {
+      "bytes": 142784,
+      "sha256": "e4071f3a7621afc09ecb87123d257a37e7ad2b327bfe8006390e085e329c1921",
+      "width": 960,
+      "height": 720
+    },
+    "assets/mail/custody-encrypt-desktop-960.webp": {
+      "bytes": 109258,
+      "sha256": "8a4c25459b5f9950ac8b72797403c9dbd28eea50b69157a24bfb7022430c0e3c",
+      "width": 960,
+      "height": 720
+    },
+    "assets/mail/custody-encrypt-mobile-480.avif": {
+      "bytes": 19404,
+      "sha256": "30e3889fe9cee32a1376545bbe0a6cd1109e8be14d3643a61c5ce47ee030b8f2",
+      "width": 480,
+      "height": 360
+    },
+    "assets/mail/custody-encrypt-mobile-480.jpg": {
+      "bytes": 44205,
+      "sha256": "b46bc19d31deba3750ddf00be06e0bc0c36e115dca44ddfcb4ff119ee7b54904",
+      "width": 480,
+      "height": 360
+    },
+    "assets/mail/custody-encrypt-mobile-480.webp": {
+      "bytes": 37144,
+      "sha256": "2b11fb38db9bfdf0612363329f3dd0911824d424fc4a96b1de3f107ff6f7daf7",
+      "width": 480,
+      "height": 360
+    },
+    "assets/mail/custody-encrypt-mobile-768.avif": {
+      "bytes": 41439,
+      "sha256": "edf95dc2aaf9beadbdcea07fb25a11033c614a092c9c308291b3154a678fb2ce",
+      "width": 768,
+      "height": 576
+    },
+    "assets/mail/custody-encrypt-mobile-768.jpg": {
+      "bytes": 98050,
+      "sha256": "21f2bb7971818eabf5fcb381b999aad5e06aef9ec86d803cf6a04e28a986c075",
+      "width": 768,
+      "height": 576
+    },
+    "assets/mail/custody-encrypt-mobile-768.webp": {
+      "bytes": 77876,
+      "sha256": "59c4ec0ab718a409d40d4d2974144cab21a8b972e2ad16bd33e91bd449763430",
+      "width": 768,
+      "height": 576
+    },
+    "assets/mail/custody-hold-desktop-1440.avif": {
+      "bytes": 154243,
+      "sha256": "df43827e8ca31839f089c39e4039a37de09966f272ae32b8187c66f152a08b90",
+      "width": 1440,
+      "height": 1080
+    },
+    "assets/mail/custody-hold-desktop-1440.jpg": {
+      "bytes": 353731,
+      "sha256": "013770e9e1b4ee2b6c0f730d7773a39d89a4077a1fafa8b29c1a787654f9c203",
+      "width": 1440,
+      "height": 1080
+    },
+    "assets/mail/custody-hold-desktop-1440.webp": {
+      "bytes": 281082,
+      "sha256": "75036de812d751a406c0ad6e2ac2ccf423b0394632314d7b70018c2703b26b3e",
+      "width": 1440,
+      "height": 1080
+    },
+    "assets/mail/custody-hold-desktop-1448.avif": {
+      "bytes": 155692,
+      "sha256": "fed095fab8aea1dbba2c4f21378ac44507e0af64c0d1821c276bd3c6bd3c80e6",
+      "width": 1448,
+      "height": 1086
+    },
+    "assets/mail/custody-hold-desktop-1448.jpg": {
+      "bytes": 357700,
+      "sha256": "d2f026a604210a642b2734acdfbf1096fd48842b37985613902db8b1c8d48a9e",
+      "width": 1448,
+      "height": 1086
+    },
+    "assets/mail/custody-hold-desktop-1448.webp": {
+      "bytes": 284358,
+      "sha256": "6d16f50238c8b4d4a96e026f01c3b39e0eca8a662b5f07b5aa7bd015f75d1339",
+      "width": 1448,
+      "height": 1086
+    },
+    "assets/mail/custody-hold-desktop-640.avif": {
+      "bytes": 42768,
+      "sha256": "775923a5c2b8b78cdd2f50b79b388ee2d97342fb0ac8ebe857386ec3c113fe31",
+      "width": 640,
+      "height": 480
+    },
+    "assets/mail/custody-hold-desktop-640.jpg": {
+      "bytes": 89870,
+      "sha256": "fdcbd4c7396d24e82ef9dfe6ac38227180ac297426f80349049832d7f34759f5",
+      "width": 640,
+      "height": 480
+    },
+    "assets/mail/custody-hold-desktop-640.webp": {
+      "bytes": 80976,
+      "sha256": "2c9717887ede1ab648a100ac386bd290eb28927b276861ef8c7292cc5ec965e5",
+      "width": 640,
+      "height": 480
+    },
+    "assets/mail/custody-hold-desktop-960.avif": {
+      "bytes": 85488,
+      "sha256": "fd0d6f05e1dc060d7f368064fa04250134755dae6ae2c9017f8ba796d3533879",
+      "width": 960,
+      "height": 720
+    },
+    "assets/mail/custody-hold-desktop-960.jpg": {
+      "bytes": 184271,
+      "sha256": "24802fdb68b2a5a5f52d751b45912acb76719ee26d48a1f15b960a339f36982b",
+      "width": 960,
+      "height": 720
+    },
+    "assets/mail/custody-hold-desktop-960.webp": {
+      "bytes": 158776,
+      "sha256": "357eb281007be3014d0fa264217011044891b78864ea13ef4bc21d2b7ea018ac",
+      "width": 960,
+      "height": 720
+    },
+    "assets/mail/custody-hold-mobile-480.avif": {
+      "bytes": 25467,
+      "sha256": "66c25b2d2222e0da50fe77dd2e65d444d51b470bb24749b4a778313b091bbcd3",
+      "width": 480,
+      "height": 360
+    },
+    "assets/mail/custody-hold-mobile-480.jpg": {
+      "bytes": 53264,
+      "sha256": "f746dc357bfea2d91362ca44426dcfb77c0dac45a5659c7af35af116e7f59f9c",
+      "width": 480,
+      "height": 360
+    },
+    "assets/mail/custody-hold-mobile-480.webp": {
+      "bytes": 50344,
+      "sha256": "9ffe6096530c2ab995fb514f6d970e77afaad2989b510bfb2ae6da328572f603",
+      "width": 480,
+      "height": 360
+    },
+    "assets/mail/custody-hold-mobile-768.avif": {
+      "bytes": 58867,
+      "sha256": "9d2ad9301774391cf8f4cc4f76a65b202496221288505c1acb05de1811e31882",
+      "width": 768,
+      "height": 576
+    },
+    "assets/mail/custody-hold-mobile-768.jpg": {
+      "bytes": 125019,
+      "sha256": "5109101700ddc14d4e75fba3c98319a32dd9385d49d130166acbabfae8388627",
+      "width": 768,
+      "height": 576
+    },
+    "assets/mail/custody-hold-mobile-768.webp": {
+      "bytes": 112084,
+      "sha256": "0093178ddbfa5ebe40031efd33b132d5884d28ef352f4bf48c3775491964c2db",
+      "width": 768,
+      "height": 576
+    },
+    "assets/mail/custody-retrieve-desktop-1440.avif": {
+      "bytes": 118634,
+      "sha256": "2b9d0abdd2ca25ac30d339abe87e8c33243f03709e4b456b1f8ae8c913238e16",
+      "width": 1440,
+      "height": 1080
+    },
+    "assets/mail/custody-retrieve-desktop-1440.jpg": {
+      "bytes": 283717,
+      "sha256": "fab700e71577f20698c63f82fa3f6e715d13d3085f084fbf577ab06c9a03c61a",
+      "width": 1440,
+      "height": 1080
+    },
+    "assets/mail/custody-retrieve-desktop-1440.webp": {
+      "bytes": 201332,
+      "sha256": "a94111643ff01f2657aa9cf82181d4c441b6e027199eb7739b9b25939559fc80",
+      "width": 1440,
+      "height": 1080
+    },
+    "assets/mail/custody-retrieve-desktop-1448.avif": {
+      "bytes": 120367,
+      "sha256": "ec9d33b35e8aab771910d41b5068952ac95161e20cdbbf756873129ce2d58a77",
+      "width": 1448,
+      "height": 1086
+    },
+    "assets/mail/custody-retrieve-desktop-1448.jpg": {
+      "bytes": 287058,
+      "sha256": "b0689e994359f0f0f64ee5432288d38c2574b5c053edf8bf59908b0512de9a46",
+      "width": 1448,
+      "height": 1086
+    },
+    "assets/mail/custody-retrieve-desktop-1448.webp": {
+      "bytes": 203330,
+      "sha256": "0e8f7d842599e135a5cc59c4d39e618beb951b7bed4f57b934975374a8e44c30",
+      "width": 1448,
+      "height": 1086
+    },
+    "assets/mail/custody-retrieve-desktop-640.avif": {
+      "bytes": 31141,
+      "sha256": "aebe62d967b4f0910bb181b93d57e8f1c3e884390731c3ca7f6fb27317bfec5c",
+      "width": 640,
+      "height": 480
+    },
+    "assets/mail/custody-retrieve-desktop-640.jpg": {
+      "bytes": 69696,
+      "sha256": "0c5e674b14f978740b3a10e7a3138dc290f6db409ab4bcbe0c4c0c039946bcf2",
+      "width": 640,
+      "height": 480
+    },
+    "assets/mail/custody-retrieve-desktop-640.webp": {
+      "bytes": 55824,
+      "sha256": "6bde92dcf7167a0c8a711383042e02a7bbbd199eefa37bc123f168c7925dda60",
+      "width": 640,
+      "height": 480
+    },
+    "assets/mail/custody-retrieve-desktop-960.avif": {
+      "bytes": 62689,
+      "sha256": "1394334828f663fa859e5f268e93d410c8f8af3200fda52f03e7cf57f405a6c1",
+      "width": 960,
+      "height": 720
+    },
+    "assets/mail/custody-retrieve-desktop-960.jpg": {
+      "bytes": 144225,
+      "sha256": "63ccb81ab9fa1b4cceb40658c99c24eca527f65d835820ae0d6cfff4f8943f86",
+      "width": 960,
+      "height": 720
+    },
+    "assets/mail/custody-retrieve-desktop-960.webp": {
+      "bytes": 111570,
+      "sha256": "1e3f90428f5ac0084845324f1cfd7b0ac44c8d40ca48303e2dc4685eaedce144",
+      "width": 960,
+      "height": 720
+    },
+    "assets/mail/custody-retrieve-mobile-480.avif": {
+      "bytes": 18825,
+      "sha256": "66f5379db69a47e1a3c3c45bfb8c5ea9a998e5f2ea09ddbe57cc8a7162ff58b0",
+      "width": 480,
+      "height": 360
+    },
+    "assets/mail/custody-retrieve-mobile-480.jpg": {
+      "bytes": 41460,
+      "sha256": "2403b8cc39aa0290dee8554c257ee0493bf51955b0a8161eba542422aabffb99",
+      "width": 480,
+      "height": 360
+    },
+    "assets/mail/custody-retrieve-mobile-480.webp": {
+      "bytes": 33872,
+      "sha256": "ba15301aaf8d56c94bf3a22bf204fe88e24c4e20d36c9d0e7f96a151a52a07ab",
+      "width": 480,
+      "height": 360
+    },
+    "assets/mail/custody-retrieve-mobile-768.avif": {
+      "bytes": 42635,
+      "sha256": "f62c872cac3a04cbf08252829e14bff6a4c92f388f9477bcdcd725a86a95c4ce",
+      "width": 768,
+      "height": 576
+    },
+    "assets/mail/custody-retrieve-mobile-768.jpg": {
+      "bytes": 96705,
+      "sha256": "ff90c1211863541792c8cb3b753840b4bbf9de73f065776635ec12e95e698c88",
+      "width": 768,
+      "height": 576
+    },
+    "assets/mail/custody-retrieve-mobile-768.webp": {
+      "bytes": 76850,
+      "sha256": "71c4c0769a90273de6ca64e43a7e188e0366aeacdbdb8305048a96767c6738d8",
+      "width": 768,
+      "height": 576
+    },
+    "assets/mail/delivery-harbour-desktop-1440.avif": {
+      "bytes": 134575,
+      "sha256": "cd3692422258878835404b5c7066123811d59df7f593afa97eb8f7b9e48971c5",
+      "width": 1440,
+      "height": 819
+    },
+    "assets/mail/delivery-harbour-desktop-1440.jpg": {
+      "bytes": 285693,
+      "sha256": "423f4bce24a9b46fc5ba4e763ab97f9b5858514503a3aaa7db2e7c5ecd52165d",
+      "width": 1440,
+      "height": 819
+    },
+    "assets/mail/delivery-harbour-desktop-1440.webp": {
+      "bytes": 241448,
+      "sha256": "019f85c584e09bb57c4404707aa84c6b05c5f67e87a3ebf98a20b0bfe9e0f768",
+      "width": 1440,
+      "height": 819
+    },
+    "assets/mail/delivery-harbour-desktop-1663.avif": {
+      "bytes": 167505,
+      "sha256": "0d0d06ac3618abf21f4ab62c48027ed35bd09dbb37809cec9565dd7c61e346da",
+      "width": 1663,
+      "height": 946
+    },
+    "assets/mail/delivery-harbour-desktop-1663.jpg": {
+      "bytes": 365033,
+      "sha256": "8ac6819894a34c1b9bc05e275b494de21cd1142a89423d9056f0a0c97a769bce",
+      "width": 1663,
+      "height": 946
+    },
+    "assets/mail/delivery-harbour-desktop-1663.webp": {
+      "bytes": 296602,
+      "sha256": "cd17fd03c407ec8b2e5725dd696a26e42dcaa03452ab1b60bc9cf3a483225279",
+      "width": 1663,
+      "height": 946
+    },
+    "assets/mail/delivery-harbour-desktop-640.avif": {
+      "bytes": 31374,
+      "sha256": "7cfde69a93bff25e0b9e8a459e8458338d1109b3c2e38a6191ec08ce89324aee",
+      "width": 640,
+      "height": 364
+    },
+    "assets/mail/delivery-harbour-desktop-640.jpg": {
+      "bytes": 62462,
+      "sha256": "0ff66906c76a8db0e39e76c37ef6631899f5319f4ca6a49ed56966d6ebeaa0da",
+      "width": 640,
+      "height": 364
+    },
+    "assets/mail/delivery-harbour-desktop-640.webp": {
+      "bytes": 56478,
+      "sha256": "39b92cd2f726217581146bb2f5fbeb67f7e39a177a9c8ae62c371ef35877491c",
+      "width": 640,
+      "height": 364
+    },
+    "assets/mail/delivery-harbour-desktop-960.avif": {
+      "bytes": 67912,
+      "sha256": "1e0e8ce6869d30f226a8422c49dcda71820ac4c462993f6285f7fc5ce9b8921d",
+      "width": 960,
+      "height": 546
+    },
+    "assets/mail/delivery-harbour-desktop-960.jpg": {
+      "bytes": 137775,
+      "sha256": "2b2cc6912b4e6d8f06d86835c754c199890be5ac58732e4e39e77b0161ddede8",
+      "width": 960,
+      "height": 546
+    },
+    "assets/mail/delivery-harbour-desktop-960.webp": {
+      "bytes": 121814,
+      "sha256": "0edc019f53c8e2cf0b838acc9ddfda4586290a8a2b041b04c37b095355ac3ac3",
+      "width": 960,
+      "height": 546
+    },
+    "assets/mail/delivery-harbour-mobile-480.avif": {
+      "bytes": 42173,
+      "sha256": "ab1f738e5b37ef8c8012ba46a7f82765e7eab716a4823c7a7f82f018d6cbe858",
+      "width": 480,
+      "height": 647
+    },
+    "assets/mail/delivery-harbour-mobile-480.jpg": {
+      "bytes": 84580,
+      "sha256": "2f9d0cd205932663a515998e9d4374a5395efbe2d1ae535b4d535fb0809f7dd2",
+      "width": 480,
+      "height": 647
+    },
+    "assets/mail/delivery-harbour-mobile-480.webp": {
+      "bytes": 75428,
+      "sha256": "8b0210fe4ee64faddc2f9b29dbc89e7a2c43a82426aa120fde8406c42edbd5c2",
+      "width": 480,
+      "height": 647
+    },
+    "assets/mail/delivery-harbour-mobile-768.avif": {
+      "bytes": 97766,
+      "sha256": "09d66e0fbf19e175a998cd40fe597d549232b090d62310abf1b0a85c16b497f7",
+      "width": 768,
+      "height": 1035
+    },
+    "assets/mail/delivery-harbour-mobile-768.jpg": {
+      "bytes": 204702,
+      "sha256": "c86bd31da24dea2e4eafcdaf1c61b0c899f7f0548177ffc7fcec1ec8ca67348c",
+      "width": 768,
+      "height": 1035
+    },
+    "assets/mail/delivery-harbour-mobile-768.webp": {
+      "bytes": 172926,
+      "sha256": "26976ad8d1ac2ca7ec42a77952c1e2ffefd2f6938b9817be1b84906cf68b7088",
+      "width": 768,
+      "height": 1035
+    },
+    "assets/mail/hero-harbour-desktop-1440.avif": {
+      "bytes": 102674,
+      "sha256": "dd023e90385526533f27855c89b073407607450b05a0cd68ad2056c75066a8fa",
+      "width": 1440,
+      "height": 720
+    },
+    "assets/mail/hero-harbour-desktop-1440.jpg": {
+      "bytes": 228893,
+      "sha256": "0e93d6b97d7676101b6ea0dd7074b01d7b768b57ca451a8dec0a727db0f3b6f6",
+      "width": 1440,
+      "height": 720
+    },
+    "assets/mail/hero-harbour-desktop-1440.webp": {
+      "bytes": 180950,
+      "sha256": "d10733a027d20282c9dea19304bc4e0355893a155bff4c6d515391d01a044ba2",
+      "width": 1440,
+      "height": 720
+    },
+    "assets/mail/hero-harbour-desktop-1774.avif": {
+      "bytes": 141057,
+      "sha256": "ddc04e199f78b57329c5b46279c7ea1f96add66d3bd399a8dd106b3131e3eedb",
+      "width": 1774,
+      "height": 887
+    },
+    "assets/mail/hero-harbour-desktop-1774.jpg": {
+      "bytes": 326202,
+      "sha256": "807903a31f25ce109688cbd348bbe035140744d572fa84c1e755f31f132c3242",
+      "width": 1774,
+      "height": 887
+    },
+    "assets/mail/hero-harbour-desktop-1774.webp": {
+      "bytes": 246354,
+      "sha256": "c5994039c3284929789bd5547d8f8a643485f10652ef84dfce2c25499b42a158",
+      "width": 1774,
+      "height": 887
+    },
+    "assets/mail/hero-harbour-desktop-640.avif": {
+      "bytes": 24525,
+      "sha256": "abf53aa7decdc3022589a188eb7c3b0fb868477d1c1a08d9b79f2ca67e6df7d0",
+      "width": 640,
+      "height": 320
+    },
+    "assets/mail/hero-harbour-desktop-640.jpg": {
+      "bytes": 52108,
+      "sha256": "0c1880bca8f2287e0f56a4affbb5f71335018d58e3b01a8c724f465013a5fa4e",
+      "width": 640,
+      "height": 320
+    },
+    "assets/mail/hero-harbour-desktop-640.webp": {
+      "bytes": 44932,
+      "sha256": "2efc1c01dde78a939c96f628a604b82762c7625d42091648eaf952df643b87e4",
+      "width": 640,
+      "height": 320
+    },
+    "assets/mail/hero-harbour-desktop-960.avif": {
+      "bytes": 50868,
+      "sha256": "dd6d32cd3830f3c65e1f4345c3d3b2b8e2a5ae4fec1b98f1405d832ffa4ede70",
+      "width": 960,
+      "height": 480
+    },
+    "assets/mail/hero-harbour-desktop-960.jpg": {
+      "bytes": 110971,
+      "sha256": "f90acb4e8b6828da7e652d804e249cf9edf595ba2e79adb25b3deeabe8baa331",
+      "width": 960,
+      "height": 480
+    },
+    "assets/mail/hero-harbour-desktop-960.webp": {
+      "bytes": 92818,
+      "sha256": "f03e3f82e1e0129d4723997a75c26a0711370c7b691792dbbc2bbef63f130d6c",
+      "width": 960,
+      "height": 480
+    },
+    "assets/mail/hero-harbour-mobile-480.avif": {
+      "bytes": 34354,
+      "sha256": "932cc780e990ab1dadece5a158538b540a04c83cf1f3573bca3f8873a0f1e0ca",
+      "width": 480,
+      "height": 640
+    },
+    "assets/mail/hero-harbour-mobile-480.jpg": {
+      "bytes": 74915,
+      "sha256": "0c3640e346d527783c297c8d492d061f99a3aa82da990add588055027b409ae0",
+      "width": 480,
+      "height": 640
+    },
+    "assets/mail/hero-harbour-mobile-480.webp": {
+      "bytes": 66650,
+      "sha256": "d9505aff8bedddd36992fbdf52d8c56ee9bf34bf7f90be66b04a6a260e2cccd1",
+      "width": 480,
+      "height": 640
+    },
+    "assets/mail/hero-harbour-mobile-768.avif": {
+      "bytes": 81294,
+      "sha256": "4f795874c0eb8847d0ffbbc89b5cdfcc866f3b6de2cce01802cd96b9766d247c",
+      "width": 768,
+      "height": 1024
+    },
+    "assets/mail/hero-harbour-mobile-768.jpg": {
+      "bytes": 183214,
+      "sha256": "fab897c4b615fc765e0bd56b4cbf63f3c77a1aac650e3a20cc0e078f77d44a8b",
+      "width": 768,
+      "height": 1024
+    },
+    "assets/mail/hero-harbour-mobile-768.webp": {
+      "bytes": 156422,
+      "sha256": "f551064c7be697e92ae5448f421e2f93f44726f4695ff75d46cd754bdf2b6aae",
+      "width": 768,
+      "height": 1024
+    },
+    "assets/mail/own-mailbox-desktop-1440.avif": {
+      "bytes": 74966,
+      "sha256": "aeb4c0619c5cc7581ccd3719fb9ef4db51ac52814f26c4395893e6530facba47",
+      "width": 1440,
+      "height": 720
+    },
+    "assets/mail/own-mailbox-desktop-1440.jpg": {
+      "bytes": 182517,
+      "sha256": "52f7bc03ffc1cc86975afb8fef80d4b725f4da1b6fc4fa19178ec552d5d56923",
+      "width": 1440,
+      "height": 720
+    },
+    "assets/mail/own-mailbox-desktop-1440.webp": {
+      "bytes": 133000,
+      "sha256": "d2b8732523896cb57b58e2365dfe1bc1a24bcde7a3d05c0f2ab8fbafc661cb47",
+      "width": 1440,
+      "height": 720
+    },
+    "assets/mail/own-mailbox-desktop-1774.avif": {
+      "bytes": 102180,
+      "sha256": "2a72032fc683709b5f869f79b4c538ef40c454a19da17f34df6c2fcc30464556",
+      "width": 1774,
+      "height": 887
+    },
+    "assets/mail/own-mailbox-desktop-1774.jpg": {
+      "bytes": 258013,
+      "sha256": "782893a064ed73b0a8d877b0a04d56188be1207f155b77307924b97318dc6bce",
+      "width": 1774,
+      "height": 887
+    },
+    "assets/mail/own-mailbox-desktop-1774.webp": {
+      "bytes": 179906,
+      "sha256": "af1e3ba60e5ae77c712ee3a029e3a695033b758233e3bc1b83fbe37cc0f62f97",
+      "width": 1774,
+      "height": 887
+    },
+    "assets/mail/own-mailbox-desktop-640.avif": {
+      "bytes": 18912,
+      "sha256": "6f50296473e168694d907626b757f9ed358bc892be4351a08c22cb8136050fe0",
+      "width": 640,
+      "height": 320
+    },
+    "assets/mail/own-mailbox-desktop-640.jpg": {
+      "bytes": 42634,
+      "sha256": "c91b164941394660ee9e1b59563c238eb5cd976530f3cb1977209c541425ffa9",
+      "width": 640,
+      "height": 320
+    },
+    "assets/mail/own-mailbox-desktop-640.webp": {
+      "bytes": 34618,
+      "sha256": "73b7793fd9c2c9774ce43db7fd5072a6d0286ef6bb24f0dd84c210f82a1516a8",
+      "width": 640,
+      "height": 320
+    },
+    "assets/mail/own-mailbox-desktop-960.avif": {
+      "bytes": 38759,
+      "sha256": "1987b8a591de7d3a7405cdd749e73e16dee8a2231536ac2400eb9e882e51fc39",
+      "width": 960,
+      "height": 480
+    },
+    "assets/mail/own-mailbox-desktop-960.jpg": {
+      "bytes": 89290,
+      "sha256": "eaff81438790a5b004755ec585c191605d02243b6caa9f0157e567cf52219350",
+      "width": 960,
+      "height": 480
+    },
+    "assets/mail/own-mailbox-desktop-960.webp": {
+      "bytes": 69882,
+      "sha256": "fdd408b228f904e73f3e867ba955af85bdbb4110156aaa1a365f27c163eb568a",
+      "width": 960,
+      "height": 480
+    },
+    "assets/mail/own-mailbox-mobile-480.avif": {
+      "bytes": 31170,
+      "sha256": "f9f06fa62e57177eba77652ab686f68be8e20bc0b35fc6950aa568973f344ec1",
+      "width": 480,
+      "height": 473
+    },
+    "assets/mail/own-mailbox-mobile-480.jpg": {
+      "bytes": 66969,
+      "sha256": "3236ec941a267e21713f0416dfe2d65ab3c11113cd47c4652f0c86eab951ad5c",
+      "width": 480,
+      "height": 473
+    },
+    "assets/mail/own-mailbox-mobile-480.webp": {
+      "bytes": 59284,
+      "sha256": "1092df569bc3d344059fb2db3c0046e484a9054c5b7541a8a963a6fcd865023e",
+      "width": 480,
+      "height": 473
+    },
+    "assets/mail/own-mailbox-mobile-768.avif": {
+      "bytes": 65135,
+      "sha256": "3c0b95448d9bb4478bdfbb218233cfdb1364c2dec2bca5b17ecabbc7e603f78a",
+      "width": 768,
+      "height": 757
+    },
+    "assets/mail/own-mailbox-mobile-768.jpg": {
+      "bytes": 149356,
+      "sha256": "f481c1b8e85830f542e38816a4d3d2de578e18782801d4259400b9ea1802d05e",
+      "width": 768,
+      "height": 757
+    },
+    "assets/mail/own-mailbox-mobile-768.webp": {
+      "bytes": 121938,
+      "sha256": "b2b6bfb1a93af20c8c35154ee06580822d6b953db762e459b162a44140155fe7",
+      "width": 768,
+      "height": 757
+    },
+    "assets/mail/shared-brain-harbour-desktop-1440.avif": {
+      "bytes": 162650,
+      "sha256": "8863fcf3c6b9ffeaae5632dba0b799023cf4b8066df27fec651e3e217264f6f5",
+      "width": 1440,
+      "height": 960
+    },
+    "assets/mail/shared-brain-harbour-desktop-1440.jpg": {
+      "bytes": 351731,
+      "sha256": "924dcd2bb20461f1345bde21f9facaf290d2284ed6ebeb9f7a5bdc92866df1fb",
+      "width": 1440,
+      "height": 960
+    },
+    "assets/mail/shared-brain-harbour-desktop-1440.webp": {
+      "bytes": 295392,
+      "sha256": "ebbde05e689a2fe7d909692b02b7842e98376c664815ce4478e28c7f882a3c65",
+      "width": 1440,
+      "height": 960
+    },
+    "assets/mail/shared-brain-harbour-desktop-1536.avif": {
+      "bytes": 180811,
+      "sha256": "e4dfdd620eb32ba82cebaf80191f0932cb154961c6db3cbe0c55b52c5a24ad3d",
+      "width": 1536,
+      "height": 1024
+    },
+    "assets/mail/shared-brain-harbour-desktop-1536.jpg": {
+      "bytes": 396536,
+      "sha256": "7887384de2051aef8e1ece04aa325951193972f4f79be9816106af6f48338933",
+      "width": 1536,
+      "height": 1024
+    },
+    "assets/mail/shared-brain-harbour-desktop-1536.webp": {
+      "bytes": 331752,
+      "sha256": "62cd5b9798c1bc7cc09080055bddf0c1897ee9cfc0130bb5a24a9aa21ff1d2e8",
+      "width": 1536,
+      "height": 1024
+    },
+    "assets/mail/shared-brain-harbour-desktop-640.avif": {
+      "bytes": 39684,
+      "sha256": "33c658c24b3b24f2e3e1010d60226a3fad8cd40a4ae4740117116721ea116caf",
+      "width": 640,
+      "height": 427
+    },
+    "assets/mail/shared-brain-harbour-desktop-640.jpg": {
+      "bytes": 79908,
+      "sha256": "6fd502c7a63b6aa28c91ec214f18daf0b65eecb2bb399fa9b17fd51d2ba6dca4",
+      "width": 640,
+      "height": 427
+    },
+    "assets/mail/shared-brain-harbour-desktop-640.webp": {
+      "bytes": 74240,
+      "sha256": "be6e528291a6fac99ddf2b9beaafd360095a5f0560aeba37316c514cee0badde",
+      "width": 640,
+      "height": 427
+    },
+    "assets/mail/shared-brain-harbour-desktop-960.avif": {
+      "bytes": 83694,
+      "sha256": "f0c01a24ec03712f87e53fdebebbaa99f38998f0a5aa031efdeb27c76c633916",
+      "width": 960,
+      "height": 640
+    },
+    "assets/mail/shared-brain-harbour-desktop-960.jpg": {
+      "bytes": 172056,
+      "sha256": "3b0788a90caaeac9e08c131da03fdd2619ac82cc24657f1593b05ba53bbfc690",
+      "width": 960,
+      "height": 640
+    },
+    "assets/mail/shared-brain-harbour-desktop-960.webp": {
+      "bytes": 154034,
+      "sha256": "4baf3f074d7af0ee4973b80f22c4ae1bc69f2587a309b29f6c853aee241b2848",
+      "width": 960,
+      "height": 640
+    },
+    "assets/mail/shared-brain-harbour-mobile-480.avif": {
+      "bytes": 22607,
+      "sha256": "7cd468fcf69cb7956f3649eb731d383fb07b4b1d9bbead06542dc67f47ddd78e",
+      "width": 480,
+      "height": 320
+    },
+    "assets/mail/shared-brain-harbour-mobile-480.jpg": {
+      "bytes": 45490,
+      "sha256": "781158b3f33017595bd8af249e9c6fe0a119e8eb3f53189053278510a928b139",
+      "width": 480,
+      "height": 320
+    },
+    "assets/mail/shared-brain-harbour-mobile-480.webp": {
+      "bytes": 42520,
+      "sha256": "afd33c59cd6f325251a3d27d26cbe5466ce4df7ce904e5d1b1b9a5749a4c8acc",
+      "width": 480,
+      "height": 320
+    },
+    "assets/mail/shared-brain-harbour-mobile-768.avif": {
+      "bytes": 55400,
+      "sha256": "8a1d9a45bc264af2e053a5f6ca7ab289f737d072b3d40b78321523c3d6e82df5",
+      "width": 768,
+      "height": 512
+    },
+    "assets/mail/shared-brain-harbour-mobile-768.jpg": {
+      "bytes": 112640,
+      "sha256": "222c00bc78be65bad38950c7316054335b5b9044b96638ce33b7d1ffe8cfa467",
+      "width": 768,
+      "height": 512
+    },
+    "assets/mail/shared-brain-harbour-mobile-768.webp": {
+      "bytes": 104480,
+      "sha256": "869169d958d060ee021d59d7a9a9e7e7828125767ac8268a64c40a8b38fe7477",
+      "width": 768,
+      "height": 512
+    },
+    "assets/mail/social.jpg": {
+      "bytes": 177857,
+      "sha256": "3ceb3e101e2947301d2f36552909605abff4fd2a75c28527767ae1b3f2661921",
+      "width": 1200,
+      "height": 630
+    },
+    "assets/mail/variants.json": {
+      "bytes": 5768,
+      "sha256": "b59072b52e542ebf076ea65349e651eff0af1720201bf17d6a4757b309279e1f"
+    },
+    "assets/upstream/NOTICE.txt": {
+      "bytes": 397,
+      "sha256": "46cdbf1647841701d78d43fa397c283252b2f96eb353562c753faf31f1c0aef3"
+    },
+    "assets/upstream/source.json": {
+      "bytes": 474,
+      "sha256": "0db6385a78f383a8cba2ab032b425e9711f7d0c26c5d990a0cdecc8f0df44f8f"
+    },
+    "assets/upstream/thunderbird.png": {
+      "bytes": 44999,
+      "sha256": "c64b09547bec63b6742e3810b0df8a23210f33e218345a430c9722822b272157",
+      "width": 257,
+      "height": 256
+    }
+  }
+}
