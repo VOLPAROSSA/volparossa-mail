@@ -25,7 +25,7 @@ class StalwartSmokeTests(unittest.TestCase):
         self.assertFalse(any(p.startswith('sys') for p in smoke.PERMISSIONS))
 
     def test_namespace_cannot_use_host_network_or_writable_source(self):
-        args = SimpleNamespace(binary=Path('/pinned/stalwart'), node=Path('/pinned/node'))
+        args = SimpleNamespace(binary=Path('/pinned/stalwart'), node=Path('/pinned/node'), crash_recovery=False)
         with patch.object(smoke.os, 'getuid', return_value=1000), \
              patch.object(smoke.os, 'getgid', return_value=1000):
             command = smoke.command(args, Path('/fresh/fixture'), 'net:[123]')
@@ -38,6 +38,10 @@ class StalwartSmokeTests(unittest.TestCase):
             self.assertIn(['--tmpfs', hidden], [command[i:i+2] for i in range(len(command)-1)])
         self.assertNotIn('HOME', command)
         self.assertEqual(command[-2:], ['--inside', 'net:[123]'])
+        args.crash_recovery = True
+        recovery = smoke.command(args, Path('/fresh/fixture'), 'net:[123]')
+        self.assertEqual(recovery[:-2], command[:-2])
+        self.assertEqual(recovery[-2:], ['--inside-crash-recovery', 'net:[123]'])
 
     def test_real_extension_driver_never_injects_fetch_or_claims_sending(self):
         self.assertIn('new StalwartAccount(config)', smoke.NODE_DRIVER)
