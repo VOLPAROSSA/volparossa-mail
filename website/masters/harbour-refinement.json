@@ -1,0 +1,17 @@
+[
+  {
+    "name": "delivery-harbour",
+    "prompt": "Panoramic widescreen 2.3:1. An intimate jewel-like Mediterranean alpine archipelago in blue hour, the bay EXTENDS across entire image, looking down obliquely. Match the REFERENCE's specific ink blue water, tiny copper ripples and exquisitely detailed amber-lit little posthouses. Six equally important but architecturally varied octagonal posthouses amongst inhabited rocky islets, small piers, cypresses, stone paths, lanterns, a boat or two, weathered terra cotta roof, warm windows. Strong near/far depth and lived-in details, irregular sizes according to perspective. Three far posthouses staggered across upper band and three nearer distributed through lower band, with near middle slightly lower. Asymmetrical rocky pine-covered foreground lower left and right. No sunset sky or horizon (all water and islets). Entire upper quarter quiet dark open water. Beautiful luminous network described by light reflected on the water, but DO NOT draw network lines, those will be added in SVG. NO TEXT UI OR ENVELOPES. Full bleed cinematic art only.",
+    "source": "/workspace/generated_images/exec-4afc86d7-1dee-4f83-be3c-90d0a20a42ac.png"
+  },
+  {
+    "name": "delivery-harbour-mobile",
+    "prompt": "Portrait 3:4 reinterpretation of this specific miniature nocturnal archipelago, oblique view downward into a winding blue-black tidal channel winding BETWEEN two irregular forested stone shores. SIX quaint warm-lit posthouses, three ALONG EACH SHORE at upper, middle and lower depths, staggered and unique. The closest 2 are visibly larger, tiny stairs, roof tiles and warm interiors, quays with moored wooden rowboats. Winding irregular shoreline, charming semi-realistic historical diorama like the reference. At top center a distant landing and at bottom center near landing. Dense navy teal water, reflections of gold lanterns. No sky. No text, panels, labels, envelopes, network lines or glow dots. Full bleed artwork only; preserve deep dusk feel of reference. Avoid mirrored geometry and repeated islands.",
+    "source": "/workspace/generated_images/exec-ad1c7fa0-8a8f-41ab-8136-37c66b4d6fe5.png"
+  },
+  {
+    "name": "shared-brain-harbour",
+    "prompt": "Render ONLY the illustration visible at right of this concept. Close, atmospheric richly painted miniature scene looking across a little harbour at night with three luminous open-sided golden workrooms and a quieter fourth workshop. Foreground biggest: a beautiful open hexagonal wooden workroom with a clearly visible seated person writing at a desk with lamplight, at bottom center; upper left workroom with a person standing looking at paper, upper right nearer round workshop with one person at a desk; fourth small lit room at lower left. These dwellings sit on varied connected stones, timber piers and tree-clad shore, cradle of golden light, silhouettes of people, tiny boats, stepping stones, warm amber reflections in inky indigo water. Close framing, high contrast, exquisite rich vignette like the supplied concept. NO horizon or sunset sky, NO lettering or controls, NO icons OR connecting lines; SVG will be applied. Landscape 3:2, full bleed. Avoid four identical gazebos floating on four equal islands.",
+    "source": "/workspace/generated_images/exec-6c0d2f9f-7ff3-4bed-8ce4-9333036502ac.png"
+  }
+]
