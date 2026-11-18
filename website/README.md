@@ -39,8 +39,8 @@ from the published artifact and never writes a CNAME or root robots policy.
 - `scripts/mesh.py`: accessible static SVG generated from that one topology.
 - `assets/mail`, `assets/upstream`: committed local images and attribution.
 - `masters`, `asset-manifest.json`: originals, prompts, crop plans and SHA-256 provenance.
-- `vendor/volparossa-theme`: immutable theme 1.0.3, pinned to central commit
-  `f498f26a06bec792e809e77704b4802bf5f54fbb` and checked during every build.
+- `vendor/volparossa-theme`: immutable theme 1.1.0, pinned to central commit
+  `991cf1638c906226574b9c21bb32c6618fc07fb7` and checked during every build.
 - `docs`, `review`: content decisions, verification and real browser captures.
 
 The image exporter requires Pillow 12.3.0 only when changing imagery:
