@@ -65,7 +65,10 @@ always-available delivery claim is made.
 The [Mail host extension](extensions/volparossa-mail-host/manifest.json) provides an explicit
 JMAP connection to your own Stalwart instance. With a user/app password held only in the
 tab's memory, you choose an account and mailbox, then optionally import one selected `.eml`
-file. It checks the import response and reads the stored message's metadata back. This is
+file. It checks the import response and reads the stored message's metadata back. If the
+server returned a message ID but the readback failed, choose **Check stored metadata again**
+in the same mailbox. The connector requests that message's metadata once. Disconnecting
+clears the pending ID. An import with no confirmed ID requires inspecting the mailbox. This is
 not a raw-message integrity proof or confirmation of delivery through VOLPAROSSA.
 
 Nothing connects automatically. Remote origins require HTTPS and explicit host permission;

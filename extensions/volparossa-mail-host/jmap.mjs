@@ -98,6 +98,7 @@ export class StalwartAccount {
   #busy = false;
   #account = null;
   #mailboxes = new Map();
+  #pendingImport = null;
 
   constructor({server, username, password}, fetcher = globalThis.fetch) {
     this.#origin = serverOrigin(server);
@@ -116,6 +117,7 @@ export class StalwartAccount {
   disconnect() {
     for (const controller of this.#controllers) controller.abort();
     this.#authorization = "";
+    this.#pendingImport = null;
     this.#session = null;
     this.#account = null;
     this.#mailboxes.clear();
@@ -129,7 +131,8 @@ export class StalwartAccount {
     this.#controllers.add(controller);
     const timer = setTimeout(() => controller.abort(), LIMITS.requestMs);
     try {
-      const response = await this.#fetch(url, {method, headers: {Authorization: this.#authorization,
+      const fetch = this.#fetch;
+      const response = await fetch(url, {method, headers: {Authorization: this.#authorization,
         Accept: "application/json", ...(body === undefined ? {} : {"Content-Type": type})}, body,
         signal: controller.signal, credentials: "omit", cache: "no-store", redirect: "error", referrerPolicy: "no-referrer"});
       if (response.redirected || response.url && response.url !== url) fail("redirect_rejected");
@@ -150,6 +153,7 @@ export class StalwartAccount {
 
   async connect() {
     return this.#exclusive(async () => {
+      this.#pendingImport = null;
       this.#session = sessionRecord(this.#origin,
         await this.#request(`${this.#origin}/jmap/session`, "GET"));
       this.#account = null; this.#mailboxes.clear();
@@ -179,6 +183,7 @@ export class StalwartAccount {
     return this.#exclusive(async () => {
       this.#requireAccount(accountId);
       if (confirmed !== true) fail("account_not_confirmed");
+      if (this.#pendingImport?.accountId !== accountId) this.#pendingImport = null;
       this.#account = null; this.#mailboxes.clear();
       const result = await this.#call("Mailbox/get", {accountId, ids: null,
         properties: ["id", "name", "role", "parentId", "totalEmails", "unreadEmails", "myRights"]});
@@ -205,6 +210,7 @@ export class StalwartAccount {
       if (confirmed !== true || accountId !== this.#account || !this.#mailboxes.has(mailboxId)) fail("import_not_confirmed");
       if (this.accounts.find(account => account.id === accountId).readOnly || !this.#mailboxes.get(mailboxId).mayAdd) fail("read_only");
       if (!(bytes instanceof Uint8Array) || !bytes.byteLength || bytes.byteLength > this.maxMessageBytes) fail("message_size");
+      this.#pendingImport = null;
       const upload = this.#session.upload.replace("{accountId}", accountId);
       const blob = await this.#request(upload, "POST", bytes, "message/rfc822");
       if (!object(blob) || blob.accountId !== accountId || !identifier(blob.blobId) || blob.size !== bytes.byteLength) fail("invalid_upload");
@@ -214,22 +220,47 @@ export class StalwartAccount {
           blobId: blob.blobId, mailboxIds: {[mailboxId]: true}, keywords: {},
         }}});
       } catch { fail("import_uncertain"); }
-      if (object(result.notCreated) && Object.hasOwn(result.notCreated, "selected")) fail("import_rejected");
+      if (object(result.notCreated) && Object.hasOwn(result.notCreated, "selected")) {
+        const rejectedOnly = Object.keys(result.notCreated).length === 1 && object(result.notCreated.selected) &&
+          typeof result.notCreated.selected.type === "string" &&
+          (result.created == null || (object(result.created) && !Object.keys(result.created).length));
+        fail(rejectedOnly ? "import_rejected" : "import_uncertain");
+      }
       const created = result.created?.selected;
       if (!object(created) || !identifier(created.id) || !object(result.created) ||
-          Object.keys(result.created).length !== 1 || result.notCreated && Object.keys(result.notCreated).length) fail("import_uncertain");
-      let fetched;
-      try {
-        fetched = await this.#call("Email/get", {accountId, ids: [created.id],
-          properties: ["id", "blobId", "mailboxIds", "size", "messageId"]});
-      } catch { fail("import_readback_failed"); }
-      const saved = fetched.list?.[0];
-      if (!Array.isArray(fetched.list) || fetched.list.length !== 1 || !object(saved) ||
-          saved.id !== created.id || !identifier(saved.blobId) || !object(saved.mailboxIds) ||
-          saved.mailboxIds[mailboxId] !== true || !Number.isSafeInteger(saved.size) || saved.size <= 0 ||
-          !Array.isArray(fetched.notFound) || fetched.notFound.length) fail("import_readback_failed");
-      return Object.freeze({accountId, mailboxId, emailId: saved.id, size: saved.size,
-        metadataReadback: true, messageSent: false, rawMessageVerified: false});
+          Object.keys(result.created).length !== 1 ||
+          (result.notCreated != null && (!object(result.notCreated) || Object.keys(result.notCreated).length))) fail("import_uncertain");
+      this.#pendingImport = {accountId, mailboxId, emailId: created.id};
+      return this.#readImport(this.#pendingImport);
     });
+  }
+
+  canRecheckImport(accountId, mailboxId) {
+    const pending = this.#pendingImport;
+    return pending !== null && accountId === this.#account && this.#mailboxes.has(mailboxId) &&
+      pending.accountId === accountId && pending.mailboxId === mailboxId;
+  }
+
+  async recheckImport(accountId, mailboxId) {
+    return this.#exclusive(() => {
+      if (!this.canRecheckImport(accountId, mailboxId)) fail("no_import_to_check");
+      return this.#readImport(this.#pendingImport);
+    });
+  }
+
+  async #readImport({accountId, mailboxId, emailId}) {
+    let fetched;
+    try {
+      fetched = await this.#call("Email/get", {accountId, ids: [emailId],
+        properties: ["id", "blobId", "mailboxIds", "size", "messageId"]});
+    } catch { fail("import_readback_failed"); }
+    const saved = fetched.list?.[0];
+    if (!Array.isArray(fetched.list) || fetched.list.length !== 1 || !object(saved) ||
+        saved.id !== emailId || !identifier(saved.blobId) || !object(saved.mailboxIds) ||
+        saved.mailboxIds[mailboxId] !== true || !Number.isSafeInteger(saved.size) || saved.size <= 0 ||
+        !Array.isArray(fetched.notFound) || fetched.notFound.length) fail("import_readback_failed");
+    this.#pendingImport = null;
+    return Object.freeze({accountId, mailboxId, emailId: saved.id, size: saved.size,
+      metadataReadback: true, messageSent: false, rawMessageVerified: false});
   }
 }

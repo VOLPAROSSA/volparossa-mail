@@ -4,7 +4,7 @@ import {StalwartAccount, MailHostError, serverOrigin, permissionOrigin} from "./
 const byId = id => document.getElementById(id);
 const el = Object.fromEntries(["connect-form", "server", "username", "password", "owner-confirmed",
   "connect", "disconnect", "account", "load-mailboxes", "mailboxes", "mailbox", "message-file",
-  "import-confirmed", "import", "size-limit", "status"].map(id => [id, byId(id)]));
+  "import-confirmed", "import", "recheck-import", "size-limit", "status"].map(id => [id, byId(id)]));
 let connection = null, busy = false, writable = false, generation = 0;
 
 const messages = Object.freeze({
@@ -28,7 +28,8 @@ const messages = Object.freeze({
   jmap_rejected: "The mail server refused this operation. No automatic retry was made.",
   import_rejected: "The server rejected the message import. The temporary upload may remain until the server expires it.",
   import_uncertain: "Import completion is uncertain; the message may already exist. Inspect the mailbox before trying again.",
-  import_readback_failed: "The server reported an import, but its metadata could not be confirmed. Inspect the mailbox before trying again.",
+  import_readback_failed: "The server reported an import. Check its stored metadata again to confirm it.",
+  no_import_to_check: "There is no pending import to check in this mailbox.",
   session_limit: "This session reached its operation limit. Disconnect and reconnect to continue.",
   busy: "An operation is already in progress.",
 });
@@ -53,6 +54,8 @@ function controls() {
   const file = el["message-file"].files?.[0];
   const ready = confirmedAccount && writable && el.mailbox.value && file && file.size > 0 && file.size <= connection.maxMessageBytes;
   el["import-confirmed"].disabled = !ready || busy;
+  el["recheck-import"].hidden = !connection?.canRecheckImport(el.account.value, el.mailbox.value);
+  el["recheck-import"].disabled = busy;
   el.import.disabled = !ready || !el["import-confirmed"].checked || busy;
 }
 
@@ -152,11 +155,25 @@ el.import.addEventListener("click", async () => {
     if (run !== generation) return;
     const result = await connection.importMessage({accountId, mailboxId, bytes, confirmed: true});
     if (run !== generation) return;
-    status(`Imported into the selected mailbox; metadata confirmed (${result.size.toLocaleString()} stored bytes). No mail was sent. Raw message bytes were not downloaded or compared.`);
+    showImport(result);
   } catch (error) { if (run === generation) explain(error); }
   finally {
     bytes?.fill(0);
     if (run === generation) { busy = false; el["message-file"].value = ""; controls(); }
   }
+});
+function showImport(result) {
+  status(`Stored metadata confirmed the imported message in this mailbox (${result.size.toLocaleString()} bytes).`);
+}
+
+el["recheck-import"].addEventListener("click", async () => {
+  if (!connection || busy || !connection.canRecheckImport(el.account.value, el.mailbox.value)) return;
+  const run = generation;
+  busy = true; controls(); status("Checking the stored message’s metadata…");
+  try {
+    const result = await connection.recheckImport(el.account.value, el.mailbox.value);
+    if (run === generation) showImport(result);
+  } catch (error) { if (run === generation) explain(error); }
+  finally { if (run === generation) { busy = false; controls(); } }
 });
 controls();
