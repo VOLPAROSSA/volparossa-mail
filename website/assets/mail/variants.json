@@ -40,22 +40,22 @@
       {
         "stem": "delivery-harbour-desktop-640",
         "width": 640,
-        "height": 278
+        "height": 213
       },
       {
         "stem": "delivery-harbour-desktop-960",
         "width": 960,
-        "height": 417
+        "height": 320
       },
       {
         "stem": "delivery-harbour-desktop-1440",
         "width": 1440,
-        "height": 626
+        "height": 480
       },
       {
-        "stem": "delivery-harbour-desktop-1902",
-        "width": 1902,
-        "height": 827
+        "stem": "delivery-harbour-desktop-2172",
+        "width": 2172,
+        "height": 724
       }
     ],
     "mobile": [

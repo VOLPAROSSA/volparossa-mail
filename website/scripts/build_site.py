@@ -95,12 +95,12 @@ def build(output, production, origin, base_path):
     values['canonical'] = escape(canonical, quote=True)
     scenes = {'hero':'hero-harbour','delivery':'delivery-harbour','encrypt':'custody-encrypt','hold':'custody-hold','retrieve':'custody-retrieve','mailbox':'own-mailbox','brain':'shared-brain-harbour','closing':'closing-harbour'}
     for key,name in scenes.items():
-        sizes = '(max-width:900px) 100vw, 32vw' if key in ['encrypt','hold','retrieve'] else '(max-width:900px) 100vw, 70vw' if key=='delivery' else '(max-width:900px) 100vw, 45vw' if key=='brain' else '100vw'
+        sizes = '(max-width:900px) 100vw, 32vw' if key in ['encrypt','hold','retrieve'] else '(max-width:68rem) 100vw, 40vw' if key=='brain' else '100vw'
         values[key+'_picture'] = picture(name, hero=key=='hero', sizes=sizes)
     values.update(desktop_mesh=render_mesh('desktop'), mobile_mesh=render_mesh('mobile'))
     names = {'lock':'lock-keyhole','network':'network','user':'user-round','key':'key-round','archive':'archive','check':'circle-check','shield':'shield-check','globe':'globe','device':'laptop','database':'database'}
     values.update({key+'_icon': icon(name) for key,name in names.items()})
-    custom = {'mail':'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/>','server':'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M8 6h.01M8 12h.01M8 18h.01"/>','document':'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 12h8M8 16h8"/>','arrow':'<path d="M4 12h16m-6-6 6 6-6 6"/>'}
+    custom = {'star':'<path d="m12 3 2.7 5.6 6.2.9-4.5 4.4 1.1 6.1-5.5-2.9L6.5 20l1.1-6.1-4.5-4.4 6.2-.9Z"/>','send':'<path d="m3 3 18 9-18 9 3-9zM6 12h15"/>','cloud':'<path d="M6 19a5 5 0 0 1-.6-10 7 7 0 0 1 13.2-1A5.5 5.5 0 0 1 18.5 19Z"/>','mail':'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 6 9 7 9-7"/>','server':'<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M8 6h.01M8 12h.01M8 18h.01"/>','document':'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 12h8M8 16h8"/>','arrow':'<path d="M4 12h16m-6-6 6 6-6 6"/>'}
     values.update({key+'_icon':'<svg class="mail-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+paths+'</svg>' for key,paths in custom.items()})
     values['docs_indicator'] = '↗' if urlsplit(DATA['docs_url']).netloc=='github.com' else '→'
     values['shoreline'] = '<svg class="mail-shoreline" viewBox="0 0 1440 36" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M0 22Q190-8 390 14T810 16T1200 12T1440 18V36H0Z"/></svg>'

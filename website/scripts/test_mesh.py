@@ -1,4 +1,5 @@
 """Check illustration semantics only, never runtime or availability."""
+import re
 import unittest
 from collections import deque
 from itertools import combinations
@@ -45,11 +46,27 @@ class MailTopology(unittest.TestCase):
   self.assertGreaterEqual(len({p[n][0] for n in 'abcdef'}),2)
   self.assertTrue(all(p['sender'][1]<p[n][1]<p['recipient'][1] for n in 'abcdef'))
  def test_no_false_junctions(self):
-  def side(a,b,c):return (b[0]-a[0])*(c[1]-a[1])-(b[1]-a[1])*(c[0]-a[0])
-  for layout in ['desktop','mobile']:
-   p=LAYOUTS[layout]['positions']
-   for (a,b),(c,d) in combinations(DATA['edges'],2):
-    if len({a,b,c,d})<4:continue
-    u,v,w,z=[p[n] for n in (a,b,c,d)]
-    with self.subTest(layout=layout,edges=(a,b,c,d)):self.assertFalse(side(u,v,w)*side(u,v,z)<0 and side(w,z,u)*side(w,z,v)<0)
+  def side(a, b, c):
+   return (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])
+
+  def segments(path):
+   # Sample the quadratic actually painted, including its hand-aligned bend.
+   x1, y1, cx, cy, x2, y2 = map(float, re.findall(r'-?[0-9.]+', path))
+   points = []
+   for index in range(33):
+    t = index / 32
+    u = 1 - t
+    points.append((u*u*x1 + 2*u*t*cx + t*t*x2, u*u*y1 + 2*u*t*cy + t*t*y2))
+   return list(zip(points, points[1:]))
+
+  for layout in LAYOUTS:
+   svg = ET.fromstring(render_mesh(layout))
+   lines = {p.get('data-edge'): segments(p.get('d')) for p in svg.findall('path') if p.get('data-edge')}
+   for first, second in combinations(lines, 2):
+    if set(first.split('-')) & set(second.split('-')):
+     continue
+    with self.subTest(layout=layout, edges=(first, second)):
+     for a, b in lines[first]:
+      for c, d in lines[second]:
+       self.assertFalse(side(a,b,c)*side(a,b,d)<0 and side(c,d,a)*side(c,d,b)<0)
 if __name__=='__main__':unittest.main()
