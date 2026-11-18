@@ -78,9 +78,11 @@ extension does not send mail, collect existing Thunderbird account credentials, 
 Stalwart or start an SMTP service. An uncertain import is not silently retried.
 
 For development, load the extension's `manifest.json` as a temporary Thunderbird add-on.
-The adapter has now passed a real Stalwart test; loading and operating the interface in
-actual Thunderbird still needs validation. Neither establishes a complete self-hosted or
-offline mail deployment.
+In **Thunderbird 157.0**, the toolbar action opened the connector, Thunderbird requested
+loopback host permission, and its native file picker accepted a 165-byte synthetic message.
+A local JMAP fixture returned HTTP 503 on the first metadata read. Clicking **Check stored
+metadata again** confirmed the message in the selected mailbox. The fixture recorded one
+upload, one import and two metadata reads. [Native UI proof](third_party/thunderbird-extension-smoke.json).
 
 ### Verified: a real mailbox round trip
 
