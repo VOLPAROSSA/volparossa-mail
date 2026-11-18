@@ -164,3 +164,29 @@
 .brain-spread .mail-illustrative-action { display: flex; width: fit-content; margin-left: auto; }
 .mail-mesh .mesh-solid { stroke: #ffcf80; stroke-width: 1.8; }
 .mail-mesh .mesh-dashed { stroke: #ffe0a2; }
+
+@container (min-width: 105rem) {
+  .delivery-panorama .mail-ordinary { max-width: 36rem; padding: 1.4cqw; }
+  .delivery-panorama .mail-ordinary h3 { font-size: 1.8cqw; }
+  .delivery-panorama .mail-ordinary > p { font-size: 1.3cqw; }
+  .delivery-panorama .mail-ordinary-route { margin-block: 1.45cqw; }
+  .delivery-panorama .mail-ordinary-route li { font-size: 1cqw; }
+  .delivery-panorama .mail-ordinary-route .mail-icon { width: 2.35cqw; height: 2.35cqw; }
+  .brain-spread { padding-top: 1.3cqw; }
+  .brain-spread .mail-intro { max-width: 90%; font-size: 1.04cqw; }
+  .brain-spread .mail-public-workflow { font-size: 1cqw; }
+  .brain-spread .mail-folder-rail, .brain-spread .mail-inbox-context { font-size: .85em; }
+  .brain-spread .mail-folder-rail :is(span,strong) { padding-block: .65em; }
+  .brain-spread .mail-mini-title { font-size: .85em; padding-block: .7em; }
+  .brain-spread .mail-inbox-context > div:not(.mail-mini-title) { padding: .7em; }
+  .brain-spread .mail-inbox-context span, .brain-spread .mail-inbox-context > p { font-size: .85em; }
+  .brain-spread .mail-public-review { padding: .55em 1.2em 1em; }
+  .brain-spread .mail-public-review h3 { font-size: 1.55em; }
+  .brain-spread .mail-public-review > p:not(.mail-mini-title) { font-size: 1.22em; }
+  .brain-spread .mail-review-labels, .brain-spread .mail-illustrative-action { font-size: .82em; }
+  .brain-spread .mail-cooperative-label { font-size: 1.4cqw; }
+  .mail-brain > .wrap { width: 92%; max-width: none; }
+  .mail-brain-bottom { gap: 2cqw; }
+  .mail-brain-bottom .mail-steps h3 { font-size: 1.5cqw; }
+  .mail-brain-bottom .mail-steps p, .mail-brain-bottom .mail-sharing-boundary p { font-size: .94cqw; }
+}
