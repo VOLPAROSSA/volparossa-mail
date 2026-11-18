@@ -1,0 +1,97 @@
+{
+  "version": 1,
+  "kind": "thunderbird-temporary-extension-metadata-recheck-proof",
+  "date_utc": "2026-11-18",
+  "source_revision": "650e96a56a77e0300a5aae7d36fa5db9233ab201",
+  "upstream_release": "Thunderbird 157.0",
+  "upstream_revision": "c747bb0160f873ab78692b2450612b232d38c30e",
+  "runtime_inputs": {
+    "build_id": "20260928193122",
+    "platform": "linux-x86_64/en-US",
+    "distribution_url": "https://archive.mozilla.org/pub/thunderbird/releases/157.0/linux-x86_64/en-US/thunderbird-157.0.tar.xz",
+    "checksum_manifest_url": "https://archive.mozilla.org/pub/thunderbird/releases/157.0/SHA512SUMS",
+    "distribution_bytes": 86576560,
+    "distribution_sha512": "23c3411d4ba404d884616014c1e1a22030928f3cf6922693fa8bbb86d2f8eec42c1f2f608e7b53a10e0f28f4309fb6f9f79ca376e4ae58805cd7a7f4f9b02b02",
+    "launcher_sha256": "54ed5e15928daed981457cfc6982ad21c43b4b5665d608ee5a8d033079e807fd",
+    "extension_path": "extensions/volparossa-mail-host",
+    "extension_files_sha256": {
+      "manifest.json": "b9525d1bb0282c7040c38ad6cf127e24ce886040dd40c063158d292438db582c",
+      "background.js": "43cb8a865d39f31bc2cd7ae88b5b38654a4556cab3b708ab0caeef828aef1154",
+      "ui.mjs": "eb6731dfcb035613ae9e11a2c46d333937886cf61e53907b81e817404752e66a",
+      "jmap.mjs": "22d285241eaa4a94e1ddcab4aa894ccf5a2856f329a7ca1e29f38e7cf9e45471",
+      "index.html": "177cf5b10f92b390be7b6d04263db4fdfb734fdc6096c277f92553e308a3fb34",
+      "style.css": "8af3971678d97ccf4b3a83cb4e56682e2303ba03bb1294bbf2480a2665f1cd47"
+    },
+    "backend": "Synthetic loopback JMAP HTTP fixture",
+    "network_interfaces": [
+      "lo"
+    ],
+    "profile": "Fresh disposable profile",
+    "selected_message_bytes": 165,
+    "selected_message_sha256": "542a99d524e4d11cdd877444922c9623328efa8dfe6958ec45d14a920346b46e"
+  },
+  "observed": {
+    "passed": true,
+    "install": "Temporary add-on through Mozilla Marionette",
+    "ui_flow": [
+      "Open the installed toolbar action",
+      "Allow Thunderbird host access to loopback",
+      "Select the synthetic account and confirm mailbox loading",
+      "Select the destination and choose a public .eml in the native file picker",
+      "Confirm the import",
+      "Click Check stored metadata again",
+      "Disconnect"
+    ],
+    "requests": [
+      {
+        "operation": "session",
+        "http_status": 200
+      },
+      {
+        "operation": "Mailbox/get",
+        "http_status": 200
+      },
+      {
+        "operation": "upload",
+        "http_status": 200
+      },
+      {
+        "operation": "Email/import",
+        "http_status": 200
+      },
+      {
+        "operation": "Email/get",
+        "http_status": 503
+      },
+      {
+        "operation": "Email/get",
+        "http_status": 200
+      }
+    ],
+    "import_and_readback_counts": {
+      "upload": 1,
+      "Email/import": 1,
+      "Email/get": 2
+    },
+    "upload_matched_selected_bytes": true,
+    "both_reads_targeted_same_server_reported_message": true,
+    "initial_readback_status": "The server reported an import. Check its stored metadata again to confirm it.",
+    "after_explicit_recheck": "Stored metadata confirmed the imported message in this mailbox (165 bytes).",
+    "after_disconnect": "Disconnected. This tab no longer holds account credentials. Existing host permission may remain in Thunderbird.",
+    "selected_file_cleared_and_repeat_import_disabled": true
+  },
+  "cleanup": {
+    "extension_uninstalled": true,
+    "browser_fixture_and_display_stopped": true,
+    "profile_and_selected_message_removed": true,
+    "raw_logs_and_screen_images_removed": true
+  },
+  "scope": {
+    "native_thunderbird_ui": true,
+    "real_stalwart_backend": false,
+    "smtp_delivery": false,
+    "raw_stored_message_integrity": false,
+    "peer_or_offline_delivery": false,
+    "production_account_used": false
+  }
+}

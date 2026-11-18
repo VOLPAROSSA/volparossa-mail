@@ -23,7 +23,8 @@ const code = wanted => error => error instanceof MailHostError && error.code ===
 
 function backend(options = {}) {
   const calls = [];
-  const fetcher = async (url, request) => {
+  const fetcher = async function (url, request) {
+    assert.equal(this, undefined); // Browser fetch rejects an adapter instance as its receiver.
     calls.push({url, request});
     assert.equal(request.redirect, "error"); assert.equal(request.credentials, "omit");
     assert.equal(request.cache, "no-store"); assert.equal(request.referrerPolicy, "no-referrer");
@@ -164,6 +165,49 @@ test("uncertain import and failed metadata readback do not retry or claim comple
   await client.connect(); await client.mailboxes("42", true);
   await assert.rejects(client.importMessage({accountId: "42", mailboxId: "inbox", bytes: message, confirmed: true}), code("import_rejected"));
   assert.equal(calls.length, 4); client.disconnect();
+});
+
+test("after a failed readback, a user can check the confirmed import again without uploading a second copy", async () => {
+  const options = {throwOn: "Email/get"};
+  const {client, calls} = backend(options);
+  await client.connect(); await client.mailboxes("42", true);
+  await assert.rejects(client.importMessage({accountId: "42", mailboxId: "inbox", bytes: message, confirmed: true}),
+    code("import_readback_failed"));
+  assert.equal(client.canRecheckImport("42", "inbox"), true);
+  for (const [account, box] of [["another", "inbox"], ["42", "other"]]) {
+    await assert.rejects(client.recheckImport(account, box), code("no_import_to_check"));
+  }
+  assert.equal(calls.length, 5);
+  await assert.rejects(client.recheckImport("42", "inbox"), code("import_readback_failed"));
+  delete options.throwOn;
+  const result = await client.recheckImport("42", "inbox");
+  assert.equal(result.emailId, "message_1"); assert.equal(result.metadataReadback, true);
+  assert.equal(result.messageSent, false); assert.equal(result.rawMessageVerified, false);
+  assert.equal(client.canRecheckImport("42", "inbox"), false);
+  await assert.rejects(client.recheckImport("42", "inbox"), code("no_import_to_check"));
+  assert.deepEqual(calls.slice(5).map(({request}) => JSON.parse(request.body).methodCalls[0][0]), ["Email/get", "Email/get"]);
+  client.disconnect();
+});
+
+test("unknown, contradictory or abandoned imports yield no metadata lookup", async () => {
+  for (const options of [
+    {throwOn: "Email/import"},
+    {import: {accountId: "42", created: {selected: {id: "message_1"}}, notCreated: {selected: {type: "invalidEmail"}}}},
+    {import: {accountId: "42", created: {selected: {id: "message_1"}}, notCreated: false}},
+    {import: {accountId: "42", notCreated: {selected: {}}}},
+  ]) {
+    const {client, calls} = backend(options);
+    await client.connect(); await client.mailboxes("42", true);
+    await assert.rejects(client.importMessage({accountId: "42", mailboxId: "inbox", bytes: message, confirmed: true}), code("import_uncertain"));
+    await assert.rejects(client.recheckImport("42", "inbox"), code("no_import_to_check"));
+    assert.equal(calls.length, 4); client.disconnect();
+  }
+  const {client, calls} = backend({throwOn: "Email/get"});
+  await client.connect(); await client.mailboxes("42", true);
+  await assert.rejects(client.importMessage({accountId: "42", mailboxId: "inbox", bytes: message, confirmed: true}), code("import_readback_failed"));
+  client.disconnect();
+  await assert.rejects(client.recheckImport("42", "inbox"), code("no_import_to_check"));
+  assert.equal(calls.length, 5);
 });
 
 test("wrong response correlation, duplicate mailboxes and inconsistent metadata fail closed", async () => {

@@ -11,8 +11,8 @@ an owner-controlled mailbox using Stalwart.
 
 The reusable [VOLPAROSSA core](https://github.com/VOLPAROSSA/volparossa) is intended
 to handle peer delivery, encrypted offline custody and cooperative intelligence.
-A real Stalwart mailbox round trip has passed; joining those pieces in the actual
-Thunderbird interface remains work for contributors who care about usable mail.
+The Mail extension can already import a selected message from Thunderbird into a Stalwart
+mailbox and confirm its stored metadata. Peer delivery remains in development.
 
 **Development integration, not a finished mail client.** No production account, mail
 server, DNS record or network participation is activated by this repository.
@@ -65,7 +65,10 @@ always-available delivery claim is made.
 The [Mail host extension](extensions/volparossa-mail-host/manifest.json) provides an explicit
 JMAP connection to your own Stalwart instance. With a user/app password held only in the
 tab's memory, you choose an account and mailbox, then optionally import one selected `.eml`
-file. It checks the import response and reads the stored message's metadata back. This is
+file. It checks the import response and reads the stored message's metadata back. If the
+server returned a message ID but the readback failed, choose **Check stored metadata again**
+in the same mailbox. The connector requests that message's metadata once. Disconnecting
+clears the pending ID. An import with no confirmed ID requires inspecting the mailbox. This is
 not a raw-message integrity proof or confirmation of delivery through VOLPAROSSA.
 
 Nothing connects automatically. Remote origins require HTTPS and explicit host permission;
@@ -75,9 +78,16 @@ extension does not send mail, collect existing Thunderbird account credentials, 
 Stalwart or start an SMTP service. An uncertain import is not silently retried.
 
 For development, load the extension's `manifest.json` as a temporary Thunderbird add-on.
-The adapter has now passed a real Stalwart test; loading and operating the interface in
-actual Thunderbird still needs validation. Neither establishes a complete self-hosted or
-offline mail deployment.
+In **Thunderbird 157.0**, the toolbar action, host permission prompt and native file
+picker were exercised against a real **Stalwart Community v0.16.24** mailbox. After the
+import, a loopback observer verified Stalwart's successful metadata response and returned
+HTTP 503 to Thunderbird. Clicking **Check stored metadata again** confirmed the same
+message. The connector issued one upload, one import and two metadata reads. An independent
+download from Stalwart matched all 313 selected MIME bytes.
+[Thunderbird and Stalwart proof](third_party/thunderbird-stalwart-extension-smoke.json).
+
+A separate native UI test used a controlled JMAP server and a 165-byte message.
+[Controlled JMAP proof](third_party/thunderbird-extension-smoke.json).
 
 ### Verified: a real mailbox round trip
 
@@ -100,12 +110,10 @@ upstream default web-interface download has no external network access. New moun
 live under disposable `/opt/work`; synthetic addresses use `.test`, which the pinned
 server accepts as a reserved domain. No real mail account or public SMTP service is used.
 
-This proves the **connector's live JMAP import/readback**, not SMTP sending or receiving,
-the Thunderbird interface, Signal Protocol/overlay delivery, offline Internet reception,
-or the lifetime and recovery of an installed background mail service. Trusted mail hosting
-remains distinct from opaque, encrypted storage on untrusted peers. Exact build, fixture
-and evidence hashes are recorded in the
-[scoped proof receipt](third_party/stalwart-extension-smoke.json).
+The September run used the connector adapter directly. The November Thunderbird run
+above exercised the same JMAP operations through the interface. SMTP delivery, peer
+delivery, offline Internet reception and recovery of an installed background service
+remain open. [September adapter proof](third_party/stalwart-extension-smoke.json).
 
 ## Source development
 
@@ -137,9 +145,9 @@ Stalwart Community is separately pinned to **v0.16.24**,
 inventory retained. Preparation requires a fresh output directory and an explicit source
 download or already verified archive. The source-preparation manifest records that earlier
 stage; the proof receipt above records the later passing development build and live test.
-Production provisioning, account/bootstrap lifecycle and native Thunderbird integration
-remain unfinished. Recovery testing belongs in a disposable VM or isolated namespace:
-the upstream recovery listener is not loopback-only. See the
+Production provisioning and the account lifecycle remain unfinished. Run recovery tests
+in a disposable VM or isolated namespace because the upstream recovery listener binds
+to all interfaces by default. See the
 [source preparation boundary](third_party/stalwart/NOTICE.md).
 
 `scripts/smoke_stalwart.py` requires explicit paths and independently verified SHA-256
