@@ -1,0 +1,20 @@
+[
+  {
+    "name": "delivery-harbour",
+    "file": "delivery-harbour.png",
+    "reference": "design-reference.png, section 3",
+    "prompt": "Restore and clean THIS EXACT panoramic twilight harbour background from the attached design. Treat this as a faithful image retouching and reconstruction, not a redesign. Match the exact composition, viewpoint, architecture, scale, water tones, distant hillside lights, tiny sailboats, six equally important little lit buildings across the RIGHT TWO THIRDS (x 40%,58%,75% above; 38%,63%,85% below), little rocks and tree-covered secondary islets, irregular gaps, paths, glistening reflections. Buildings occupy only 4 to 7 percent of the width, not huge. Retain the distant populated hilly coast across the top, near dark shrubbery and rocky quay bottom left. Extend the harbour naturally behind the white card in the left quarter (dark shore), and behind type. Reconstruct all detail at high resolution, painterly photographic fidelity to the reference. Deliver the entire landscape edge to edge, ultra-wide 3:1. Remove all user interface, all writing, lines, graphical sparkles, envelope symbols and parchment borders. The exact golden routes will be added as editable SVG later. No text, no labels. Retain physical lanterns and glints on water. Preserve the original placement and scale, strong horizontal receding perspective across the bay."
+  },
+  {
+    "name": "shared-brain-harbour",
+    "file": "shared-brain-harbour.png",
+    "reference": "design-reference.png, section 6",
+    "prompt": "Carefully reconstruct this SAME cropped illustration at high resolution, with the original exact staging, scale, three main workrooms in triangular formation. Follow contours of the reference closely, do not zoom in or rearrange the houses. Upper left: a small warm round pavilion, upper right: lit open-sided octagonal wood pavilion and worker, low center: seated silhouetted scribe with papers in warmly lit workroom. Lower left: one tiny illuminated wayside kiosk. Long reflections, trees only on the margins, distant hillside, lake at blue hour, blue and warm golden palette. Preserve the water channels between buildings, architecture and open space. Cinematic photorealistic miniature art. Extend art under any paper or caption. Strip out all text and all graphic document icons and network lines for later editable overlay. Entire canvas landscape 3:2 with artwork to all edges. No text, no framing, no UI. It must read as a clean restoration of this artwork, not a new harbour painting."
+  },
+  {
+    "name": "delivery-harbour-mobile",
+    "file": "delivery-harbour-mobile.png",
+    "reference": "design-reference.png, section 3",
+    "prompt": "Make a portrait 3:4 companion restoration of the small detailed inhabited Adriatic bay at dusk in this reference. Same distant populated coastal hillside and sailboats, warm window and lantern reflections, small varied posthouses grouped three on the left and three on the right hand shores, six equally important buildings, set well apart around open water. A small wooden jetty at top center and bottom center. Each posthouse should be small with room for light paths between them, keeping the elevated broad view of a working bay seen in the reference. Not a closeup. Remove all graphical overlays, lines, labels, cards, writing and envelopes. Beautiful detailed blue hour scene, photorealistic miniature aesthetic."
+  }
+]

@@ -1,4 +1,13 @@
-# Browser review — 17 November 2026
+# Harbour comparison, 18 November 2026
+
+Each desktop comparison places the supplied design above a Chromium capture of the revised Mail page at 1440 CSS pixels. The mobile captures show both complete sections at 390 CSS pixels.
+
+| Section | Concept and desktop rendering | Mobile rendering |
+| --- | --- | --- |
+| Delivery | [Compare the bay and both mail routes](concept-comparison-delivery.webp) | [Vertical network](concept-mobile-delivery.webp) |
+| Shared brain | [Compare the inbox and harbour workrooms](concept-comparison-shared-brain.webp) | [Public text review and workrooms](concept-mobile-shared-brain.webp) |
+
+## Original browser review — 17 November 2026
 
 These are actual Playwright browser captures of the built page at its real
 `/volparossa-mail/` prefix, not design mockups. WebP encoding retains the capture

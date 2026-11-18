@@ -54,53 +54,113 @@
 @media(max-width:550px){.mail-hero h1{max-width:100%;font-size:clamp(2.35rem,10.8vw,2.7rem)}}
 @media(min-width:901px){.mail-mailbox-layout{grid-template-columns:1.2fr 1.1fr}.mail-own-mailbox:after{background:linear-gradient(90deg,transparent 36%,#f5eddf80 47%,#f5eddf 53%)}}
 
-/* The night harbour reaches the edges of the paper and surrounds the delivery card. */
-.mail-delivery {
-  isolation: isolate;
-  background: #081b24;
-}
-.mail-delivery::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: url("mail/delivery-shore.webp") left bottom / 55% auto no-repeat;
-  opacity: .7;
-  mask-image: linear-gradient(to right, black, transparent 55%),
-    linear-gradient(to top, black, transparent 27%);
-  mask-composite: intersect;
-}
-.mail-mesh-stage { aspect-ratio: 1902 / 827; }
-.mail-mesh-stage::after { display: none; }
-.mail-mesh-stage > .mail-picture {
-  mask-image: linear-gradient(to right, transparent, black 6%, black 94%, transparent),
-    linear-gradient(to bottom, transparent, black 9%, black 93%, transparent);
-  mask-composite: intersect;
-}
-.mail-mesh .mesh-peer-label { font: 15px var(--sans); }
-.mail-brain { overflow-x: clip; }
-.mail-cooperative-label {
-  top: .4rem;
-  left: auto;
-  right: .6rem;
-  padding: .25rem .5rem;
-  background: #101b21e8;
-  border-radius: 2px;
-  font-size: 1rem;
-}
-@media (min-width: 901px) {
-  .mail-brain-composition { grid-template-columns: 1.04fr 1fr; }
-  .mail-cooperative-scene {
-    margin-right: clamp(-5rem, -3vw, -1rem);
-    margin-block: -1rem;
+/* The artwork and vector paths share one uninterrupted picture plane. */
+.mail-delivery { container-type: inline-size; padding: 0 0 1.6rem; background: #0b202a; }
+.mail-dark.mail-delivery > .mail-shoreline { top: -1px; height: clamp(12px,1.5vw,28px); fill: var(--paper); transform: rotate(180deg); }
+.delivery-panorama { position: relative; }
+.delivery-panorama > header, .delivery-panorama > aside { position: relative; z-index: 1; }
+.delivery-panorama .mail-heading-status { justify-content: flex-start; }
+.delivery-panorama .mail-heading-status h2 { flex: initial; min-width: 0; }
+.delivery-panorama .mail-mesh-stage { max-width: none; aspect-ratio: 3 / 1; }
+.delivery-panorama .mail-mesh-stage > .mail-picture { mask-image: none; }
+.delivery-panorama .mail-mesh-stage::after { display: none; }
+.delivery-panorama .mail-network-title { text-shadow: 0 1px 5px #07141e; }
+.delivery-caption { position: relative; padding: .55rem 4vw .15rem; text-align: center; }
+.delivery-caption p { max-width: none; margin: 0 auto .15rem; }
+.delivery-legend { display: flex; align-items: baseline; justify-content: center; gap: .4rem 1.2rem; flex-wrap: wrap; color: #ffedce; font: italic 1rem/1.4 var(--serif); }
+.delivery-legend .mail-route-legend { font: inherit; }
+.mail-mesh .mesh-peer-label { font-size: 12px; }
+.mail-mesh .mesh-spark { stroke-width: 1.4; }
+.mail-mesh .mesh-peer { filter: drop-shadow(0 0 4px #ffae38); }
+.mail-brain { container-type: inline-size; padding: 0 0 1.2rem; }
+.brain-spread { position: relative; }
+.brain-spread .mail-cooperative-scene { margin: 0; width: 100%; }
+.mail-cooperative-label { z-index: 1; top: .6rem; right: 7%; left: auto; color: #fff6df; text-shadow: 0 1px 4px black, 0 0 10px black; }
+.mail-folder-rail { padding: .75rem .55rem; background: #ebedf1; color: #364556; font: .77rem/1.4 var(--sans); border-right: 1px solid #d5d7dc; }
+.mail-folder-rail strong, .mail-folder-rail span { display: block; padding: .58rem .25rem; }
+.mail-folder-rail strong { display: flex; align-items: center; gap: .25rem; background: #cfdff1; }
+.mail-folder-rail svg { width: 16px; height: 16px; }
+.brain-spread .mail-public-workflow { margin: 0; grid-template-columns: .49fr .95fr 1.25fr; }
+.brain-spread .mail-cooperation { min-height: 0; }
+.cooperation-document { stroke: #a66d27; fill: #ffdfa1; filter: drop-shadow(0 0 5px #ffc35e); }
+@container (min-width: 68rem) {
+  .delivery-panorama { display: grid; }
+  .delivery-panorama > * { grid-area: 1 / 1; }
+  .delivery-panorama .mail-section-heading {
+    align-self: start; margin: 0; padding: clamp(1.35rem,2.4vw,3.5rem) 5vw 1.35rem;
+    background: linear-gradient(#071b29d9, #071b2970 65%, transparent);
   }
-  .mail-cooperative-scene::after {
-    background: linear-gradient(90deg, var(--paper), transparent 14%),
-      linear-gradient(0deg, var(--paper), transparent 9%, transparent 94%, var(--paper));
+  .delivery-panorama h2 { font-size: clamp(2rem,3.4vw,4.3rem); }
+  .delivery-panorama .mail-intro { font-size: 1rem; margin: .3rem 0 0; max-width: none; }
+  .delivery-panorama .mail-ordinary { align-self: center; justify-self: start; width: 23%; margin: 5% 0 0 4%; max-width: 25rem; padding: 1.25rem 1rem; box-shadow: 0 5px 24px #03101880; }
+  .delivery-panorama .mail-network-figure { position: relative; align-self: end; }
+  .delivery-panorama .mail-network-title { position: absolute; z-index: 1; inset: 26% 0 auto 30%; gap: .6rem; }
+  .delivery-panorama .mail-network-title h3 { font-size: clamp(1.2rem,1.6vw,2rem); }
+  .delivery-panorama .mail-network-title p { font-size: .8rem; text-transform: uppercase; }
+  .delivery-caption { background: linear-gradient(#112530,#0b202a); }
+  .brain-spread {
+    display: grid; grid-template-columns: 59% 41%; grid-template-rows: auto 1fr auto;
+    align-items: center; isolation: isolate; padding-top: 1rem;
   }
+  .brain-spread > header { grid-area: 1 / 1; margin: 0 0 .8rem 5vw; position: relative; z-index: 1; }
+  .brain-spread .mail-heading-status { justify-content: flex-start; gap: .55rem; }
+  .brain-spread .mail-heading-status h2 { min-width: 0; flex: initial; font-size: clamp(2.1rem,2.9vw,3.7rem); }
+  .brain-spread .mail-intro { line-height: 1.45; font-size: 1rem; margin-top: .4rem; max-width: 67ch; }
+  .brain-spread .mail-brain-figure { display: contents; }
+  .brain-spread .mail-public-workflow { grid-area: 2 / 1; margin: 0 -2.5vw 0 4vw; }
+  .brain-spread .mail-cooperative-scene { grid-area: 1 / 2 / 4 / 3; align-self: center; min-height: 0; aspect-ratio: 3 / 2; margin-top: -1rem; }
+  .brain-spread .mail-cooperative-scene::after { background: linear-gradient(to right,var(--paper),transparent 15%),linear-gradient(to top,var(--paper),transparent 7%),linear-gradient(to bottom,#f5eddfa6,transparent 8%); }
+  .brain-spread .mail-cooperative-label { top: 1.7rem; }
+  .brain-spread figcaption { grid-area: 3 / 1; margin: .35rem 0 .3rem 4vw; font-size: .9rem; }
 }
-@media (max-width: 900px) {
-  .mail-delivery::before { background: radial-gradient(ellipse at center, #193540, #081b24 76%); }
-  .mail-mesh-stage { aspect-ratio: 3 / 4; }
-  .mail-mesh .mesh-peer-label { font-size: 16px; }
+@container (max-width: 67.999rem) {
+  .delivery-panorama > header, .brain-spread > header { margin: 0; padding: 2.2rem 5% 1.1rem; }
+  .delivery-panorama .mail-ordinary { margin: .4rem auto 1.5rem; width: min(90%, 32rem); }
+  .delivery-panorama .mail-network-title { margin-bottom: .7rem; }
+  .brain-spread .mail-public-workflow { width: 90%; margin: 0 auto .75rem; }
+  .brain-spread figcaption { margin-inline: 5%; }
+  .brain-spread .mail-cooperative-scene { max-width: 55rem; margin-inline: auto; }
 }
+@media(max-width:900px) {
+  .delivery-panorama .mail-mesh-stage { aspect-ratio: 3 / 4; max-width: 570px; }
+  .mail-mesh .mesh-peer-label { font-size: 15px; }
+  .delivery-caption { padding-block: .7rem 1rem; }
+}
+@media(max-width:550px) {
+  .brain-spread .mail-public-workflow { grid-template-columns: 1fr; }
+  .brain-spread .mail-folder-rail { display: none; }
+}
+.mesh-letter { fill: #ffedc0; stroke: #855c2b; stroke-width: .9; filter: drop-shadow(0 0 5px #ffc46c); }
+.mesh-letter path { fill: none; }
+.mesh-letter circle { fill: #9e482c; }
+.mesh-endpoint-halo { fill: none; stroke: #ffe2a6; stroke-width: 1; }
+.mail-mesh .mesh-edge { stroke: #f5ba64; }
+@container (min-width: 68rem) {
+  .mail-brain-bottom { grid-template-columns: 1.9fr 1fr; gap: 1.5rem; }
+  .mail-brain-bottom .mail-steps { margin-block: 1rem .5rem; }
+  .mail-brain-bottom .mail-sharing-boundary { padding: .7rem .9rem; margin-top: .8rem; }
+  .mail-brain-bottom .mail-sharing-boundary p { line-height: 1.45; }
+}
+
+@container (min-width: 68rem) {
+  .brain-spread .mail-inbox-context > div:not(.mail-mini-title) { padding: .4rem .55rem; }
+  .brain-spread .mail-inbox-context > p { margin-block: .45rem; }
+  .brain-spread .mail-review-labels { margin: .65rem 0; gap: .25rem; }
+  .brain-spread .mail-public-review h3 { margin-top: .75rem; }
+  .brain-spread .mail-section-heading { margin-bottom: .65rem; }
+  .delivery-panorama .mail-ordinary-route .mail-icon { width: 34px; height: 34px; }
+  .delivery-panorama .mail-ordinary-route li { font: 1rem/1.2 var(--serif); }
+}
+@container (min-width: 68rem) and (max-width: 82rem) {
+  .delivery-panorama { grid-template-rows: auto auto; }
+  .delivery-panorama > header { grid-area: 1 / 1; padding-bottom: .8rem; }
+  .delivery-panorama > aside, .delivery-panorama > figure { grid-area: 2 / 1; }
+  .delivery-panorama .mail-network-title { top: 8%; }
+  .delivery-panorama .mail-ordinary { margin-top: 1%; }
+  .delivery-panorama .mail-mesh-stage > .mail-picture { mask-image: linear-gradient(transparent,black 18%); }
+}
+
+.brain-spread .mail-folder-rail span { display: flex; align-items: center; gap: .35rem; }
+.brain-spread .mail-illustrative-action { display: flex; width: fit-content; margin-left: auto; }
+.mail-mesh .mesh-solid { stroke: #ffcf80; stroke-width: 1.8; }
+.mail-mesh .mesh-dashed { stroke: #ffe0a2; }
