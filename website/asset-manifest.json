@@ -26,8 +26,8 @@
         "crop": [
           0,
           0,
-          1663,
-          946
+          1902,
+          827
         ]
       },
       "mobile": {
@@ -35,8 +35,8 @@
         "crop": [
           0,
           0,
-          1080,
-          1456
+          1086,
+          1448
         ]
       }
     },
@@ -193,16 +193,16 @@
       "height": 1086
     },
     "masters/delivery-harbour-mobile.png": {
-      "bytes": 2581822,
-      "sha256": "1972cd096393f86cb786a56d61928d0b71835f8d3baa370d16f949931b5f427d",
-      "width": 1080,
-      "height": 1456
+      "bytes": 3459700,
+      "sha256": "b92d6af0199920d820524ade9ebc635c2758d0500bc1b15d8cbb22b292515b97",
+      "width": 1086,
+      "height": 1448
     },
     "masters/delivery-harbour.png": {
-      "bytes": 2719917,
-      "sha256": "96e9f71862487142a9b3fadc22c4fbff7f7d2106818998937c1239a13a9795b8",
-      "width": 1663,
-      "height": 946
+      "bytes": 3076058,
+      "sha256": "05664b25d5a4a70772a0a53e85e686c1f6c0b0d6464ae3e43c5b7fbb2e72ac6d",
+      "width": 1902,
+      "height": 827
     },
     "masters/design-reference.png": {
       "bytes": 2681604,
@@ -217,6 +217,10 @@
     "masters/generation.json": {
       "bytes": 11741,
       "sha256": "97d0d8a1e4a7d4b6b5ed7eee82d8b5a8b08b8ec42e6c3dc60e6ea2f6c5e69e91"
+    },
+    "masters/harbour-refinement.json": {
+      "bytes": 3336,
+      "sha256": "da2a06b353f81608a632a815af2de7c20c551baa29690b896ea2b257bf6eb065"
     },
     "masters/hero-harbour-mobile.png": {
       "bytes": 2623257,
@@ -247,8 +251,8 @@
       "height": 887
     },
     "masters/shared-brain-harbour.png": {
-      "bytes": 2877683,
-      "sha256": "26ea81d06eac9ed81a855f5b8dcd75a52ccad765b8276ba06c6e667f6945ebc8",
+      "bytes": 3071763,
+      "sha256": "02b329992e8827d6cb4afadeb87936e22026482a25dd996c87ce907f18ac147c",
       "width": 1536,
       "height": 1024
     },
@@ -793,112 +797,118 @@
       "height": 576
     },
     "assets/mail/delivery-harbour-desktop-1440.avif": {
-      "bytes": 134575,
-      "sha256": "cd3692422258878835404b5c7066123811d59df7f593afa97eb8f7b9e48971c5",
+      "bytes": 126495,
+      "sha256": "4e335d8ff4620813ad51f8707175e899dee017264a9a94de409c66f2899115f8",
       "width": 1440,
-      "height": 819
+      "height": 626
     },
     "assets/mail/delivery-harbour-desktop-1440.jpg": {
-      "bytes": 285693,
-      "sha256": "423f4bce24a9b46fc5ba4e763ab97f9b5858514503a3aaa7db2e7c5ecd52165d",
+      "bytes": 261174,
+      "sha256": "58a2a5e31e3a300f46ca36450b49c58a628cfbd2aa18296fee08365a6a992e07",
       "width": 1440,
-      "height": 819
+      "height": 626
     },
     "assets/mail/delivery-harbour-desktop-1440.webp": {
-      "bytes": 241448,
-      "sha256": "019f85c584e09bb57c4404707aa84c6b05c5f67e87a3ebf98a20b0bfe9e0f768",
+      "bytes": 239742,
+      "sha256": "ecc054a4bb6b7206f467155c456cfb098b1a61ec7a448d4a9c48eef63eef3d67",
       "width": 1440,
-      "height": 819
+      "height": 626
     },
-    "assets/mail/delivery-harbour-desktop-1663.avif": {
-      "bytes": 167505,
-      "sha256": "0d0d06ac3618abf21f4ab62c48027ed35bd09dbb37809cec9565dd7c61e346da",
-      "width": 1663,
-      "height": 946
+    "assets/mail/delivery-harbour-desktop-1902.avif": {
+      "bytes": 198378,
+      "sha256": "0090ca338b0287c65c6429bcff3b47ae12267bc27fb37ffb166224f778f5f7c5",
+      "width": 1902,
+      "height": 827
     },
-    "assets/mail/delivery-harbour-desktop-1663.jpg": {
-      "bytes": 365033,
-      "sha256": "8ac6819894a34c1b9bc05e275b494de21cd1142a89423d9056f0a0c97a769bce",
-      "width": 1663,
-      "height": 946
+    "assets/mail/delivery-harbour-desktop-1902.jpg": {
+      "bytes": 429900,
+      "sha256": "eba2a1cbdc9dba5911e7fb313a94efa973275bde8fd34dec5df043b0c29c8ec7",
+      "width": 1902,
+      "height": 827
     },
-    "assets/mail/delivery-harbour-desktop-1663.webp": {
-      "bytes": 296602,
-      "sha256": "cd17fd03c407ec8b2e5725dd696a26e42dcaa03452ab1b60bc9cf3a483225279",
-      "width": 1663,
-      "height": 946
+    "assets/mail/delivery-harbour-desktop-1902.webp": {
+      "bytes": 383378,
+      "sha256": "35cb8f05d8e534c9739476c95de06f2b8b892f4faabe569e29800bbeeed10791",
+      "width": 1902,
+      "height": 827
     },
     "assets/mail/delivery-harbour-desktop-640.avif": {
-      "bytes": 31374,
-      "sha256": "7cfde69a93bff25e0b9e8a459e8458338d1109b3c2e38a6191ec08ce89324aee",
+      "bytes": 25786,
+      "sha256": "5bf4e3043d2c80661923f9496741678e0f7f26eb342ddd06888b63f8c3a4e980",
       "width": 640,
-      "height": 364
+      "height": 278
     },
     "assets/mail/delivery-harbour-desktop-640.jpg": {
-      "bytes": 62462,
-      "sha256": "0ff66906c76a8db0e39e76c37ef6631899f5319f4ca6a49ed56966d6ebeaa0da",
+      "bytes": 51959,
+      "sha256": "0ad1c534fa099273da5e2315aa06a4b78455f6e8c7f030b25f9decb684a55cc7",
       "width": 640,
-      "height": 364
+      "height": 278
     },
     "assets/mail/delivery-harbour-desktop-640.webp": {
-      "bytes": 56478,
-      "sha256": "39b92cd2f726217581146bb2f5fbeb67f7e39a177a9c8ae62c371ef35877491c",
+      "bytes": 48904,
+      "sha256": "e923e1c655dfad3b6b403d370a43fa91ce9908cc88a6bcb8ada7c770f8800c96",
       "width": 640,
-      "height": 364
+      "height": 278
     },
     "assets/mail/delivery-harbour-desktop-960.avif": {
-      "bytes": 67912,
-      "sha256": "1e0e8ce6869d30f226a8422c49dcda71820ac4c462993f6285f7fc5ce9b8921d",
+      "bytes": 58253,
+      "sha256": "c70f83234016936e2fc36f0a4f811f1f03b1607e8409a571ff316d2c892ba758",
       "width": 960,
-      "height": 546
+      "height": 417
     },
     "assets/mail/delivery-harbour-desktop-960.jpg": {
-      "bytes": 137775,
-      "sha256": "2b2cc6912b4e6d8f06d86835c754c199890be5ac58732e4e39e77b0161ddede8",
+      "bytes": 118484,
+      "sha256": "fd2ec07a799b64202fe349a1619c907d7d4b5faafa7f468a2feea9c896c1343c",
       "width": 960,
-      "height": 546
+      "height": 417
     },
     "assets/mail/delivery-harbour-desktop-960.webp": {
-      "bytes": 121814,
-      "sha256": "0edc019f53c8e2cf0b838acc9ddfda4586290a8a2b041b04c37b095355ac3ac3",
+      "bytes": 111280,
+      "sha256": "094d5b14cbdfd65a52e28ba0cfe9da566c27fcb0bd4d0c730c918f478ce815c8",
       "width": 960,
-      "height": 546
+      "height": 417
     },
     "assets/mail/delivery-harbour-mobile-480.avif": {
-      "bytes": 42173,
-      "sha256": "ab1f738e5b37ef8c8012ba46a7f82765e7eab716a4823c7a7f82f018d6cbe858",
+      "bytes": 57815,
+      "sha256": "6d165f16cabbd53009cb4aa72006fd49e13608179608793a7513be9abe7d1e70",
       "width": 480,
-      "height": 647
+      "height": 640
     },
     "assets/mail/delivery-harbour-mobile-480.jpg": {
-      "bytes": 84580,
-      "sha256": "2f9d0cd205932663a515998e9d4374a5395efbe2d1ae535b4d535fb0809f7dd2",
+      "bytes": 111271,
+      "sha256": "bf93f346fb43436d21c372167d17e9f750abcbc26ea95765635cac1182a4b0ca",
       "width": 480,
-      "height": 647
+      "height": 640
     },
     "assets/mail/delivery-harbour-mobile-480.webp": {
-      "bytes": 75428,
-      "sha256": "8b0210fe4ee64faddc2f9b29dbc89e7a2c43a82426aa120fde8406c42edbd5c2",
+      "bytes": 112684,
+      "sha256": "df25af069400e7d74c4b4cc3220ee41d0a0cc05e058e67f8df958e1587955df0",
       "width": 480,
-      "height": 647
+      "height": 640
     },
     "assets/mail/delivery-harbour-mobile-768.avif": {
-      "bytes": 97766,
-      "sha256": "09d66e0fbf19e175a998cd40fe597d549232b090d62310abf1b0a85c16b497f7",
+      "bytes": 139710,
+      "sha256": "37d345ec510602e06f98fa164f9f229dcae14f3d9a744317d0d0afa7a5e2b5ee",
       "width": 768,
-      "height": 1035
+      "height": 1024
     },
     "assets/mail/delivery-harbour-mobile-768.jpg": {
-      "bytes": 204702,
-      "sha256": "c86bd31da24dea2e4eafcdaf1c61b0c899f7f0548177ffc7fcec1ec8ca67348c",
+      "bytes": 276243,
+      "sha256": "098ca88871f6a54f988f2ddf405332e93af22ece945e3a1e75c79c06f10509f4",
       "width": 768,
-      "height": 1035
+      "height": 1024
     },
     "assets/mail/delivery-harbour-mobile-768.webp": {
-      "bytes": 172926,
-      "sha256": "26976ad8d1ac2ca7ec42a77952c1e2ffefd2f6938b9817be1b84906cf68b7088",
+      "bytes": 269668,
+      "sha256": "95b920b811268ccefb2bf08f86492e977cc85035265fcf318fe3a51ae9e50e57",
       "width": 768,
-      "height": 1035
+      "height": 1024
+    },
+    "assets/mail/delivery-shore.webp": {
+      "bytes": 45644,
+      "sha256": "46edcc0cc3ca0354036f78a05f6dfa9b4d6ab59ff86de76bc01955860772f71b",
+      "width": 619,
+      "height": 208
     },
     "assets/mail/hero-harbour-desktop-1440.avif": {
       "bytes": 102674,
@@ -1117,110 +1127,110 @@
       "height": 757
     },
     "assets/mail/shared-brain-harbour-desktop-1440.avif": {
-      "bytes": 162650,
-      "sha256": "8863fcf3c6b9ffeaae5632dba0b799023cf4b8066df27fec651e3e217264f6f5",
+      "bytes": 190346,
+      "sha256": "5c76d8f4101d8273981c47c4df3fa6e12f7620ccd9a24be80db2dd1d9508314b",
       "width": 1440,
       "height": 960
     },
     "assets/mail/shared-brain-harbour-desktop-1440.jpg": {
-      "bytes": 351731,
-      "sha256": "924dcd2bb20461f1345bde21f9facaf290d2284ed6ebeb9f7a5bdc92866df1fb",
+      "bytes": 423489,
+      "sha256": "05664529358ba5309beaa133cbf13eeceac7cf3d6478bb7684bcc9d5f654ca61",
       "width": 1440,
       "height": 960
     },
     "assets/mail/shared-brain-harbour-desktop-1440.webp": {
-      "bytes": 295392,
-      "sha256": "ebbde05e689a2fe7d909692b02b7842e98376c664815ce4478e28c7f882a3c65",
+      "bytes": 369734,
+      "sha256": "5671b30d145386083b3b30780642d63b7707574cfd5f31498673eade08c09c06",
       "width": 1440,
       "height": 960
     },
     "assets/mail/shared-brain-harbour-desktop-1536.avif": {
-      "bytes": 180811,
-      "sha256": "e4dfdd620eb32ba82cebaf80191f0932cb154961c6db3cbe0c55b52c5a24ad3d",
+      "bytes": 211446,
+      "sha256": "b9ac27026db143a50958badb221964de6a2b2c46a428c4ce55f02f7d0fea8551",
       "width": 1536,
       "height": 1024
     },
     "assets/mail/shared-brain-harbour-desktop-1536.jpg": {
-      "bytes": 396536,
-      "sha256": "7887384de2051aef8e1ece04aa325951193972f4f79be9816106af6f48338933",
+      "bytes": 477528,
+      "sha256": "bbd6248f8abc566530a75d607aeb19cf4b6def41ad4bdc120e31a757d79618d7",
       "width": 1536,
       "height": 1024
     },
     "assets/mail/shared-brain-harbour-desktop-1536.webp": {
-      "bytes": 331752,
-      "sha256": "62cd5b9798c1bc7cc09080055bddf0c1897ee9cfc0130bb5a24a9aa21ff1d2e8",
+      "bytes": 416784,
+      "sha256": "58387723882ed223a3d3ddc5e6004027ad6860b5dcfe9b3adc25fce9fe5ae6ef",
       "width": 1536,
       "height": 1024
     },
     "assets/mail/shared-brain-harbour-desktop-640.avif": {
-      "bytes": 39684,
-      "sha256": "33c658c24b3b24f2e3e1010d60226a3fad8cd40a4ae4740117116721ea116caf",
+      "bytes": 46891,
+      "sha256": "d6adb60f8fbbe4b627e197052c00204d1b83edda2d062464fe6b419fdea7ebd1",
       "width": 640,
       "height": 427
     },
     "assets/mail/shared-brain-harbour-desktop-640.jpg": {
-      "bytes": 79908,
-      "sha256": "6fd502c7a63b6aa28c91ec214f18daf0b65eecb2bb399fa9b17fd51d2ba6dca4",
+      "bytes": 98501,
+      "sha256": "492d0e866cd403172975b98b906185f8647d417446adf56d5cb2917c89e94c76",
       "width": 640,
       "height": 427
     },
     "assets/mail/shared-brain-harbour-desktop-640.webp": {
-      "bytes": 74240,
-      "sha256": "be6e528291a6fac99ddf2b9beaafd360095a5f0560aeba37316c514cee0badde",
+      "bytes": 93844,
+      "sha256": "f20e9c0b5c1133e8d9c950e262b4dc6aa62610d381d883923cb50ae849de2a7e",
       "width": 640,
       "height": 427
     },
     "assets/mail/shared-brain-harbour-desktop-960.avif": {
-      "bytes": 83694,
-      "sha256": "f0c01a24ec03712f87e53fdebebbaa99f38998f0a5aa031efdeb27c76c633916",
+      "bytes": 98551,
+      "sha256": "36b94836a42c8e8fba98383fbab65fbea02f73417fc48b2a65ff39a3cbf1ae6c",
       "width": 960,
       "height": 640
     },
     "assets/mail/shared-brain-harbour-desktop-960.jpg": {
-      "bytes": 172056,
-      "sha256": "3b0788a90caaeac9e08c131da03fdd2619ac82cc24657f1593b05ba53bbfc690",
+      "bytes": 209813,
+      "sha256": "07ff94a1ad4801cdecf1deb603a46ea25747690f416c844c1e5741cf94ee9db2",
       "width": 960,
       "height": 640
     },
     "assets/mail/shared-brain-harbour-desktop-960.webp": {
-      "bytes": 154034,
-      "sha256": "4baf3f074d7af0ee4973b80f22c4ae1bc69f2587a309b29f6c853aee241b2848",
+      "bytes": 191904,
+      "sha256": "6185de79d4254f55e290589c0d61a70af9b0349051b93c78e7ca80cf0e022339",
       "width": 960,
       "height": 640
     },
     "assets/mail/shared-brain-harbour-mobile-480.avif": {
-      "bytes": 22607,
-      "sha256": "7cd468fcf69cb7956f3649eb731d383fb07b4b1d9bbead06542dc67f47ddd78e",
+      "bytes": 27366,
+      "sha256": "6fa38e009adc1a917686e206c4966d440a3f860588d3d9ba86842875e3f77f87",
       "width": 480,
       "height": 320
     },
     "assets/mail/shared-brain-harbour-mobile-480.jpg": {
-      "bytes": 45490,
-      "sha256": "781158b3f33017595bd8af249e9c6fe0a119e8eb3f53189053278510a928b139",
+      "bytes": 56813,
+      "sha256": "9ab2f90a9f855d21174e1240605029321892552f65c4531a9b9f9596f8514cf6",
       "width": 480,
       "height": 320
     },
     "assets/mail/shared-brain-harbour-mobile-480.webp": {
-      "bytes": 42520,
-      "sha256": "afd33c59cd6f325251a3d27d26cbe5466ce4df7ce904e5d1b1b9a5749a4c8acc",
+      "bytes": 55174,
+      "sha256": "51ec97acd6b055ff1732e6ec7eac239838a6827193493697dd4f5dc55f8c3611",
       "width": 480,
       "height": 320
     },
     "assets/mail/shared-brain-harbour-mobile-768.avif": {
-      "bytes": 55400,
-      "sha256": "8a1d9a45bc264af2e053a5f6ca7ab289f737d072b3d40b78321523c3d6e82df5",
+      "bytes": 66076,
+      "sha256": "58c96972655662e9f4f4bf84f0c41658808a4118a4c4c27d6ddf3f41e25bb34c",
       "width": 768,
       "height": 512
     },
     "assets/mail/shared-brain-harbour-mobile-768.jpg": {
-      "bytes": 112640,
-      "sha256": "222c00bc78be65bad38950c7316054335b5b9044b96638ce33b7d1ffe8cfa467",
+      "bytes": 138707,
+      "sha256": "b6a66a360fc2e20d1b2b5bc061b853f657a03302344b6ab28703582e21ffc247",
       "width": 768,
       "height": 512
     },
     "assets/mail/shared-brain-harbour-mobile-768.webp": {
-      "bytes": 104480,
-      "sha256": "869169d958d060ee021d59d7a9a9e7e7828125767ac8268a64c40a8b38fe7477",
+      "bytes": 131000,
+      "sha256": "c0388cf28e4ef4b2d23266687a6fb7b6e956db791988693fe8cbd0ccf074e540",
       "width": 768,
       "height": 512
     },
@@ -1232,7 +1242,7 @@
     },
     "assets/mail/variants.json": {
       "bytes": 5768,
-      "sha256": "b59072b52e542ebf076ea65349e651eff0af1720201bf17d6a4757b309279e1f"
+      "sha256": "643ace1d07ff4978b7dee8336adca6dc28c05099c46e792f9ea0b0a012648564"
     },
     "assets/upstream/NOTICE.txt": {
       "bytes": 397,

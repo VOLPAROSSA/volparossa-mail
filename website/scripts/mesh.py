@@ -9,7 +9,16 @@ def render_mesh(layout):
     view=' '.join(map(str,LAYOUTS[layout]['viewBox']))
     positions=LAYOUTS[layout]['positions']
     prefix='mail-mesh-'+layout
-    def path(nodes):return 'M'+' L'.join(','.join(map(str,positions[n])) for n in nodes)
+    def path(nodes):
+        # Reuse exactly the same curved segment when a route follows an edge backwards.
+        curves = []
+        for start, end in zip(nodes, nodes[1:]):
+            x1, y1 = positions[start]
+            x2, y2 = positions[end]
+            lift = min(22, abs(x2 - x1) * 0.10)
+            curves.append(f"Q{(x1 + x2) / 2:g},{(y1 + y2) / 2 - lift:g} {x2},{y2}")
+        x, y = positions[nodes[0]]
+        return f"M{x},{y} " + " ".join(curves)
     parts=[f'<svg class="mail-mesh mail-mesh-{layout}" viewBox="{view}" role="img" aria-labelledby="{prefix}-title {prefix}-desc">',f'<title id="{prefix}-title">Sender and recipient connected through six equal peers</title>',f'<desc id="{prefix}-desc">An illustrative decentralised mesh of six peers and eleven connections. Two example routes share no intermediate peer. Every peer has alternatives; no single peer is required by all routes. This is not live connectivity or guaranteed delivery.</desc>']
     for a,b in DATA['edges']:
         d=path([a,b]);parts.extend([f'<path class="mesh-underlay" d="{d}"/>',f'<path class="mesh-edge" data-edge="{a}-{b}" d="{d}"/>'])

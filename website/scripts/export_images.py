@@ -10,9 +10,9 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'assets/mail'
 COMPOSITIONS = {'hero-harbour': {'desktop': {'master': 'hero-harbour.png', 'crop': [0, 0, 1774, 887]},
                   'mobile': {'master': 'hero-harbour-mobile.png', 'crop': [0, 0, 1086, 1448]}},
- 'delivery-harbour': {'desktop': {'master': 'delivery-harbour.png', 'crop': [0, 0, 1663, 946]},
+ 'delivery-harbour': {'desktop': {'master': 'delivery-harbour.png', 'crop': [0, 0, 1902, 827]},
                       'mobile': {'master': 'delivery-harbour-mobile.png',
-                                 'crop': [0, 0, 1080, 1456]}},
+                                 'crop': [0, 0, 1086, 1448]}},
  'custody-encrypt': {'desktop': {'master': 'custody-encrypt.png', 'crop': [0, 0, 1448, 1086]},
                      'mobile': {'master': 'custody-encrypt.png', 'crop': [0, 0, 1448, 1086]}},
  'custody-hold': {'desktop': {'master': 'custody-hold.png', 'crop': [0, 0, 1448, 1086]},
@@ -71,6 +71,10 @@ def export():
     for stem in old_stems - new_stems:
         for extension in ['avif','webp','jpg']:
             (OUT/(stem+'.'+extension)).unlink(missing_ok=True)
+    # Only rocks and water sit behind the ordinary-mail card, outside the peer diagram.
+    with Image.open(ROOT/'masters/delivery-harbour.png') as harbour:
+        shoreline = harbour.crop((0, 619, 619, 827))
+        shoreline.save(OUT/'delivery-shore.webp', quality=82)
     inventory()
     print('Exported actual crops and dimensions; original masters preserved.')
 

@@ -40,34 +40,34 @@
       {
         "stem": "delivery-harbour-desktop-640",
         "width": 640,
-        "height": 364
+        "height": 278
       },
       {
         "stem": "delivery-harbour-desktop-960",
         "width": 960,
-        "height": 546
+        "height": 417
       },
       {
         "stem": "delivery-harbour-desktop-1440",
         "width": 1440,
-        "height": 819
+        "height": 626
       },
       {
-        "stem": "delivery-harbour-desktop-1663",
-        "width": 1663,
-        "height": 946
+        "stem": "delivery-harbour-desktop-1902",
+        "width": 1902,
+        "height": 827
       }
     ],
     "mobile": [
       {
         "stem": "delivery-harbour-mobile-480",
         "width": 480,
-        "height": 647
+        "height": 640
       },
       {
         "stem": "delivery-harbour-mobile-768",
         "width": 768,
-        "height": 1035
+        "height": 1024
       }
     ]
   },
