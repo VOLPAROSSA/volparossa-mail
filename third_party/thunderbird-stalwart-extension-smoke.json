@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "kind": "thunderbird-stalwart-community-mailbox-import-and-metadata-recheck",
+  "date_utc": "2026-11-18",
+  "extension_source_revision": "650e96a56a77e0300a5aae7d36fa5db9233ab201",
+  "thunderbird": {
+    "release": "Thunderbird 157.0",
+    "build_id": "20260928193122",
+    "platform": "linux-x86_64/en-US",
+    "distribution_url": "https://archive.mozilla.org/pub/thunderbird/releases/157.0/linux-x86_64/en-US/thunderbird-157.0.tar.xz",
+    "distribution_sha512": "23c3411d4ba404d884616014c1e1a22030928f3cf6922693fa8bbb86d2f8eec42c1f2f608e7b53a10e0f28f4309fb6f9f79ca376e4ae58805cd7a7f4f9b02b02",
+    "extracted_files_checked_against_archive": true,
+    "extension_files_sha256": {
+      "manifest.json": "b9525d1bb0282c7040c38ad6cf127e24ce886040dd40c063158d292438db582c",
+      "background.js": "43cb8a865d39f31bc2cd7ae88b5b38654a4556cab3b708ab0caeef828aef1154",
+      "ui.mjs": "eb6731dfcb035613ae9e11a2c46d333937886cf61e53907b81e817404752e66a",
+      "jmap.mjs": "22d285241eaa4a94e1ddcab4aa894ccf5a2856f329a7ca1e29f38e7cf9e45471",
+      "index.html": "177cf5b10f92b390be7b6d04263db4fdfb734fdc6096c277f92553e308a3fb34",
+      "style.css": "8af3971678d97ccf4b3a83cb4e56682e2303ba03bb1294bbf2480a2665f1cd47"
+    }
+  },
+  "stalwart": {
+    "release": "v0.16.24",
+    "source_revision": "af37a234981722493b74623a983581691d2b70b6",
+    "source_archive_sha256": "507ee7e79a799311f0e9a9be8971b03ec83d641b5046c4ca675756e4a0ca8f93",
+    "cargo_lock_sha256": "a44513b6728b95007bd40e761b934f84d7c6cde7327ba713c4ef15f911d4d505",
+    "source_files_revalidated_unchanged": 1714,
+    "rust_version": "1.98.1",
+    "build_command": [
+      "cargo",
+      "build",
+      "--offline",
+      "--locked",
+      "-p",
+      "stalwart",
+      "--no-default-features",
+      "--features",
+      "sqlite"
+    ],
+    "actual_main_features": [
+      "sqlite"
+    ],
+    "profile": "dev",
+    "compiler_jobs": 2,
+    "offline_compile": true,
+    "executable_bytes": 297022816,
+    "executable_sha256": "a861f700ff7bc95000bb21f55bf8debd1a404324b7b4eda6e6f35e8087a804ae",
+    "september_build_receipt": "third_party/stalwart-community-build.json",
+    "september_executable_sha256": "59b1a85c40bbe3c88d6af342c4e1f11e3424c759b2fac4c43389b26a9575e37a",
+    "fetch_provenance": {
+      "locked_repository": "https://github.com/stalwartlabs/opentelemetry-rust",
+      "public_source_of_same_git_object": "https://github.com/open-telemetry/opentelemetry-rust",
+      "commit": "80a14a3b6846f62f85506d68d2600c948fccc9d2",
+      "tree": "54ca74b93b9cf44f9feb7b324013e02b1d06b6a9"
+    }
+  },
+  "fixture": {
+    "network_interfaces": [
+      "lo"
+    ],
+    "external_routes": 0,
+    "nonroot": true,
+    "namespaces": [
+      "user",
+      "network",
+      "PID",
+      "IPC",
+      "UTS"
+    ],
+    "backend": "Real Stalwart Community in recovery mode with a fresh SQLite database",
+    "message_source": "MESSAGE in scripts/smoke_stalwart.py",
+    "message_bytes": 313,
+    "message_sha256": "67075b1d0a40b1ac5618f2af7d0cc9c229e8fc9755ab595d31de46bbec3e7790",
+    "owner": "Fresh synthetic restricted owner and mailbox",
+    "profile": "Fresh Thunderbird profile and temporary add-on"
+  },
+  "observed": {
+    "passed": true,
+    "ui": [
+      "Open the add-on from the Thunderbird toolbar",
+      "Allow loopback host access",
+      "Select the owner account and destination mailbox",
+      "Choose the synthetic .eml in the native file picker and confirm import",
+      "Click Check stored metadata again",
+      "Disconnect and uninstall the temporary add-on"
+    ],
+    "http_requests_from_addon": [
+      {
+        "delivered_status": 200,
+        "operation": "session",
+        "upstream_status": 200
+      },
+      {
+        "delivered_status": 200,
+        "operation": "Mailbox/get",
+        "upstream_status": 200
+      },
+      {
+        "delivered_status": 200,
+        "operation": "upload",
+        "upstream_status": 200
+      },
+      {
+        "delivered_status": 200,
+        "operation": "Email/import",
+        "upstream_status": 200
+      },
+      {
+        "delivered_status": 503,
+        "operation": "Email/get",
+        "upstream_status": 200
+      },
+      {
+        "delivered_status": 200,
+        "operation": "Email/get",
+        "upstream_status": 200
+      }
+    ],
+    "interruption": "A loopback observer validated Stalwart's first real Email/get response and returned HTTP 503 to Thunderbird for that response only. The application payloads for all remaining operations were forwarded unchanged.",
+    "initial_ui_status": "The server reported an import. Check its stored metadata again to confirm it.",
+    "after_explicit_recheck": "Stored metadata confirmed the imported message in this mailbox (313 bytes).",
+    "recheck_used_same_account_message_and_mailbox": true,
+    "upload_body_matched_chosen_file": true,
+    "additional_writes_on_recheck": 0,
+    "independent_check": "After the UI disconnected, a direct Email/get to Stalwart verified the message ID, mailbox membership, size and stored blob ID. Fetching that blob from Stalwart returned the exact selected MIME bytes.",
+    "independent_direct_raw_readback": true,
+    "original_node_stalwart_smoke_reran_successfully": true
+  },
+  "reproduction": {
+    "prerequisites": [
+      "Use the pinned Mozilla archive and verify its SHA-512 and extracted contents.",
+      "Prepare the pinned Stalwart source and Rust toolchain with scripts/prepare_stalwart.py and scripts/prepare_stalwart_toolchain.py. Build using scripts/build_stalwart.py with the locked Community SQLite selection above.",
+      "In the project smoke harness, supply independently verified executable hashes and run scripts/smoke_stalwart.py --execute to reproduce the separate direct-adapter import and raw readback."
+    ],
+    "joined_ui_method": [
+      "In a fresh nonroot bubblewrap namespace with loopback as its sole interface, start Stalwart with the existing smoke fixture's recovery environment, SQLite configuration, restricted account_object and Mailbox/set provisioning.",
+      "Point the connector at a loopback HTTP observer which forwards authenticated requests exclusively to the fixture's Stalwart recovery listener. Validate the real upload body, created message ID and mailbox membership. On the first matching Email/get only, return HTTP 503 after verifying Stalwart's HTTP 200 payload.",
+      "Start the official Thunderbird build on a private Xvfb display with a fresh profile. Temporarily load extensions/volparossa-mail-host using Mozilla Marionette and follow the UI actions above. Compare the observed operation order and statuses before and after clicking the recheck button.",
+      "With the owner credential and the created ID held in fixture memory, read metadata directly, download the referenced blob and compare all bytes with the fixture. Shut down all processes and remove the temporary profile, database, message and logs."
+    ]
+  },
+  "cleanup": {
+    "browser_disconnected": true,
+    "temporary_addon_removed": true,
+    "inner_process_groups_joined": true,
+    "namespace_process_group_joined": true,
+    "private_state_removed": true,
+    "host_network_snapshot_unchanged": true
+  },
+  "scope": {
+    "native_thunderbird_ui": true,
+    "actual_stalwart": true,
+    "backend_failure_injected": false,
+    "first_metadata_response_to_browser_interrupted": true,
+    "raw_byte_check_performed_by_fixture": true,
+    "smtp_sending_or_receiving": false,
+    "peer_or_offline_delivery": false,
+    "production_service_provisioning": false,
+    "real_account_used": false
+  }
+}
