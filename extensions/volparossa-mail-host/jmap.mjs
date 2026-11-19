@@ -232,7 +232,7 @@ export class StalwartAccount {
       if (!object(created) || !identifier(created.id) || !object(result.created) ||
           Object.keys(result.created).length !== 1 ||
           (result.notCreated != null && (!object(result.notCreated) || Object.keys(result.notCreated).length))) fail("import_uncertain");
-      this.#pendingImport = {accountId, mailboxId, emailId: created.id};
+      this.#pendingImport = {accountId, mailboxId, emailId: created.id, size};
       return this.#readImport(this.#pendingImport);
     });
   }
@@ -250,7 +250,7 @@ export class StalwartAccount {
     });
   }
 
-  async #readImport({accountId, mailboxId, emailId}) {
+  async #readImport({accountId, mailboxId, emailId, size}) {
     let fetched;
     try {
       fetched = await this.#call("Email/get", {accountId, ids: [emailId],
@@ -259,7 +259,7 @@ export class StalwartAccount {
     const saved = fetched.list?.[0];
     if (!Array.isArray(fetched.list) || fetched.list.length !== 1 || !object(saved) ||
         saved.id !== emailId || !identifier(saved.blobId) || !object(saved.mailboxIds) ||
-        saved.mailboxIds[mailboxId] !== true || !Number.isSafeInteger(saved.size) || saved.size <= 0 ||
+        saved.mailboxIds[mailboxId] !== true || saved.size !== size ||
         !Array.isArray(fetched.notFound) || fetched.notFound.length) fail("import_readback_failed");
     this.#pendingImport = null;
     return Object.freeze({accountId, mailboxId, emailId: saved.id, size: saved.size,
