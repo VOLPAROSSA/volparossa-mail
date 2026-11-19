@@ -20,12 +20,21 @@ def package(path):
     # Fixed ZIP metadata keeps the same extension sources reproducible.
     with tempfile.NamedTemporaryFile(dir=path.parent) as tmp:
         with zipfile.ZipFile(tmp, "w") as archive:
-            for name in ("manifest.json", "background.js", "draft.html", "draft.css", "draft.mjs"):
-                entry = zipfile.ZipInfo(name)
+            files = [
+                EXTENSION / name
+                for name in ("manifest.json", "background.js", "draft.html", "draft.css", "draft.mjs")
+            ]
+            for source in [*files, ROOT / "LICENSE"]:
+                entry = zipfile.ZipInfo(source.name)
                 entry.external_attr = 0o100644 << 16
-                archive.writestr(entry, (EXTENSION / name).read_bytes(), compress_type=zipfile.ZIP_DEFLATED)
+                archive.writestr(entry, source.read_bytes(), compress_type=zipfile.ZIP_DEFLATED)
         tmp.flush()
-        if path.exists() and path.read_bytes() == Path(tmp.name).read_bytes():
+        if (
+            path.is_file()
+            and not path.is_symlink()
+            and path.stat().st_size == tmp.tell()
+            and path.read_bytes() == Path(tmp.name).read_bytes()
+        ):
             return
         os.link(tmp.name, path)
 
