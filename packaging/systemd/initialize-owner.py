@@ -71,7 +71,8 @@ def create(admin_secret, method, items):
 
 @contextlib.contextmanager
 def server(directory, domain, user, password, recovery=False):
-    env = {"PATH": "/usr/bin:/bin", "STALWART_HOSTNAME": domain}
+    env = {"PATH": "/usr/bin:/bin", "STALWART_HOSTNAME": domain,
+           "STALWART_PUBLIC_URL": "http://127.0.0.1:8080"}
     if recovery:
         env.update(STALWART_RECOVERY_MODE="1", STALWART_RECOVERY_ADMIN=ADMIN + ":" + password)
     with subprocess.Popen([LIB / "stalwart", "--config", LIB / "store.json"], cwd=directory, env=env,
@@ -151,6 +152,8 @@ def initialize(address, password):
         with server(stage, domain, address, password) as session:
             if session["primaryAccounts"].get(MAIL) != account or set(session["accounts"]) != {account}:
                 raise ValueError("owner session did not match the created mailbox")
+            if session.get("apiUrl") != "http://127.0.0.1:8080/jmap/":
+                raise ValueError("the server did not advertise its loopback JMAP endpoint")
             boxes = request(address, password, "Mailbox/get", {"accountId": account, "properties": ["id", "role"]})
             if boxes.get("accountId") != account or not any(b.get("role") == "inbox" for b in boxes.get("list", [])):
                 raise ValueError("owner inbox did not become available")

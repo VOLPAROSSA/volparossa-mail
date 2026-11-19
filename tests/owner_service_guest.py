@@ -56,7 +56,10 @@ def bootstrap():
 def observe(operation):
     details = json.loads(OWNER.read_bytes())
     owner, password = details["owner"], details["password"]
-    account = wait_ready(owner, password)["primaryAccounts"][server.MAIL]
+    session = wait_ready(owner, password)
+    require(session["apiUrl"] == server.ORIGIN + "/jmap/" and
+            session["uploadUrl"] == server.ORIGIN + "/jmap/upload/{accountId}/", "wrong local JMAP discovery origin")
+    account = session["primaryAccounts"][server.MAIL]
     server.verify_owner(owner, password, account)
     if operation == "deliver":
         try:

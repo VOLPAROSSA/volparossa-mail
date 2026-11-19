@@ -88,12 +88,15 @@ and publishes the finished SQLite database atomically. Repeating the command
 preserves an existing mailbox.
 
 ```sh
+sudo install -D -m 0644 packaging/systemd/local-jmap.conf /etc/systemd/system/volparossa-mail.service.d/local-jmap.conf
+sudo systemctl daemon-reload
 sudo systemd-run --quiet --pty --wait --collect -p PrivateNetwork=yes \
   -p User=volparossa-mail -p Group=volparossa-mail -p UMask=0077 -p LimitCORE=0 \
   /usr/bin/python3 -B /usr/local/libexec/volparossa-mail/initialize-owner.py owner@example.test
 ```
 
-The new mailbox accepts JMAP on `http://127.0.0.1:8080` and inbound SMTP on
+The local drop-in makes JMAP discovery advertise the same address as the local
+listener. The new mailbox accepts JMAP on `http://127.0.0.1:8080` and inbound SMTP on
 `127.0.0.1:2525`. The Mail host extension can connect with the full address and
 the password you chose. For a migration, use Stalwart's backup and restore
 procedure to prepare a consistent store at `/var/lib/volparossa-mail/store.sqlite`

@@ -35,6 +35,7 @@ sudo install -d -m 0700 -o "$account" -g "$account" "$state"
 sudo install -m 0755 "$binary" "$lib/stalwart"
 sudo install -m 0644 packaging/systemd/{store.json,initialize-owner.py} "$lib/"
 sudo install -m 0644 packaging/systemd/volparossa-mail.service "$unit"
+sudo install -m 0644 packaging/systemd/local-jmap.conf "$unit.d/"
 sudo install -m 0644 scripts/{smoke_stalwart,stalwart_owner_smtp}.py "$fixture/scripts/"
 sudo install -m 0644 tests/owner_service_guest.py "$fixture/tests/"
 printf '[Service]\nPrivateNetwork=yes\nEnvironment=STALWART_HOSTNAME=mail.volparossa.test\n' |
