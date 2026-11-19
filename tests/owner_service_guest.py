@@ -45,11 +45,11 @@ def bootstrap():
             "first-time setup failed")
     require({item.name for item in STATE.iterdir()} == {"store.sqlite"}, "unexpected published setup file")
     db = STATE / "store.sqlite"
-    before = (db.stat().st_ino, server.digest(db))
+    before = (db.stat().st_ino, hashlib.sha256(db.read_bytes()).digest())
     second = subprocess.run(command, input=(secrets.token_urlsafe(32) + "\n").encode(),
                             capture_output=True, timeout=10)
     require(second.returncode == 1 and b"already contains a mailbox" in second.stderr
-            and (db.stat().st_ino, server.digest(db)) == before, "setup replaced an existing mailbox")
+            and (db.stat().st_ino, hashlib.sha256(db.read_bytes()).digest()) == before, "setup replaced an existing mailbox")
     server.write_json(OWNER, {"owner": owner, "password": password})
 
 
