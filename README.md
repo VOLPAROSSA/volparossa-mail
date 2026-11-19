@@ -12,7 +12,8 @@ an owner-controlled mailbox using Stalwart.
 On Linux, a Thunderbird user can save a draft locally, review its paired
 recipient and send it into encrypted peer custody. The receiving owner’s
 Stalwart mailbox checks the complete message before acknowledging both providers.
-A fresh Thunderbird profile can then open that message in its ordinary Inbox.
+The owner can pick up messages once, or leave the receiver running to collect
+new mail after reconnection. Thunderbird opens them in its ordinary Inbox.
 [Install the paired-mail add-on](extensions/volparossa-peer-draft/README.md) ·
 [Configure the receiver](integration/peer-mail/README.md)
 
