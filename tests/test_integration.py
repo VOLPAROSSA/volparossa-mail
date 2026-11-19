@@ -84,7 +84,9 @@ class CooperativeIntegrationTests(unittest.TestCase):
 
     def test_native_assets_have_packaged_routes(self):
         expected = set(source.ADDITIONS.values())
-        self.assertEqual(expected, {str(p.relative_to(ROOT)) for p in (ROOT / "integration").iterdir()})
+        self.assertEqual(expected | {"integration/signal-mail"},
+                         {str(p.relative_to(ROOT)) for p in (ROOT / "integration").iterdir()})
+        self.assertTrue((ROOT / "integration/signal-mail").is_dir())
         for path in expected:
             self.assertIn("SPDX-License-Identifier: GPL-3.0-only", (ROOT / path).read_text())
         patch = (ROOT / "patches/0001-cooperative-ai-tools.patch").read_text()

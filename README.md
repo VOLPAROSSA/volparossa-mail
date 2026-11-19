@@ -25,6 +25,11 @@ encrypted store-and-forward delivery when a recipient is offline. Stored by peer
 imported by a recipient and read by a user are distinct states. Missing acknowledgements
 must not silently trigger ordinary-mail retransmission or hide a delivery failure.
 
+The [paired-owner mail adapter](integration/signal-mail/README.md) uses libsignal
+0.100.0 to exchange complete RFC 5322 messages between two explicitly paired
+devices. Separate local profiles preserve the original encrypted packet and
+message bytes across process restarts.
+
 The core is developed in [volparossa](https://github.com/VOLPAROSSA/volparossa).
 Mailbox transport, application import, authenticated address/device discovery and Signal
 sessions still need to be joined and tested in real Thunderbird. Existing core HPKE
