@@ -17,7 +17,7 @@ import stat
 import subprocess
 import sys
 import tempfile
-import threading
+import time
 
 HERE = Path(__file__).resolve().parent
 MAX_PACKET = 4 * 1024 * 1024
@@ -159,21 +159,24 @@ def accept(args, password, cfg=None, hold=(), on_verified=None):
 
 
 def watch(args, password, pickup):
-    stopped = threading.Event()
+    class Stopped(BaseException):
+        """Unwind through a blocked flock or native helper and release its resources."""
 
     def stop(signum, frame):
-        stopped.set()
+        raise Stopped()
 
-    signal.signal(signal.SIGINT, stop)
-    signal.signal(signal.SIGTERM, stop)
     previous = None
-    while not stopped.is_set():
-        result = pickup(args, password)
-        if result != previous or result["imported"]:
-            print(json.dumps(result), flush=True)
-        previous = result
-        stopped.wait(args.watch)
-    return 0
+    try:
+        signal.signal(signal.SIGINT, stop)
+        signal.signal(signal.SIGTERM, stop)
+        while True:
+            result = pickup(args, password)
+            if result != previous or result["imported"]:
+                print(json.dumps(result), flush=True)
+            previous = result
+            time.sleep(args.watch)
+    except Stopped:
+        return 0
 
 
 def main():

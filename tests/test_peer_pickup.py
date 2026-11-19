@@ -1,7 +1,12 @@
 # SPDX-License-Identifier: GPL-3.0-only
+import fcntl
+import json
+import os
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
+import time
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "integration/peer-mail"))
@@ -59,3 +64,56 @@ class PickupJournal(unittest.TestCase):
             pickup.remove_files(retired, pickup.retiring_files(retired))
         self.assertTrue(packet.is_file())
         self.assertEqual((self.root / "original").read_bytes(), b"keep")
+
+    def test_watch_stops_while_another_owner_or_its_own_helper_is_active(self):
+        profile = pickup.private_dir(self.root / "profile")
+        private_state = pickup.private_dir(self.root / "state")
+        journal = pickup.private_dir(private_state / "pickup")
+        config = {"server": "http://127.0.0.1:8080", "username": "owner", "accountId": "a", "mailboxId": "inbox",
+                  "controlSocket": str(self.root / "unavailable"), "identity": str(self.put(self.root, "identity")),
+                  "passphraseFile": str(self.put(self.root, "passphrase"))}
+        invitation = self.put(self.root, "invitation")
+        connection = self.put(self.root, "connection", json.dumps(config).encode())
+        marker = self.root / "active-helper"
+        helper = self.put(self.root, "core", ("#!" + sys.executable + "\nimport os, time\nfrom pathlib import Path\n"
+                          + "Path(" + repr(str(marker)) + ").write_text(str(os.getpid()))\ntime.sleep(60)\n").encode())
+        helper.chmod(0o700)
+        args = [sys.executable, "-B", Path(pickup.__file__).with_name("accept.py"), "--watch", "10", "--invitation",
+                invitation, "--profile", profile, "--state-dir", private_state, "--connection", connection, "--core", helper]
+        for blocked in ("other owner", "own helper"):
+            with self.subTest(blocked=blocked):
+                fd = os.open(journal, os.O_DIRECTORY)
+                try:
+                    if blocked == "other owner":
+                        fcntl.flock(fd, fcntl.LOCK_EX)
+                    with subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL,
+                                          stderr=subprocess.DEVNULL) as child:
+                        try:
+                            child.stdin.write(b"test\n")
+                            child.stdin.close()
+                            link = Path("/proc") / str(child.pid) / "fd"
+                            end = time.monotonic() + 5
+                            while True:
+                                if blocked == "other owner":
+                                    try:
+                                        if any(os.readlink(f) == str(journal) for f in link.iterdir()):
+                                            break
+                                    except FileNotFoundError:
+                                        pass  # An unrelated descriptor closed during the observation.
+                                elif marker.is_file() and marker.stat().st_size:
+                                    break
+                                self.assertIsNone(child.poll())
+                                self.assertLess(time.monotonic(), end)
+                                time.sleep(0.02)
+                            child.terminate()
+                            self.assertEqual(child.wait(timeout=3), 0)
+                        finally:
+                            if child.poll() is None:
+                                child.kill()
+                finally:
+                    os.close(fd)
+                if blocked == "other owner":
+                    self.assertFalse(marker.exists())
+                else:
+                    with self.assertRaises(ProcessLookupError):
+                        os.kill(int(marker.read_text()), 0)
