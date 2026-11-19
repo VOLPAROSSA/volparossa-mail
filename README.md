@@ -222,6 +222,10 @@ rendered body. The IMAP listener uses implicit TLS on loopback port 2993.
 [Verified inputs](third_party/thunderbird-stalwart-native-inbox/inputs.json) ·
 [Cleanup](third_party/thunderbird-stalwart-native-inbox/boundary.json)
 
+The **Native Thunderbird owner inbox** workflow rebuilds the pinned Stalwart Community
+server and repeats this trial when its inputs change. To run it manually, select the
+workflow in Actions and choose **Run workflow**. The artifact contains the build,
+mailbox and cleanup receipts. [Workflow](.github/workflows/native-owner-inbox.yml)
 
 The verified Thunderbird 157.0 run recovered all 313 bytes after both lifecycle
 checks. [UI and mailbox result](third_party/thunderbird-stalwart-mailbox-crash-recovery/ui-restart.json)

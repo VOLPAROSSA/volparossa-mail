@@ -1,0 +1,93 @@
+name: Native Thunderbird owner inbox
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/native-owner-inbox.yml'
+      - 'extensions/volparossa-mail-host/**'
+      - 'scripts/*stalwart*.py'
+      - 'scripts/thunderbird_*.py'
+      - 'third_party/stalwart/**'
+      - 'third_party/stalwart-source.json'
+      - 'third_party/stalwart-rust-toolchain.json'
+      - 'third_party/thunderbird-extension-smoke.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  owner-inbox:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 110
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.12.14'
+
+      - name: Prepare the disposable display and verify namespace support
+        run: |
+          sources="$RUNNER_TEMP/owner-inbox.list"
+          printf 'deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://mirrors.edge.kernel.org/ubuntu %s main universe\n' \
+            jammy jammy-updates jammy-security > "$sources"
+          apt_options=(-o "Dir::Etc::sourcelist=$sources" -o Dir::Etc::sourceparts=-
+            -o APT::Update::Error-Mode=any -o Acquire::Retries=2 -o Acquire::https::Timeout=20)
+          sudo apt-get "${apt_options[@]}" update -qq
+          sudo apt-get "${apt_options[@]}" install -y --no-install-recommends bubblewrap xvfb x11-utils x11-xkb-utils \
+            dbus-x11 fonts-dejavu-core libgtk-3-0 libasound2 libdbus-glib-1-2 libxtst6 \
+            libnss3-tools openssl clang libclang-dev pkg-config cmake gcc g++ make libssl-dev
+          bwrap --unshare-user --unshare-pid --unshare-net --cap-drop ALL --ro-bind / / \
+            --proc /proc --dev /dev -- /usr/bin/true
+          mkdir -p build/display
+          cd build/display
+          version=$(dpkg-query -W -f='${Version}' xvfb)
+          apt-get "${apt_options[@]}" download "xvfb=$version"
+          dpkg-deb -x ./*.deb package
+          cmp package/usr/bin/Xvfb /usr/bin/Xvfb
+
+      - name: Fetch pinned sources and compile Stalwart Community offline
+        run: |
+          python3 -B scripts/prepare_stalwart.py --fetch --output build/stalwart-0.16.24
+          python3 -B scripts/prepare_stalwart_toolchain.py --fetch --output build/stalwart-rust-1.98.1
+          python3 -B scripts/build_stalwart.py --fetch --output build/stalwart-community | tee build/compile.jsonl
+          tail -n 1 build/compile.jsonl | jq -e 'select(.community_compiled and .source_unchanged)' > build/compiled.json
+
+      - name: Open the delivered message in a fresh Thunderbird profile
+        run: |
+          archive="$PWD/build/thunderbird.tar.xz"
+          url=$(jq -er .runtime_inputs.distribution_url third_party/thunderbird-extension-smoke.json)
+          curl --fail --location --proto '=https' --proto-redir '=https' --retry 3 --output "$archive" "$url"
+          xvfb_sha=$(sha256sum build/display/package/usr/bin/Xvfb | cut -d ' ' -f 1)
+          python3 -B scripts/smoke_thunderbird_stalwart.py --inbox --execute \
+            --thunderbird-archive "$archive" --xvfb /usr/bin/Xvfb --xvfb-sha256 "$xvfb_sha" \
+            --stalwart "$PWD/build/stalwart-community/target/debug/stalwart" \
+            --stalwart-sha256 "$(jq -er .sha256 build/compiled.json)" --output build/owner-inbox
+
+      - name: Keep the build, mailbox and cleanup receipts
+        if: ${{ !cancelled() && hashFiles('build/stalwart-community/BUILD_OWNER.json') != '' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: native-owner-inbox-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            build/stalwart-community/BUILD_OWNER.json
+            build/stalwart-community/fetch-*.json
+            build/stalwart-community/compile-*.json
+            build/compiled.json
+            build/owner-inbox/inputs.json
+            build/owner-inbox/ui-restart.json
+            build/owner-inbox/boundary.json
+          if-no-files-found: error
+          retention-days: 14
