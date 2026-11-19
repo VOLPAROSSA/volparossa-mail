@@ -62,7 +62,7 @@ class Fixture(unittest.TestCase):
                      "original_account_metadata_and_mime", "process_groups_joined", "private_data_removed"):
             receipt[name] = True
         smoke.verified_receipt(receipt)
-        for key, bad in [("client_exit_code", 1), ("message_bytes", 312), ("wrong_password_status", 403),
+        for key, bad in [("client_exit_code", False), ("unknown", "raw"), ("message_bytes", 312), ("wrong_password_status", 403),
                          ("original_server_readable_after_client_exit", False), ("same_sqlite_reopened", False),
                          ("operations", receipt["operations"] + [receipt["operations"][3]])]:
             with self.subTest(key=key), self.assertRaises(ValueError):

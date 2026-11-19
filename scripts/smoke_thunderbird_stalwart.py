@@ -208,17 +208,23 @@ def namespace(work, stage, netns):
 
 def verified_receipt(value):
     from thunderbird_import_observer import EXPECTED
-    require(value.get("kind") == "thunderbird-stalwart-owner-restart" and value.get("phase") == "complete"
-            and value.get("success") is True and value.get("client_exit_code") == 0
+    flags = {"original_server_readable_after_client_exit", "server_killed_and_offline", "same_sqlite_reopened",
+             "original_account_metadata_and_mime", "process_groups_joined", "private_data_removed"}
+    require(set(value) == flags | {"version", "kind", "phase", "success", "application", "client_exit_code",
+            "wrong_password_status", "message_bytes", "message_sha256", "operations"}, "unknown-receipt-field")
+    require(type(value["version"]) is int and value["version"] == 1 and
+            value["kind"] == "thunderbird-stalwart-owner-restart" and value["phase"] == "complete"
+            and value["success"] is True and type(value["client_exit_code"]) is int and value["client_exit_code"] == 0
             and value.get("wrong_password_status") == 401 and value.get("message_bytes") == len(server.MESSAGE)
             and value.get("message_sha256") == hashlib.sha256(server.MESSAGE).hexdigest(), "recovery-result")
-    for flag in ("original_server_readable_after_client_exit", "server_killed_and_offline", "same_sqlite_reopened",
-                 "original_account_metadata_and_mime", "process_groups_joined", "private_data_removed"):
+    for flag in flags:
         require(value.get(flag) is True, "recovery-observation")
     expected = [{"operation": method, "upstream_status": 200, "delivered_status": 503 if i == 4 else 200}
                 for i, method in enumerate(EXPECTED)]
     require(value.get("operations") == expected, "metadata-retry")
     application = value.get("application", {})
+    require(set(application) == {"thunderbird_version", "build_id", "native_toolbar", "native_file_chooser",
+            "metadata_retry_confirmed", "disconnected", "temporary_extension_removed"}, "unknown-ui-field")
     require(application.get("thunderbird_version") == "157.0" and application.get("build_id") == "20260928193122"
             and all(application.get(flag) is True for flag in ("native_toolbar", "native_file_chooser",
                     "metadata_retry_confirmed", "disconnected", "temporary_extension_removed")), "native-ui")
