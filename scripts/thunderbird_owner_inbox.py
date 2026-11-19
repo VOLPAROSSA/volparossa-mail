@@ -48,13 +48,15 @@ def configure(admin, private):
 
 
 def open_profile(private, ca, prefs):
+    context = ssl.create_default_context()
+    context.minimum_version = ssl.TLSVersion.TLSv1_2
     with socket.create_connection(("127.0.0.1", PORT), timeout=10) as conn:
         try:
-            with ssl.create_default_context().wrap_socket(conn, server_hostname="127.0.0.1"):
+            with context.wrap_socket(conn, server_hostname="127.0.0.1"):
                 raise ValueError("unexpected-system-trust")
         except ssl.SSLCertVerificationError:
             pass
-    context = ssl.create_default_context(cafile=ca)
+    context.load_verify_locations(cafile=ca)
     with socket.create_connection(("127.0.0.1", PORT), timeout=10) as conn:
         with context.wrap_socket(conn, server_hostname="127.0.0.1") as peer:
             require(peer.recv(512).startswith(b"* OK "), "imap-tls-greeting")
