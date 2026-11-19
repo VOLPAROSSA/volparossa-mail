@@ -79,3 +79,6 @@ jq --arg sha "$expected" --argjson restarts "$restarts" \
     same_mail_and_sqlite:true, private_loopback:true, clean_stop:true, removed:true,
     original_bytes,original_sha256,received_bytes,received_sha256}' \
   "$fixture_after" > "$out/owner-service.json"
+
+python3 -B tests/owner_imaps.py --server "$binary" > "$out/owner-imaps.json"
+jq -e --arg sha "$expected" '.server_sha256 == $sha and .original_message_read_after_restart and .private_state_removed' "$out/owner-imaps.json"
