@@ -35,8 +35,8 @@ def run(root, node, cfg, owners, bundles, raw, fetch, core, app):
     draft=root/'selected-draft.eml'
     command=[sys.executable,'-B',SOURCE/'integration/peer-mail/send_selected.py',
              '--owner',owner,'--id',op]
-    def action(*args,code,body=None):
-        done=subprocess.run([*command,'--node',node,*args],input=body,capture_output=True,timeout=90)
+    def action(*args,code,body=None,operation=op):
+        done=subprocess.run([*command[:-1],operation,'--node',node,*args],input=body,capture_output=True,timeout=90)
         report=json.loads(done.stdout)
         check(done.returncode==code and not done.stderr, 'address action result')
         return report
@@ -66,15 +66,37 @@ def run(root, node, cfg, owners, bundles, raw, fetch, core, app):
             return hashlib.sha256(session).digest()
     prior_session=session_digest()
     for size,body,digest in [(len(raw),raw,'00'*32),(len(raw),raw[:-1],expected),
-                             (len(raw),raw+b'x',expected),(4*1024*1024+1,b'x',expected)]:
+                             (len(raw),raw+b'x',expected)]:
         invalid=subprocess.run([*native,'--stdin-size',str(size),'--stdin-sha256',digest],
                                input=body,capture_output=True,timeout=15)
         check(invalid.returncode!=0 and not invalid.stdout,'invalid native pipe reached sealing')
-    full=b'\xff'*(4*1024*1024)
-    oversize=subprocess.run([*native,'--stdin-size',str(len(full)),'--stdin-sha256',hashlib.sha256(full).hexdigest()],
-                            input=full,capture_output=True,timeout=20)
-    check(oversize.returncode!=0 and b'encrypted message exceeds the Core 4 MiB limit' in oversize.stderr,
-          'exact input limit failed to enforce the entire sealed packet limit')
+    maximum=4*1024*1024
+    terminal_id=hashlib.sha256(b'oversized selected draft').hexdigest()
+    full=raw+b'x'*(maximum-len(raw))
+    def size_result(operation,reason):
+        return dict(operation=operation,status='message_too_large',reason=reason,limit_bytes=maximum)
+    for declared,body,reason in [(maximum+1,b'x','input_exceeds_limit'),(maximum,full,'encrypted_packet_exceeds_limit')]:
+        oversize=subprocess.run([*native,'--stdin-size',str(declared),'--stdin-sha256',hashlib.sha256(body).hexdigest()],
+                                input=body,capture_output=True,timeout=20)
+        check(oversize.returncode==4 and json.loads(oversize.stdout)==size_result('send',reason) and not oversize.stderr,
+              'native size refusal was not terminal')
+    raw_refusal=size_result('send_selected','input_exceeds_limit')
+    encrypted_refusal=size_result('send_selected','encrypted_packet_exceeds_limit')
+    check(action('--stdin',operation=terminal_id,body=full+b'x',code=4)==raw_refusal,'raw overflow offered retry')
+    draft.write_bytes(full+b'x')
+    check(action('--input',draft,operation=terminal_id,code=4)==raw_refusal,'file overflow offered retry')
+    draft.unlink()
+    check(action('--stdin',operation=terminal_id,body=full,code=4)==encrypted_refusal,'sealed overflow offered retry')
+    check(action('--resume',operation=terminal_id,code=4)==encrypted_refusal,'restart forgot terminal refusal')
+    with sqlite3.connect(owner/'selected-mail.sqlite') as db:
+        refused=db.execute('SELECT raw,invitation,config,result FROM selections WHERE id=?',(terminal_id,)).fetchone()
+        check(refused[:3]==(None,None,None) and json.loads(refused[3])==encrypted_refusal,
+              'terminal refusal retained the private draft or grant')
+    with sqlite3.connect(root/'a/signal-mail.sqlite') as db:
+        check(not db.execute('SELECT 1 FROM outgoing WHERE id=?',(terminal_id,)).fetchone(),'refusal committed a packet')
+    check(not (root/'a/core-send'/terminal_id).exists(),'refused selection reached Core custody')
+    check(action('--stdin',operation=terminal_id,body=full+b'x',code=1)['status']=='invalid_selection_or_state',
+          'different source changed the retained operation')
     check(session_digest()==prior_session,'refused message advanced the original ratchet')
     with sqlite3.connect(root/'a/signal-mail.sqlite') as db:
         check(not db.execute('SELECT 1 FROM outgoing WHERE id=?',(op,)).fetchone(),'invalid pipe changed native state')
@@ -128,6 +150,7 @@ sys.exit(result.returncode)
     app('open','b','--input',original[0]/'payload','--output',restored)
     check(restored.read_bytes()==raw,'selected original MIME changed')
     book.unlink()
+    check(action('--resume',operation=terminal_id,code=4)==encrypted_refusal,'refusal depends on mutable address book')
     check(action('--resume',code=0)==delivered,'completed receipt requires a mutable address book')
     check(action('--stdin',body=raw,code=0)==delivered,'identical streamed replay changed custody')
     draft.write_bytes(raw)
@@ -137,4 +160,4 @@ sys.exit(result.returncode)
     check(action('--input',draft,code=1)['status']=='invalid_selection_or_state','conflicting operation id reused')
     return dict(address_selection_verified=True, ordinary_mail_decisions_without_send=3,
                 original_peer_retained_after_catalog_replacement=True, selected_message_restored=True,
-                binary_stdin_and_file_replay_preserved=True, native_pipe_recovered_after_selector_kill=True)
+                binary_stdin_and_file_replay_preserved=True, native_pipe_recovered_after_selector_kill=True, permanent_size_refusal_replayed_without_custody=True)

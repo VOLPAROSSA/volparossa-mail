@@ -89,6 +89,8 @@ mailbox in Thunderbird using implicit TLS on 127.0.0.1 port 2993. The native
 trial starts a fresh Thunderbird 157 profile after delivery, selects the message
 in its ordinary Inbox and checks the displayed subject, Message-ID and body.
 It uses fictional accounts, two independently keyed Core stores served over
-local sockets and an actual Stalwart Community process. Automatic
-address discovery, Thunderbird composition and protected multi-node mail routing
-remain separate integration work.
+local sockets and an actual Stalwart Community process. The [Thunderbird add-on](../../extensions/volparossa-peer-draft/README.md)
+supports explicit delivery after the sender saves a message in Local Folders.
+The additional compose trial edits the subject in Thunderbird, saves the draft
+with its binary attachment, then verifies the same correspondence in the second
+owner’s Inbox. It also checks that a Filelink placeholder leaves both providers empty.

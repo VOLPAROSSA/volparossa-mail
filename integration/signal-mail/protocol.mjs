@@ -6,7 +6,7 @@ import {
   ProtocolAddress, PublicKey, SessionRecord, SignedPreKeyRecord, SignalMessage,
   processPreKeyBundle, signalDecrypt, signalDecryptPreKey, signalEncrypt,
 } from '@signalapp/libsignal-client';
-import { MailError } from './files.mjs';
+import { MessageTooLarge } from './files.mjs';
 
 // The existing Core private-message CLI accepts at most 4 MiB, including framing.
 export const MAX_PACKET = 4 * 1024 * 1024;
@@ -100,7 +100,7 @@ export function channel(state, local, peer) {
       if (!await sessions.getSession(peer.address)) await processPreKeyBundle(peer.native, ...args);
       const ciphertext = await signalEncrypt(message, ...args);
       const packet = Buffer.concat([MAGIC, Buffer.from([ciphertext.type()]), ciphertext.serialize()]);
-      if (packet.length > MAX_PACKET) throw new MailError('encrypted message exceeds the Core 4 MiB limit');
+      if (packet.length > MAX_PACKET) throw new MessageTooLarge('encrypted_packet_exceeds_limit');
       return packet;
     },
     async decrypt(packet) {

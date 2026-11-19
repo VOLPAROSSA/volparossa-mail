@@ -7,6 +7,13 @@ import { dirname, join, resolve } from 'node:path';
 
 export class MailError extends Error {}
 
+export class MessageTooLarge extends MailError {
+  constructor(reason) {
+    super(reason);
+    this.reason = reason;
+  }
+}
+
 export function privateDir(path) {
   const full = resolve(path);
   const st = lstatSync(full);
@@ -16,12 +23,16 @@ export function privateDir(path) {
   return full;
 }
 
-export function read(path, maximum) {
+export function read(path, maximum, { message = false } = {}) {
   const fd = openSync(path, constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
   try {
     const st = fstatSync(fd);
-    if (!st.isFile() || st.uid !== process.getuid() || (st.mode & 0o077) || st.size < 1 || st.size > maximum) {
+    if (!st.isFile() || st.uid !== process.getuid() || (st.mode & 0o077) || st.size < 1) {
       throw new MailError('input must be a nonempty, owner-private regular file within the size limit');
+    }
+    if (st.size > maximum) {
+      if (message) throw new MessageTooLarge('input_exceeds_limit');
+      throw new MailError('input exceeds the size limit');
     }
     return readExact(fd, st.size);
   } finally { closeSync(fd); }

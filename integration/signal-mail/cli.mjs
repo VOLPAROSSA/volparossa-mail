@@ -4,7 +4,7 @@ import { lstatSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { parseArgs } from 'node:util';
-import { MailError, privateDir, publish, read, readExact, syncDirectory } from './files.mjs';
+import { MailError, MessageTooLarge, privateDir, publish, read, readExact, syncDirectory } from './files.mjs';
 import { channel, decodeBundle, makeLocal, MAX_PACKET } from './protocol.mjs';
 import { bindCoreOwner, deposit, routeMail, stageRoute } from './route.mjs';
 
@@ -16,7 +16,7 @@ const fields = new Map([
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const digest = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 
-async function seal(db, session, values, input = read(values.input, MAX_PACKET)) {
+async function seal(db, session, values, input = read(values.input, MAX_PACKET, { message: true })) {
   const messageHash = values['stdin-sha256'] ?? hash(input);
   const existing = db.prepare('SELECT message_sha256,packet FROM outgoing WHERE id=?').get(values.id);
   if (existing && existing.message_sha256 !== messageHash) throw new MailError('operation id already seals different message bytes');
@@ -54,9 +54,10 @@ async function run() {
     if (stream) {
       const size = Number(values['stdin-size']);
       if (String(size) !== values['stdin-size'] || !Number.isSafeInteger(size) || size < 1 ||
-          size > MAX_PACKET || !digest(values['stdin-sha256'])) {
+          !digest(values['stdin-sha256'])) {
         throw new MailError('invalid selected message length or digest');
       }
+      if (size > MAX_PACKET) throw new MessageTooLarge('input_exceeds_limit');
       // Read before opening the native ratchet transaction or waiting on a provider.
       input = readExact(0, size);
       if (hash(input) !== values['stdin-sha256']) throw new MailError('selected message digest differs');
@@ -150,6 +151,12 @@ async function run() {
 
 try { console.log(JSON.stringify(await run())); }
 catch (error) {
-  console.error(error instanceof MailError ? error.message : 'signal-mail operation failed');
-  process.exitCode = 1;
+  if (error instanceof MessageTooLarge) {
+    console.log(JSON.stringify({ operation: process.argv[2], status: 'message_too_large',
+      reason: error.reason, limit_bytes: MAX_PACKET }));
+    process.exitCode = 4;
+  } else {
+    console.error(error instanceof MailError ? error.message : 'signal-mail operation failed');
+    process.exitCode = 1;
+  }
 }

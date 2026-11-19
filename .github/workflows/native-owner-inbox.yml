@@ -7,6 +7,10 @@ on:
     paths:
       - '.github/workflows/native-owner-inbox.yml'
       - 'extensions/volparossa-mail-host/**'
+      - 'extensions/volparossa-peer-draft/**'
+      - 'scripts/peer_draft_install.py'
+      - 'tests/thunderbird_peer_draft_guest.py'
+      - 'tests/thunderbird_composed_draft.py'
       - 'scripts/*stalwart*.py'
       - 'scripts/export_mail_custody.py'
       - 'scripts/thunderbird_*.py'
@@ -122,6 +126,17 @@ jobs:
             > build/owner-inbox/peer-mail.json
           jq -e '.provider_acks == 2 and .exact_raw_bytes_verified and .messages_after_ack == 0 and .original_handoff_resumed and .pickup_killed_after_provider_acks and .interrupted_plaintext_staging_removed and .concurrent_pickups_imported_once and .final_receipts_recovered_while_offline' build/owner-inbox/peer-mail.json
 
+      - name: Send a native Thunderbird draft to its paired owner
+        run: |
+          python3 -B scripts/peer_draft_install.py package build/owner-inbox/volparossa-peer-draft.xpi
+          for trial in draft compose; do
+            receipt="build/owner-inbox/peer-$trial.json"
+            python3 -B tests/peer_mail_namespace.py --"$trial" --node "$(command -v node)" \
+              --stalwart build/stalwart-community/target/debug/stalwart --core-dir "$RUNNER_TEMP/mail-core-pair" \
+              --thunderbird-archive build/thunderbird.tar.xz --xvfb /usr/bin/Xvfb > "$receipt"
+            jq -e '.native_toolbar_and_send_clicked and .original_correspondence_bytes and .verified_import_acknowledgements == 2 and .receiver_inbox.message_body_displayed' "$receipt"
+          done
+          jq -e '.edited_and_saved_in_composer and .filelink_refused_before_custody and .oversize_encrypted_message_refused_before_custody' build/owner-inbox/peer-compose.json
       - name: Export the proven Linux mailbox runtime for the routed Core trial
         run: python3 -I -B scripts/export_mail_custody.py
 
@@ -149,6 +164,9 @@ jobs:
             build/owner-inbox/boundary.json
             build/owner-inbox/owner-service.json
             build/owner-inbox/peer-mail.json
+            build/owner-inbox/peer-draft.json
+            build/owner-inbox/peer-compose.json
+            build/owner-inbox/volparossa-peer-draft.xpi
             build/owner-inbox/owner-imaps.json
           if-no-files-found: error
           retention-days: 14
