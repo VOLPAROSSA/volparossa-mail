@@ -88,6 +88,26 @@ async function boundedJson(response) {
   catch { fail("invalid_response"); }
 }
 
+async function verifyOctets(response, expected) {
+  if (response.status !== 200 || !response.body) fail("peer_bytes_unverified");
+  const reader = response.body.getReader();
+  let offset = 0;
+  try {
+    for (;;) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      if (value.length > expected.length - offset) fail("peer_bytes_unverified");
+      for (const byte of value) {
+        if (byte !== expected[offset++]) fail("peer_bytes_unverified");
+      }
+    }
+    if (offset !== expected.length) fail("peer_bytes_unverified");
+  } catch (error) {
+    await reader.cancel().catch(() => {});
+    throw error;
+  } finally { reader.releaseLock(); }
+}
+
 export class StalwartAccount {
   #origin;
   #authorization;
@@ -123,20 +143,21 @@ export class StalwartAccount {
     this.#mailboxes.clear();
   }
 
-  async #request(url, method, body, type = "application/json") {
+  async #request(url, method, body, type = "application/json", expectedBytes = null) {
     if (!this.#authorization) fail("disconnected");
     endpoint(this.#origin, url, path => path === "/jmap/session" || path === "/jmap/" ||
-      path === "/jmap" || /^\/jmap\/upload\/[A-Za-z0-9_-]{1,256}\/$/.test(path));
+      path === "/jmap" || /^\/jmap\/upload\/[A-Za-z0-9_-]{1,256}\/$/.test(path) ||
+      (method === "GET" && expectedBytes && /^\/jmap\/download\/[A-Za-z0-9_-]{1,256}\/[A-Za-z0-9_-]{1,256}\/message.eml$/.test(path)));
     const controller = new AbortController();
     this.#controllers.add(controller);
     const timer = setTimeout(() => controller.abort(), LIMITS.requestMs);
     try {
       const fetch = this.#fetch;
       const response = await fetch(url, {method, headers: {Authorization: this.#authorization,
-        Accept: "application/json", ...(body === undefined ? {} : {"Content-Type": type})}, body,
+        Accept: expectedBytes ? "*/*" : "application/json", ...(body === undefined ? {} : {"Content-Type": type})}, body,
         signal: controller.signal, credentials: "omit", cache: "no-store", redirect: "error", referrerPolicy: "no-referrer"});
       if (response.redirected || response.url && response.url !== url) fail("redirect_rejected");
-      const value = await boundedJson(response);
+      const value = expectedBytes ? await verifyOctets(response, expectedBytes) : await boundedJson(response);
       if (!this.#authorization) fail("disconnected");
       return value;
     } catch (error) {
@@ -204,36 +225,80 @@ export class StalwartAccount {
     });
   }
 
+  #checkImport(accountId, mailboxId, bytes, confirmed) {
+    this.#requireAccount(accountId);
+    if (confirmed !== true || accountId !== this.#account || !this.#mailboxes.has(mailboxId)) fail("import_not_confirmed");
+    if (this.accounts.find(account => account.id === accountId).readOnly || !this.#mailboxes.get(mailboxId).mayAdd) fail("read_only");
+    if (!(bytes instanceof Uint8Array || bytes instanceof Blob)) fail("message_size");
+    const size = bytes instanceof Blob ? bytes.size : bytes.byteLength;
+    if (!size || size > this.maxMessageBytes) fail("message_size");
+    return size;
+  }
+
+  async #createMessage(accountId, mailboxId, bytes, size, keywords, condition) {
+    const upload = this.#session.upload.replace("{accountId}", accountId);
+    const blob = await this.#request(upload, "POST", bytes, "message/rfc822");
+    if (!object(blob) || blob.accountId !== accountId || !identifier(blob.blobId) || blob.size !== size) fail("invalid_upload");
+    let result;
+    try {
+      result = await this.#call("Email/import", {accountId, ...condition, emails: {selected: {
+        blobId: blob.blobId, mailboxIds: {[mailboxId]: true}, keywords,
+      }}});
+    } catch { fail("import_uncertain"); }
+    if (object(result.notCreated) && Object.hasOwn(result.notCreated, "selected")) {
+      const rejectedOnly = Object.keys(result.notCreated).length === 1 && object(result.notCreated.selected) &&
+        typeof result.notCreated.selected.type === "string" &&
+        (result.created == null || (object(result.created) && !Object.keys(result.created).length));
+      fail(rejectedOnly ? "import_rejected" : "import_uncertain");
+    }
+    const created = result.created?.selected;
+    if (!object(created) || !identifier(created.id) || !object(result.created) ||
+        Object.keys(result.created).length !== 1 ||
+        (result.notCreated != null && (!object(result.notCreated) || Object.keys(result.notCreated).length))) fail("import_uncertain");
+    return created.id;
+  }
+
   async importMessage({accountId, mailboxId, bytes, confirmed = false}) {
     return this.#exclusive(async () => {
-      this.#requireAccount(accountId);
-      if (confirmed !== true || accountId !== this.#account || !this.#mailboxes.has(mailboxId)) fail("import_not_confirmed");
-      if (this.accounts.find(account => account.id === accountId).readOnly || !this.#mailboxes.get(mailboxId).mayAdd) fail("read_only");
-      if (!(bytes instanceof Uint8Array || bytes instanceof Blob)) fail("message_size");
-      const size = bytes instanceof Blob ? bytes.size : bytes.byteLength;
-      if (!size || size > this.maxMessageBytes) fail("message_size");
+      const size = this.#checkImport(accountId, mailboxId, bytes, confirmed);
       this.#pendingImport = null;
-      const upload = this.#session.upload.replace("{accountId}", accountId);
-      const blob = await this.#request(upload, "POST", bytes, "message/rfc822");
-      if (!object(blob) || blob.accountId !== accountId || !identifier(blob.blobId) || blob.size !== size) fail("invalid_upload");
-      let result;
-      try {
-        result = await this.#call("Email/import", {accountId, emails: {selected: {
-          blobId: blob.blobId, mailboxIds: {[mailboxId]: true}, keywords: {},
-        }}});
-      } catch { fail("import_uncertain"); }
-      if (object(result.notCreated) && Object.hasOwn(result.notCreated, "selected")) {
-        const rejectedOnly = Object.keys(result.notCreated).length === 1 && object(result.notCreated.selected) &&
-          typeof result.notCreated.selected.type === "string" &&
-          (result.created == null || (object(result.created) && !Object.keys(result.created).length));
-        fail(rejectedOnly ? "import_rejected" : "import_uncertain");
-      }
-      const created = result.created?.selected;
-      if (!object(created) || !identifier(created.id) || !object(result.created) ||
-          Object.keys(result.created).length !== 1 ||
-          (result.notCreated != null && (!object(result.notCreated) || Object.keys(result.notCreated).length))) fail("import_uncertain");
-      this.#pendingImport = {accountId, mailboxId, emailId: created.id, size};
+      const emailId = await this.#createMessage(accountId, mailboxId, bytes, size, {}, {});
+      this.#pendingImport = {accountId, mailboxId, emailId, size};
       return this.#readImport(this.#pendingImport);
+    });
+  }
+
+  // A peer delivery owns its ciphertext digest. The owner persists the first observed
+  // Email state before submission. Stalwart sets the opaque keyword in the import itself.
+  async importPeerMessage({accountId, mailboxId, bytes, deliveryId, retainState, confirmed = false}) {
+    return this.#exclusive(async () => {
+      const size = this.#checkImport(accountId, mailboxId, bytes, confirmed);
+      if (!(bytes instanceof Uint8Array) || typeof deliveryId !== "string" || !/^[0-9a-f]{64}$/.test(deliveryId) ||
+          typeof retainState !== "function") fail("invalid_peer_delivery");
+      const original = Uint8Array.from(bytes);
+      const keyword = "vp-" + deliveryId;
+      const lookup = async () => {
+        const result = await this.#call("Email/query", {accountId, filter: {hasKeyword: keyword}, limit: 2});
+        if (!Array.isArray(result.ids) || result.ids.length > 1 ||
+            result.ids.some(id => !identifier(id))) fail("peer_delivery_ambiguous");
+        return result.ids[0];
+      };
+
+      let emailId = await lookup();
+      if (!emailId) {
+        const observed = await this.#call("Email/get", {accountId, ids: [], properties: ["id"]});
+        if (!text(observed.state) || !Array.isArray(observed.list) || observed.list.length ||
+            !Array.isArray(observed.notFound) || observed.notFound.length) fail("invalid_response");
+        const originalState = await retainState(observed.state);
+        if (originalState !== observed.state) fail("peer_import_needs_reconciliation");
+        emailId = await this.#createMessage(accountId, mailboxId, original, size, {[keyword]: true},
+          {ifInState: originalState});
+        if (await lookup() !== emailId) fail("peer_import_needs_reconciliation");
+      }
+      const stored = await this.#storedMessage({accountId, mailboxId, emailId, size});
+      await this.#request(`${this.#origin}/jmap/download/${accountId}/${stored.blobId}/message.eml`,
+        "GET", undefined, undefined, original);
+      return Object.freeze({accountId, mailboxId, emailId, size, deliveryId, rawMessageVerified: true});
     });
   }
 
@@ -250,7 +315,7 @@ export class StalwartAccount {
     });
   }
 
-  async #readImport({accountId, mailboxId, emailId, size}) {
+  async #storedMessage({accountId, mailboxId, emailId, size}) {
     let fetched;
     try {
       fetched = await this.#call("Email/get", {accountId, ids: [emailId],
@@ -261,6 +326,11 @@ export class StalwartAccount {
         saved.id !== emailId || !identifier(saved.blobId) || !object(saved.mailboxIds) ||
         saved.mailboxIds[mailboxId] !== true || saved.size !== size ||
         !Array.isArray(fetched.notFound) || fetched.notFound.length) fail("import_readback_failed");
+    return saved;
+  }
+
+  async #readImport({accountId, mailboxId, emailId, size}) {
+    const saved = await this.#storedMessage({accountId, mailboxId, emailId, size});
     this.#pendingImport = null;
     return Object.freeze({accountId, mailboxId, emailId: saved.id, size: saved.size,
       metadataReadback: true, messageSent: false, rawMessageVerified: false});

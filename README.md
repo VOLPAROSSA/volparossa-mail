@@ -35,6 +35,10 @@ Mailbox transport, application import, authenticated address/device discovery an
 sessions still need to be joined and tested in real Thunderbird. Existing core HPKE
 messages are not a substitute for the Signal Protocol.
 
+The [peer-mail receiver](integration/peer-mail/README.md) imports a complete
+Signal-encrypted message from a fetched Core handoff into the owner's Stalwart
+mailbox. It compares the stored MIME bytes before acknowledging both custodians.
+
 ## Cooperative intelligence
 
 The first source overlay adds **Tools → VOLPAROSSA AI** with a separate core adapter.

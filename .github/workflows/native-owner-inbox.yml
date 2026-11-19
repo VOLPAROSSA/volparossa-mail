@@ -11,6 +11,9 @@ on:
       - 'scripts/thunderbird_*.py'
       - 'packaging/systemd/**'
       - 'tests/owner_service_*'
+      - 'tests/peer_mail_*'
+      - 'integration/peer-mail/**'
+      - 'integration/signal-mail/**'
       - 'tests/owner_imaps.py'
       - 'third_party/stalwart/**'
       - 'third_party/stalwart-source.json'
@@ -50,7 +53,7 @@ jobs:
         run: |
           sudo apt-get -c "$ARCHIVE_CONFIG" install -y --no-install-recommends bubblewrap xvfb x11-utils x11-xkb-utils \
             dbus-x11 fonts-dejavu-core libgtk-3-0 libasound2 libdbus-glib-1-2 libxtst6 \
-            libnss3-tools openssl clang libclang-dev pkg-config cmake gcc g++ make libssl-dev
+            libnss3-tools openssl clang libclang-dev pkg-config cmake gcc g++ make libssl-dev protobuf-compiler
           bwrap --unshare-user --unshare-pid --unshare-net --cap-drop ALL --ro-bind / / \
             --proc /proc --dev /dev -- /usr/bin/true
           mkdir -p build/display
@@ -83,6 +86,40 @@ jobs:
           bash tests/owner_service_actions.sh "$PWD/build/stalwart-community/target/debug/stalwart" \
             "$(jq -er .sha256 build/compiled.json)" "$PWD/build/owner-inbox"
 
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.19.0'
+
+      - name: Check out the Core mailbox provider pair
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: VOLPAROSSA/volparossa
+          ref: 67ae4b6948f77cd33fd2af719878fc2d9b14ec96
+          path: build/paired-core
+          persist-credentials: false
+
+      - name: Build the ordinary Core client and two independent mailbox stores
+        working-directory: build/paired-core
+        env:
+          CARGO_PROFILE_DEV_DEBUG: '0'
+          CARGO_INCREMENTAL: '0'
+        run: |
+          test "$(git rev-parse HEAD)" = 67ae4b6948f77cd33fd2af719878fc2d9b14ec96
+          rustup toolchain install 1.89.0 --profile minimal
+          cargo +1.89.0 fetch --locked --target x86_64-unknown-linux-gnu
+          cargo +1.89.0 build --locked --offline -p volparossa --bin volparossa --example mailbox-provider-pair
+          mkdir "$RUNNER_TEMP/mail-core-pair"
+          install -m 0555 target/debug/volparossa target/debug/examples/mailbox-provider-pair "$RUNNER_TEMP/mail-core-pair/"
+
+      - name: Deliver a complete Signal-encrypted message to an offline owner
+        run: |
+          npm ci --prefix integration/signal-mail --ignore-scripts --no-audit --no-fund
+          echo 'e24a9e4c701686327d602944de2fc383bccf1b93c371661dd5998f97d8aed7d4  integration/signal-mail/node_modules/@signalapp/libsignal-client/prebuilds/linux-x64/@signalapp+libsignal-client.node' | sha256sum --check
+          python3 -B tests/peer_mail_namespace.py --node "$(command -v node)" \
+            --stalwart build/stalwart-community/target/debug/stalwart --core-dir "$RUNNER_TEMP/mail-core-pair" \
+            > build/owner-inbox/peer-mail.json
+          jq -e '.provider_acks == 2 and .exact_raw_bytes_verified and .messages_after_ack == 0' build/owner-inbox/peer-mail.json
+
       - name: Keep the build, mailbox and cleanup receipts
         if: ${{ !cancelled() && hashFiles('build/stalwart-community/BUILD_OWNER.json') != '' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -97,6 +134,7 @@ jobs:
             build/owner-inbox/ui-restart.json
             build/owner-inbox/boundary.json
             build/owner-inbox/owner-service.json
+            build/owner-inbox/peer-mail.json
             build/owner-inbox/owner-imaps.json
           if-no-files-found: error
           retention-days: 14
