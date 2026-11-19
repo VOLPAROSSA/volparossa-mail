@@ -1,0 +1,30 @@
+[Unit]
+Description=VOLPAROSSA owner mailbox (Stalwart Community)
+ConditionFileNotEmpty=/var/lib/volparossa-mail/store.sqlite
+ConditionFileNotEmpty=/usr/local/libexec/volparossa-mail/store.json
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+[Service]
+Type=exec
+User=volparossa-mail
+Group=volparossa-mail
+StateDirectory=volparossa-mail
+StateDirectoryMode=0700
+WorkingDirectory=/var/lib/volparossa-mail
+ExecStart=/usr/local/libexec/volparossa-mail/stalwart --config /usr/local/libexec/volparossa-mail/store.json
+UnsetEnvironment=CONFIG_PATH STALWART_RECOVERY_MODE STALWART_RECOVERY_ADMIN
+Restart=on-failure
+RestartSec=2s
+KillSignal=SIGINT
+UMask=0077
+LimitCORE=0
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+
+[Install]
+WantedBy=multi-user.target
