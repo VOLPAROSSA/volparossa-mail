@@ -22,20 +22,26 @@ def require(value):
         raise ValueError('incomplete Core custody')
 
 
-def private(path, directory=False):
-    st = path.lstat()
+def owned(info, directory=False):
     kind = stat.S_ISDIR if directory else stat.S_ISREG
-    require(path.is_absolute() and path == path.resolve() and kind(st.st_mode)
-            and st.st_uid == os.getuid() and not st.st_mode & 0o077
-            and (directory or st.st_nlink == 1))
+    require(kind(info.st_mode) and info.st_uid == os.getuid() and not info.st_mode & 0o077
+            and (directory or info.st_nlink == 1))
+
+
+def private(path, directory=False):
+    require(path.is_absolute() and path == path.resolve())
+    owned(path.lstat(), directory)
 
 
 def read(path, maximum):
-    private(path)
-    with path.open('rb') as handle:
+    require(path.is_absolute() and path.parent == path.parent.resolve())
+    with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as handle:
+        info = os.fstat(handle.fileno())
+        owned(info)
+        require(0 < info.st_size <= maximum)
         data = handle.read(maximum + 1)
-    require(0 < len(data) <= maximum)
-    return data
+        require(len(data) == info.st_size)
+        return data
 
 
 def flush_directory(path):
