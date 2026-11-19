@@ -235,7 +235,7 @@ def review(driver, screen, uri, subject, message_id):
     assert driver.page('return document.querySelector("#subject").textContent') == subject
 
 
-def receive_in_inbox(work, recipient_profile, handoff, fetched, original, message_id):
+def receive_in_inbox(work, recipient_profile, invitation, core_message_id, fetched, original, message_id):
     """Open the one UI-selected message in the other owner’s fresh Thunderbird profile."""
     home = work / "recipient-ui"
     home.mkdir(mode=0o700)
@@ -275,15 +275,15 @@ def receive_in_inbox(work, recipient_profile, handoff, fetched, original, messag
         )
         journal = home / "journal"
         journal.mkdir(mode=0o700)
-        receipt = command(
+        result = command(
             [
                 "/usr/bin/python3",
                 "-B",
                 ACCEPT,
                 "--profile",
                 recipient_profile,
-                "--handoff",
-                handoff,
+                "--invitation",
+                invitation,
                 "--connection",
                 dest,
                 "--state-dir",
@@ -295,6 +295,11 @@ def receive_in_inbox(work, recipient_profile, handoff, fetched, original, messag
             ],
             password=password.encode(),
         )
+        assert result["imported"] == 1 and result["pending"] == 0
+        assert result["fetch_complete"] and result["listed_providers"] == 2 and not result["degraded"]
+        record = json.loads((journal / "pickup/receipts" / (core_message_id + ".json")).read_bytes())
+        receipt = record["delivery"]
+        assert receipt["message_id"] == core_message_id and len(record["confirmation"]["acknowledgement_receipts"]) == 2
         assert receipt["message_sha256"] == digest(original) and receipt["acknowledged_providers"] == 2
         assert fetched("after-import")["messages_fetched"] == 0
         return open_in_thunderbird(home, ca, user, password, message_id)
@@ -375,6 +380,8 @@ def trial(work, compose):
         report = fetch("peer")
         assert report["listed_providers"] == 2 and report["messages_fetched"] == 1
         (handoff,) = [d for d in (work / "peer").iterdir() if d.is_dir()]
+        inbox = receive_in_inbox(work, recipient_profile, providers[1]["receiveInvitation"], handoff.name,
+                                 fetch, original, message_id)
         output = work / "opened.eml"
         opened = command(
             [
@@ -396,7 +403,6 @@ def trial(work, compose):
         parts = list(msg.iter_parts())
         assert "The recipient was offline." in parts[0].get_content()
         assert parts[1].get_payload(decode=True) == attachment
-        inbox = receive_in_inbox(work, recipient_profile, handoff, fetch, original, message_id)
     return {
         "thunderbird": "157.0",
         "native_host_root": directory,
@@ -410,6 +416,7 @@ def trial(work, compose):
         "no_message_before_click": True,
         "offline_provider_count": 2,
         "receiver_inbox": inbox,
+        "receiver_picked_up_paired_invitation": True,
         "verified_import_acknowledgements": 2,
         "fetched_messages": 1,
         "message_bytes": len(raw),

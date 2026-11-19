@@ -28,7 +28,8 @@ this add-on’s exact extension ID.
    let you choose this destination under **Copies & Folders**.
 2. Select one saved draft, click **Send draft to paired contact** on the toolbar,
    review the displayed sender, recipient and subject, then click **Send privately**.
-3. When both providers confirm custody, the recipient can pick up the message.
+3. When both providers confirm custody, the recipient can pick up the message
+   once or keep checking the paired invitation automatically. [Configure reception](../../integration/peer-mail/README.md#pick-up-mail-for-one-paired-contact)
    An unconfirmed result can be retried with the same saved correspondence.
    For an address that needs ordinary mail, return to Thunderbird and choose
    that delivery yourself.
