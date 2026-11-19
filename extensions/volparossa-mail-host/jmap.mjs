@@ -186,7 +186,7 @@ export class StalwartAccount {
       if (this.#pendingImport?.accountId !== accountId) this.#pendingImport = null;
       this.#account = null; this.#mailboxes.clear();
       const result = await this.#call("Mailbox/get", {accountId, ids: null,
-        properties: ["id", "name", "role", "parentId", "totalEmails", "unreadEmails", "myRights"]});
+        properties: ["id", "name", "totalEmails", "unreadEmails", "myRights"]});
       if (!Array.isArray(result.list) || result.list.length > LIMITS.mailboxes ||
           !Array.isArray(result.notFound) || result.notFound.length) fail("invalid_response");
       const seen = new Set();
@@ -209,11 +209,13 @@ export class StalwartAccount {
       this.#requireAccount(accountId);
       if (confirmed !== true || accountId !== this.#account || !this.#mailboxes.has(mailboxId)) fail("import_not_confirmed");
       if (this.accounts.find(account => account.id === accountId).readOnly || !this.#mailboxes.get(mailboxId).mayAdd) fail("read_only");
-      if (!(bytes instanceof Uint8Array) || !bytes.byteLength || bytes.byteLength > this.maxMessageBytes) fail("message_size");
+      if (!(bytes instanceof Uint8Array || bytes instanceof Blob)) fail("message_size");
+      const size = bytes instanceof Blob ? bytes.size : bytes.byteLength;
+      if (!size || size > this.maxMessageBytes) fail("message_size");
       this.#pendingImport = null;
       const upload = this.#session.upload.replace("{accountId}", accountId);
       const blob = await this.#request(upload, "POST", bytes, "message/rfc822");
-      if (!object(blob) || blob.accountId !== accountId || !identifier(blob.blobId) || blob.size !== bytes.byteLength) fail("invalid_upload");
+      if (!object(blob) || blob.accountId !== accountId || !identifier(blob.blobId) || blob.size !== size) fail("invalid_upload");
       let result;
       try {
         result = await this.#call("Email/import", {accountId, emails: {selected: {
@@ -252,7 +254,7 @@ export class StalwartAccount {
     let fetched;
     try {
       fetched = await this.#call("Email/get", {accountId, ids: [emailId],
-        properties: ["id", "blobId", "mailboxIds", "size", "messageId"]});
+        properties: ["id", "blobId", "mailboxIds", "size"]});
     } catch { fail("import_readback_failed"); }
     const saved = fetched.list?.[0];
     if (!Array.isArray(fetched.list) || fetched.list.length !== 1 || !object(saved) ||
