@@ -16,7 +16,6 @@ import urllib.error
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import smoke_stalwart as server
 import stalwart_owner_smtp as smtp
-from smoke_thunderbird_stalwart import mailbox
 from smoke_stalwart import require
 
 STATE = Path("/var/lib/volparossa-mail")
@@ -38,33 +37,42 @@ def wait_ready(user, password, process=None):
 
 def bootstrap():
     require(not (STATE / "store.sqlite").exists() and not OWNER.exists(), "fresh test store required")
-    admin, password = secrets.token_urlsafe(32), secrets.token_urlsafe(32)
-    env = {"PATH": "/usr/bin:/bin", "STALWART_HOSTNAME": "mail.volparossa.test",
-           "STALWART_RECOVERY_MODE": "1", "STALWART_RECOVERY_ADMIN": "fixture-admin:" + admin}
-    with subprocess.Popen([LIB / "stalwart", "--config", LIB / "store.json"], cwd=STATE, env=env,
-            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL) as child:
-        try:
-            wait_ready("fixture-admin", admin, child)
-            owner, account, _ = mailbox(admin, password, smtp=True)
-            smtp.configure(admin)
-            server.write_json(OWNER, {"owner": owner, "account": account, "password": password})
-        finally:
-            child.terminate()
-            try:
-                child.wait(timeout=20)
-            except subprocess.TimeoutExpired:
-                child.kill()
-                child.wait(timeout=5)
+    owner, password = "owner@volparossa.test", secrets.token_urlsafe(32)
+    command = [sys.executable, "-B", LIB / "initialize-owner.py", owner]
+    supplied = (password + "\n").encode()
+    first = subprocess.run(command, input=supplied, capture_output=True, timeout=100, check=True)
+    require(first.stdout == b"Owner mailbox ready for the VOLPAROSSA Mail service.\n" and not first.stderr,
+            "first-time setup failed")
+    require({item.name for item in STATE.iterdir()} == {"store.sqlite"}, "unexpected published setup file")
+    db = STATE / "store.sqlite"
+    before = (db.stat().st_ino, hashlib.sha256(db.read_bytes()).digest())
+    second = subprocess.run(command, input=(secrets.token_urlsafe(32) + "\n").encode(),
+                            capture_output=True, timeout=10)
+    require(second.returncode == 1 and b"already contains a mailbox" in second.stderr
+            and (db.stat().st_ino, hashlib.sha256(db.read_bytes()).digest()) == before, "setup replaced an existing mailbox")
+    server.write_json(OWNER, {"owner": owner, "password": password})
 
 
 def observe(operation):
     details = json.loads(OWNER.read_bytes())
-    owner, password, account = (details[k] for k in ("owner", "password", "account"))
-    wait_ready(owner, password)
+    owner, password = details["owner"], details["password"]
+    session = wait_ready(owner, password)
+    require(session["apiUrl"] == server.ORIGIN + "/jmap/" and
+            session["uploadUrl"] == server.ORIGIN + "/jmap/upload/{accountId}/", "wrong local JMAP discovery origin")
+    account = session["primaryAccounts"][server.MAIL]
     server.verify_owner(owner, password, account)
     if operation == "deliver":
+        try:
+            server.http(owner, secrets.token_urlsafe(32), "/jmap/session")
+        except urllib.error.HTTPError as error:
+            require(error.code == 401, "unexpected wrong-password response")
+        else:
+            raise ValueError("wrong password opened the mailbox")
         with smtplib.SMTP("127.0.0.1", smtp.SMTP_PORT, local_hostname="sender.example.test", timeout=15) as client:
-            require(client.sendmail("visitor@example.test", [owner], smtp.MESSAGE) == {}, "SMTP delivery refused")
+            require(client.ehlo()[0] == 250 and client.mail("visitor@example.test")[0] == 250, "SMTP envelope")
+            require(client.rcpt("unrelated@external.test")[0] == 550, "external recipient accepted")
+            require(client.rcpt("absent@volparossa.test")[0] == 550, "unknown recipient accepted")
+            require(client.rcpt(owner)[0] == 250 and client.data(smtp.MESSAGE)[0] == 250, "SMTP delivery refused")
     deadline = time.monotonic() + 30
     while True:
         ids = server.call(owner, password, "Email/query", {"accountId": account, "limit": 2})["ids"]

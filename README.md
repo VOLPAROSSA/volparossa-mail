@@ -35,6 +35,10 @@ Mailbox transport, application import, authenticated address/device discovery an
 sessions still need to be joined and tested in real Thunderbird. Existing core HPKE
 messages are not a substitute for the Signal Protocol.
 
+The [peer-mail receiver](integration/peer-mail/README.md) imports a complete
+Signal-encrypted message from a fetched Core handoff into the owner's Stalwart
+mailbox. It compares the stored MIME bytes before acknowledging both custodians.
+
 ## Cooperative intelligence
 
 The first source overlay adds **Tools → VOLPAROSSA AI** with a separate core adapter.
@@ -52,8 +56,8 @@ and an exact upstream overlay do not prove a working Thunderbird/peer deployment
 
 The requested self-hosting extension uses **Stalwart Community** as a separate background
 mail service. Closing Thunderbird must not shut down that service. The first integration
-work connects an explicitly configured owner-controlled instance; automatic server
-provisioning, account setup and offline peer custody remain unfinished.
+work connects an owner-controlled instance. On Linux, an owner can provision a new
+local mailbox and run it as a system service. Offline peer custody remains unfinished.
 
 The intended service supports both ordinary Internet mail and preferred VOLPAROSSA
 delivery. Arbitrary peers must not receive readable mail. Owner-controlled or deliberately
@@ -65,28 +69,68 @@ SMTP plaintext from its receiver. Private offline Internet reception therefore r
 a separately implemented and verified receiving boundary. No confidential-hardware or
 always-available delivery claim is made.
 
-### Run an existing owner mailbox as a Linux service
+### Run an owner mailbox as a Linux service
 
 The supplied systemd unit runs Stalwart Community independently of Thunderbird.
-It accepts an existing, provisioned v0.16.24 SQLite mailbox. Stalwart reads the
-account, listeners and certificates already configured in that store. Review those
-listeners before starting it and use unprivileged ports for this service. The
-service runs under a dedicated account and restarts after an unexpected exit.
+It opens a v0.16.24 SQLite mailbox. Stalwart reads the account, listeners and
+certificates configured in that store. Review the listeners before starting it
+and use unprivileged ports. The service runs under a dedicated account and
+restarts after an unexpected exit.
 
 From this checkout, install the unit and a verified Community executable on the
-owner's system. Keep the original server stopped during a migration. Use
-Stalwart's backup and restore procedure to prepare a consistent store at
-`/var/lib/volparossa-mail/store.sqlite` with its associated files owned by
-`volparossa-mail`. Copying an active SQLite file can lose uncheckpointed mail.
+owner's system. Keep the original server stopped during a migration.
 
 ```sh
 sudo systemd-sysusers packaging/systemd/volparossa-mail.conf
 sudo install -d -m 0700 -o volparossa-mail -g volparossa-mail /var/lib/volparossa-mail
 sudo install -D -m 0755 "$STALWART_BINARY" /usr/local/libexec/volparossa-mail/stalwart
-sudo install -m 0644 packaging/systemd/store.json /usr/local/libexec/volparossa-mail/
+sudo install -m 0644 packaging/systemd/store.json packaging/systemd/initialize-owner.py /usr/local/libexec/volparossa-mail/
 sudo install -m 0644 packaging/systemd/volparossa-mail.service /etc/systemd/system/
 sudo systemctl daemon-reload
-# After restoring the provisioned store and checking its ownership and listeners:
+```
+
+For a new local mailbox, use your chosen address and enter its password at the
+hidden prompt. The temporary setup process requires a private network namespace
+because Stalwart's recovery listener binds all interfaces. The initializer opens
+the new mailbox with the owner's credentials in normal mode, verifies the Inbox
+and publishes the finished SQLite database atomically. Repeating the command
+preserves an existing mailbox.
+
+```sh
+sudo install -D -m 0644 packaging/systemd/local-jmap.conf /etc/systemd/system/volparossa-mail.service.d/local-jmap.conf
+sudo systemctl daemon-reload
+sudo systemd-run --quiet --pty --wait --collect -p PrivateNetwork=yes \
+  -p User=volparossa-mail -p Group=volparossa-mail -p UMask=0077 -p LimitCORE=0 \
+  /usr/bin/python3 -B /usr/local/libexec/volparossa-mail/initialize-owner.py owner@example.test
+```
+
+To read this new mailbox in Thunderbird's normal Inbox, add both
+`--imap-cert /absolute/path/owner-chain.pem` and
+`--imap-key /absolute/path/owner-key.pem` to the initialization command.
+Use a PEM server certificate containing the IP Subject Alternative Name
+`127.0.0.1`, followed by any needed intermediate certificates. The
+matching unencrypted PEM key must be readable only by the service account.
+The initializer opens an authenticated TLS connection and selects the owner's
+Inbox before publishing the store. The certificate and key are held in the
+owner's private Stalwart store across service restarts.
+
+In Thunderbird, choose IMAP at `127.0.0.1`, port `2993`, **SSL/TLS**,
+**Normal password**, the full mailbox address and the owner's password. Use a
+certificate chain trusted by that Thunderbird profile. For a private CA,
+import its independently authenticated CA certificate into the intended profile.
+The optional owner account receives IMAP read commands. The default setup
+continues to provide the JMAP and SMTP listeners described below.
+
+The local drop-in makes JMAP discovery advertise the same address as the local
+listener. The new mailbox accepts JMAP on `http://127.0.0.1:8080` and inbound SMTP on
+`127.0.0.1:2525`. The Mail host extension can connect with the full address and
+the password you chose. For a migration, use Stalwart's backup and restore
+procedure to prepare a consistent store at `/var/lib/volparossa-mail/store.sqlite`
+with its associated files owned by `volparossa-mail`. Copying an active SQLite
+file can lose uncheckpointed mail. Start the installed service after setup or
+restoration.
+
+```sh
 sudo systemctl enable --now volparossa-mail.service
 systemctl status volparossa-mail.service
 ```
@@ -198,7 +242,7 @@ Stalwart Community is separately pinned to **v0.16.24**,
 inventory retained. Preparation requires a fresh output directory and an explicit source
 download or already verified archive. The source-preparation manifest records that earlier
 stage; the proof receipt above records the later passing development build and live test.
-Production provisioning and the account lifecycle remain unfinished. Run recovery tests
+Public-domain deployment and the full account lifecycle remain unfinished. Run recovery tests
 in a disposable VM or isolated namespace because the upstream recovery listener binds
 to all interfaces by default. See the
 [source preparation boundary](third_party/stalwart/NOTICE.md).

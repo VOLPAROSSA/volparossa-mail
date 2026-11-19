@@ -33,9 +33,10 @@ sudo systemd-sysusers "$PWD/packaging/systemd/volparossa-mail.conf"
 sudo install -d -m 0755 "$lib" "$fixture/scripts" "$fixture/tests" "$unit.d"
 sudo install -d -m 0700 -o "$account" -g "$account" "$state"
 sudo install -m 0755 "$binary" "$lib/stalwart"
-sudo install -m 0644 packaging/systemd/store.json "$lib/"
+sudo install -m 0644 packaging/systemd/{store.json,initialize-owner.py} "$lib/"
 sudo install -m 0644 packaging/systemd/volparossa-mail.service "$unit"
-sudo install -m 0644 scripts/{smoke_stalwart,stalwart_owner_smtp,smoke_thunderbird_stalwart}.py "$fixture/scripts/"
+sudo install -m 0644 packaging/systemd/local-jmap.conf "$unit.d/"
+sudo install -m 0644 scripts/{smoke_stalwart,stalwart_owner_smtp}.py "$fixture/scripts/"
 sudo install -m 0644 tests/owner_service_guest.py "$fixture/tests/"
 printf '[Service]\nPrivateNetwork=yes\nEnvironment=STALWART_HOSTNAME=mail.volparossa.test\n' |
   sudo tee "$unit.d/disposable.conf" >/dev/null
@@ -74,7 +75,10 @@ trap 'rm -f -- "$fixture_before" "$fixture_after"' EXIT
 [[ ! -e "$state" && ! -e "$lib" && ! -e "$unit" && ! -e "$fixture" ]]
 if getent passwd "$account" >/dev/null; then exit 1; fi
 jq --arg sha "$expected" --argjson restarts "$restarts" \
-  '{server_sha256:$sha, missing_store_skipped:true, automatic_restarts:$restarts,
+  '{server_sha256:$sha, missing_store_skipped:true, first_owner_provisioned:true, existing_store_preserved:true, automatic_restarts:$restarts,
     same_mail_and_sqlite:true, private_loopback:true, clean_stop:true, removed:true,
     original_bytes,original_sha256,received_bytes,received_sha256}' \
   "$fixture_after" > "$out/owner-service.json"
+
+python3 -B tests/owner_imaps.py --server "$binary" > "$out/owner-imaps.json"
+jq -e --arg sha "$expected" '.server_sha256 == $sha and .original_message_read_after_restart and .private_state_removed' "$out/owner-imaps.json"
