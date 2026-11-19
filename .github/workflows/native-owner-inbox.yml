@@ -7,6 +7,9 @@ on:
     paths:
       - '.github/workflows/native-owner-inbox.yml'
       - 'extensions/volparossa-mail-host/**'
+      - 'extensions/volparossa-peer-draft/**'
+      - 'scripts/peer_draft_install.py'
+      - 'tests/thunderbird_peer_draft_guest.py'
       - 'scripts/*stalwart*.py'
       - 'scripts/thunderbird_*.py'
       - 'packaging/systemd/**'
@@ -121,6 +124,15 @@ jobs:
             > build/owner-inbox/peer-mail.json
           jq -e '.provider_acks == 2 and .exact_raw_bytes_verified and .messages_after_ack == 0' build/owner-inbox/peer-mail.json
 
+      - name: Send a native Thunderbird draft to its paired owner
+        run: |
+          python3 -B scripts/peer_draft_install.py package build/owner-inbox/volparossa-peer-draft.xpi
+          python3 -B tests/peer_mail_namespace.py --draft --node "$(command -v node)" \
+            --stalwart build/stalwart-community/target/debug/stalwart --core-dir "$RUNNER_TEMP/mail-core-pair" \
+            --thunderbird-archive build/thunderbird.tar.xz --xvfb /usr/bin/Xvfb \
+            > build/owner-inbox/peer-draft.json
+          jq -e '.native_toolbar_and_send_clicked and .original_correspondence_bytes' build/owner-inbox/peer-draft.json
+
       - name: Keep the build, mailbox and cleanup receipts
         if: ${{ !cancelled() && hashFiles('build/stalwart-community/BUILD_OWNER.json') != '' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -136,6 +148,8 @@ jobs:
             build/owner-inbox/boundary.json
             build/owner-inbox/owner-service.json
             build/owner-inbox/peer-mail.json
+            build/owner-inbox/peer-draft.json
+            build/owner-inbox/volparossa-peer-draft.xpi
             build/owner-inbox/owner-imaps.json
           if-no-files-found: error
           retention-days: 14

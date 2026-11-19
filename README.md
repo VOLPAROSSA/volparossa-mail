@@ -35,6 +35,9 @@ Mailbox transport, application import, authenticated address/device discovery an
 sessions still need to be joined and tested in real Thunderbird. Existing core HPKE
 messages are not a substitute for the Signal Protocol.
 
+Select a saved local draft in Thunderbird and send it to its owner-approved
+address using the [paired contact add-on](extensions/volparossa-peer-draft/README.md).
+
 The [peer-mail receiver](integration/peer-mail/README.md) imports a complete
 Signal-encrypted message from a fetched Core handoff into the owner's Stalwart
 mailbox. It compares the stored MIME bytes before acknowledging both custodians.

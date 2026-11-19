@@ -1,0 +1,29 @@
+{
+  "manifest_version": 2,
+  "name": "VOLPAROSSA peer mail",
+  "version": "0.1.0",
+  "description": "Send a selected local Thunderbird draft to a paired VOLPAROSSA contact.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "volparossa-peer-draft@volparossa.local",
+      "strict_min_version": "157.0"
+    }
+  },
+  "permissions": [
+    "messagesRead",
+    "accountsRead",
+    "nativeMessaging"
+  ],
+  "browser_action": {
+    "default_title": "Send draft to paired contact",
+    "default_windows": [
+      "normal"
+    ]
+  },
+  "content_security_policy": "default-src 'none'; script-src 'self'; style-src 'self'; object-src 'none'; base-uri 'none'",
+  "background": {
+    "scripts": [
+      "background.js"
+    ]
+  }
+}

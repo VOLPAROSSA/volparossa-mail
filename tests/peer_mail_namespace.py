@@ -53,14 +53,22 @@ globalThis.fetch = async (url, options) => {
             (core / "mailbox-provider-pair", "/trial/bin/mailbox-provider-pair"),
             (stalwart, "/usr/local/libexec/volparossa-mail/stalwart"), (shim, "/trial/lost-import.mjs"),
         ))
+        if args.draft:
+            from peer_draft_install import package
+            package(tmp / "peer-draft.xpi")
+            mounts.append((tmp / "peer-draft.xpi", "/opt/peer-draft.xpi"))
+        guest = "thunderbird_peer_draft_guest.py" if args.draft else "peer_mail_guest.py"
         for source, dest in mounts:
             cmd.extend(("--ro-bind", str(source), dest))
         cmd.extend(("--bind", str(store), "/var/lib/volparossa-mail", "--clearenv",
                     "--setenv", "PATH", "/usr/bin:/bin", "--setenv", "LANG", "C.UTF-8",
-                    "--", "/usr/bin/python3", "-B", "/mail/tests/peer_mail_guest.py"))
+                    "--", "/usr/bin/python3", "-B", "/mail/tests/" + guest))
         result = subprocess.run(cmd, check=True, stdout=subprocess.PIPE, timeout=300,
                                 preexec_fn=lambda: os.sched_setaffinity(0, sorted(os.sched_getaffinity(0))[:2]))
         receipt = json.loads(result.stdout)
+        if args.draft:
+            assert receipt["native_toolbar_and_send_clicked"] and receipt["fetched_messages"] == 1
+            return receipt
         assert receipt["provider_acks"] == 2 and receipt["same_email_after_restart"] is True
         assert receipt["native_inbox"]["inbox_message_id"] == "peer-test@example.test"
         assert receipt["native_inbox"]["message_body_displayed"] is True
@@ -69,6 +77,7 @@ globalThis.fetch = async (url, options) => {
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--draft", action="store_true", help="select and send a local draft in native Thunderbird")
     for name in ("node", "stalwart", "core-dir", "thunderbird-archive", "xvfb"):
         parser.add_argument("--" + name, required=True, type=Path)
     print(json.dumps(run(parser.parse_args()), sort_keys=True))
