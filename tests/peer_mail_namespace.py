@@ -5,9 +5,12 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+from smoke_thunderbird_stalwart import stage_thunderbird
 
 
 def run(args):
@@ -17,6 +20,8 @@ def run(args):
     # The shim loses one approved test response after the genuine owner server committed it.
     with tempfile.TemporaryDirectory() as temp:
         tmp = Path(temp)
+        pins = json.loads((ROOT / "third_party/thunderbird-extension-smoke.json").read_bytes())["runtime_inputs"]
+        stage_thunderbird(args.thunderbird_archive.resolve(strict=True), tmp, pins)
         store = tmp / "owner"
         store.mkdir(mode=0o700)
         shim = tmp / "lost-import.mjs"
@@ -43,6 +48,7 @@ globalThis.fetch = async (url, options) => {
             (ROOT / "tests", "/mail/tests"), (ROOT / "scripts", "/mail/scripts"),
             (ROOT / "packaging/systemd/store.json", "/usr/local/libexec/volparossa-mail/store.json"),
             (ROOT / "packaging/systemd/initialize-owner.py", "/usr/local/libexec/volparossa-mail/initialize-owner.py"),
+            (tmp / "thunderbird", "/opt/thunderbird"), (args.xvfb.resolve(strict=True), "/opt/Xvfb"),
             (node, "/trial/bin/node"), (core / "volparossa", "/trial/bin/volparossa"),
             (core / "mailbox-provider-pair", "/trial/bin/mailbox-provider-pair"),
             (stalwart, "/usr/local/libexec/volparossa-mail/stalwart"), (shim, "/trial/lost-import.mjs"),
@@ -56,11 +62,13 @@ globalThis.fetch = async (url, options) => {
                                 preexec_fn=lambda: os.sched_setaffinity(0, sorted(os.sched_getaffinity(0))[:2]))
         receipt = json.loads(result.stdout)
         assert receipt["provider_acks"] == 2 and receipt["same_email_after_restart"] is True
+        assert receipt["native_inbox"]["inbox_message_id"] == "peer-test@example.test"
+        assert receipt["native_inbox"]["message_body_displayed"] is True
         return receipt
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    for name in ("node", "stalwart", "core-dir"):
+    for name in ("node", "stalwart", "core-dir", "thunderbird-archive", "xvfb"):
         parser.add_argument("--" + name, required=True, type=Path)
     print(json.dumps(run(parser.parse_args()), sort_keys=True))

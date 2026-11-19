@@ -16,6 +16,9 @@ import time
 
 import owner_service_guest as mailbox
 from smoke_stalwart import MAIL, call
+from smoke_thunderbird_stalwart import PREFERENCES, port_open, retire
+from thunderbird_import_ui import wait_for
+import thunderbird_owner_inbox as reader
 
 ROOT = Path(__file__).resolve().parents[1]
 NODE = "/trial/bin/node"
@@ -78,28 +81,67 @@ def core(who, operation, *args):
                     "--identity", who["identity"], "--passphrase-file", who["passphrase"]])
 
 
-def native_trial(work, providers):
+def open_in_thunderbird(work, ca, user, password):
+    profile = reader.open_profile(work, ca, PREFERENCES)
+    home, runtime = work / "home", work / "runtime"
+    home.mkdir(mode=0o700)
+    runtime.mkdir(mode=0o700)
+    os.environ.update(DISPLAY=":143", HOME=str(home), XDG_RUNTIME_DIR=str(runtime),
+                      MOZ_CRASHREPORTER_DISABLE="1")
+    Path("/tmp/.X11-unix").mkdir(mode=0o1777, exist_ok=True)
+    def launch(args):
+        return subprocess.Popen(args, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL, start_new_session=True)
+    display = launch(["/opt/Xvfb", ":143", "-screen", "0", "1280x960x24", "-nolisten", "tcp"])
+    try:
+        wait_for(lambda: Path("/tmp/.X11-unix/X143").exists())
+        client = launch(["dbus-run-session", "--", "/opt/thunderbird/thunderbird", "--no-remote", "--profile",
+                         str(profile), "--marionette", "--remote-allow-system-access"])
+        try:
+            wait_for(lambda: port_open(2828), 30)
+            receipt = reader.read(user, password, {}, subject="Private peer acceptance",
+                                  body="The recipient was offline.", message_id="peer-test@example.test")
+            assert client.wait(timeout=30) == 0
+            return receipt
+        finally:
+            assert retire(client), "Thunderbird did not retire"
+    finally:
+        assert retire(display), "display did not retire"
+
+
+def native_trial(work, providers, ca, user, password):
     sender, recipient = providers
     sender_profile, recipient_profile = work / "sender", work / "recipient"
     local = [(sender_profile, work / "a.bundle"), (recipient_profile, work / "b.bundle")]
     for profile, bundle in local:
         record = command([NODE, SIGNAL, "init", "--profile", profile, "--bundle", bundle])
         assert record["bundle_sha256"] == digest(bundle.read_bytes())
-    for (profile, _), (_, peer) in zip(local, reversed(local)):
+    # Authenticate each Core identity independently of any invitation.
+    owners = []
+    for config in providers:
+        key = command([CORE, "--control-socket", config["socket"], "content", "recipient-key",
+                       "--identity", config["identity"], "--passphrase-file", config["passphrase"]])
+        owners.append(key["identity_public_key_hex"])
+    for (profile, _), (_, peer), owner in zip(local, reversed(local), reversed(owners)):
         command([NODE, SIGNAL, "pair", "--profile", profile, "--peer-bundle", peer,
-                 "--trusted-bundle-sha256", digest(peer.read_bytes())])
-    original, packet = work / "original.eml", work / "packet"
-    original.write_bytes(MESSAGE)
-    seal = [NODE, SIGNAL, "seal", "--profile", sender_profile, "--id", secrets.token_hex(32),
-            "--input", original, "--output", packet]
-    sealed = command(seal)
-    assert command(seal) == sealed and sealed["packet_sha256"] == digest(packet.read_bytes())
-    assert sealed["message_sha256"] == digest(MESSAGE) and b"Private peer acceptance" not in packet.read_bytes()
+                 "--trusted-bundle-sha256", digest(peer.read_bytes()), "--core-owner-key", owner])
 
-    sent = core(sender, "send", "--invitation", sender["sendInvitation"], "--owner-key", sender["remoteOwner"],
-                "--input", packet, "--cache", work / "cipher-cache", "--manifest", work / "original.manifest")
-    assert sent["confirmed_providers"] == sent["retained_providers"] == 2
+    original, invitation = work / "selected.eml", work / "selected.invitation"
+    original.write_bytes(MESSAGE)
+    invitation.write_bytes(Path(sender["sendInvitation"]).read_bytes())
+    operation = secrets.token_hex(32)
+    send = [NODE, SIGNAL, "send", "--profile", sender_profile, "--id", operation,
+            "--core-config", work / "providers/a/core.json"]
+    sent = command([*send, "--input", original, "--invitation", invitation, "--core-owner-key", owners[1]])
+    assert sent["operation"] == "send" and sent["confirmed_providers"] == 2
+    assert sent["message_sha256"] == digest(MESSAGE) and sent["message_bytes"] == len(MESSAGE)
+    original.unlink()
+    invitation.unlink()
+    assert command([*send, "--resume"]) == sent
     opaque_id = sent["message_id"]
+    packet = sender_profile / "core-send" / operation / "packet"
+    assert digest(packet.read_bytes()) == sent["packet_sha256"]
+    assert b"Private peer acceptance" not in packet.read_bytes()
     provider_dirs = sorted((work / "providers").glob(".providers-*/provider-*"))
     assert len(provider_dirs) == 2
     for provider in provider_dirs:
@@ -117,7 +159,6 @@ def native_trial(work, providers):
     assert not fetched["provider_custody_consumed"] and fetched["acknowledged_providers_per_message"] == 0
     handoff = work / "received" / opaque_id
     assert (handoff / "payload").read_bytes() == packet.read_bytes()
-    data = json.loads(mailbox.OWNER.read_text()); user, password = data["owner"], data["password"]
     state = work / "accepted"
     state.mkdir(mode=0o700)
     dest = work / "owner.json"
@@ -141,24 +182,40 @@ def native_trial(work, providers):
         records = call(user, password, "Email/query", {"accountId": account, "limit": 2})["ids"]
         assert len(records) == 1
     with owner_server(user, password) as account:
+        # With no local journal to consult, a mismatched but equal-sized candidate must
+        # fail while reading the real stored blob. The existing email stays in place.
+        wrong = work / "different.eml"
+        wrong.write_bytes(MESSAGE.replace(b"offline.", b"on-line."))
+        assert len(wrong.read_bytes()) == len(MESSAGE) and wrong.read_bytes() != MESSAGE
+        jmap = work / "selected-mailbox.json"
+        jmap.write_text(json.dumps({k: conf[k] for k in ("server", "username", "accountId", "mailboxId")}))
+        error = command([NODE, ROOT / "integration/peer-mail/import-mime.mjs", jmap, wrong, work / "other.json",
+                         sent["packet_sha256"]], password=password.encode(), expected=1)
+        assert b"peer_bytes_unverified" in error
         accepted = command(accept, password=password.encode())
-        assert accepted["message_id"] == opaque_id and accepted["signal_packet_sha256"] == sealed["packet_sha256"]
+        assert accepted["message_id"] == opaque_id and accepted["signal_packet_sha256"] == sent["packet_sha256"]
         assert accepted["message_sha256"] == digest(MESSAGE) and accepted["email_id"] == records[0]
         assert accepted["message_bytes"] == len(MESSAGE) and accepted["acknowledged_providers"] == 2
         assert fetch("empty")["messages_fetched"] == 0
         assert call(user, password, "Email/query", {"accountId": account, "limit": 2})["ids"] == records
-    return {"schema": 1, "message_bytes": len(MESSAGE), "message_sha256": digest(MESSAGE),
-            "offline_custodians": 2, "fetched_before_confirmation": 1, "lost_import_reply": True,
-            "same_email_after_restart": True, "exact_raw_bytes_verified": True, "provider_acks": 2,
+        native_inbox = open_in_thunderbird(work, ca, user, password)
+    return {"schema": 2, "native_inbox": native_inbox, "message_bytes": len(MESSAGE), "message_sha256": digest(MESSAGE),
+            "sender_command": "send", "sender_resumed_without_inputs": True, "offline_custodians": 2, "fetched_before_confirmation": 1, "lost_import_reply": True,
+            "same_email_after_restart": True, "different_same_size_refused": True, "exact_raw_bytes_verified": True, "provider_acks": 2,
             "messages_after_ack": 0, "provider_transport": "isolated-local-stream"}
 
 
 if __name__ == "__main__":
     assert os.geteuid() != 0 and socket.if_nameindex() == [(1, "lo")]
     os.umask(0o077)
-    mailbox.bootstrap()
     with tempfile.TemporaryDirectory(dir="/tmp") as tmp:
         work = Path(tmp)
+        ca, cert, key = reader.issue_test_certificate(work)
+        user, password = "owner@volparossa.test", secrets.token_urlsafe(32)
+        subprocess.run([sys.executable, "-B", mailbox.LIB / "initialize-owner.py", user, "--imap-cert", cert,
+                        "--imap-key", key], input=password.encode(), check=True,
+                       stdout=subprocess.DEVNULL, timeout=100)
+        key.unlink()
         with offline_providers(work / "providers") as pair:
-            report = native_trial(work, pair)
+            report = native_trial(work, pair, ca, user, password)
     print(json.dumps(report, sort_keys=True))
