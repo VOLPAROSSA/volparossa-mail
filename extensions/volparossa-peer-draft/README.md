@@ -4,7 +4,7 @@ This Linux add-on sends the selected saved draft to the one address approved
 in the owner’s Mail address book. Configure the two paired profiles and test
 the address-bound sender first. The native host reads its configuration from
 `$XDG_CONFIG_HOME/volparossa/mail` or `~/.config/volparossa/mail`. Keep the
-Mail checkout and the pinned Node runtime available to Thunderbird.
+Mail checkout and the Node runtime used for pairing at their registered paths.
 [Pair and configure a contact](../../integration/signal-mail/README.md)
 
 From that checkout, build the add-on and register the executable for the
@@ -14,6 +14,9 @@ current Linux account.
 python3 -B scripts/peer_draft_install.py package volparossa-peer-draft.xpi
 python3 -B scripts/peer_draft_install.py register
 ```
+
+Registration remembers the Node executable on your shell’s PATH. To select a
+different installation, run `register --node /absolute/path/to/node`.
 
 In Thunderbird, open Add-ons Manager and choose **Install Add-on From File**.
 Select the XPI. The development package can also be loaded under **Debug

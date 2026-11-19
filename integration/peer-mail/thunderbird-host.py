@@ -17,6 +17,7 @@ import tempfile
 
 OWNER = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "volparossa/mail"
 SENDER = Path(__file__).resolve().with_name("send_selected.py")
+NODE = Path.home() / ".mozilla/native-messaging-hosts/org.volparossa.peer_mail.node"
 MAX_MIME = 4 * 1024 * 1024
 MAX_STORED = MAX_MIME + 65536
 MAX_FRAME = 4 * ((MAX_STORED + 2) // 3) + 512
@@ -111,9 +112,11 @@ def correspondence(draft):
 def deliver(mime):
     # Each saved original has a stable operation ID across popup and process restarts.
     operation = hashlib.sha256(b"VOLPAROSSA Thunderbird saved draft v1\0" + mime).hexdigest()
+    # Older registrations rely on the desktop PATH until registered again.
+    runtime = ["--node", NODE.resolve(strict=True)] if NODE.is_symlink() else []
     with tempfile.TemporaryFile() as output:
         result = subprocess.run(
-            [sys.executable, "-I", "-B", SENDER, "--owner", OWNER, "--id", operation, "--stdin"],
+            [sys.executable, "-I", "-B", SENDER, "--owner", OWNER, "--id", operation, "--stdin", *runtime],
             input=mime,
             stdout=output,
             stderr=subprocess.DEVNULL,

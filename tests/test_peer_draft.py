@@ -3,18 +3,41 @@ import base64
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import struct
+import sys
+import tempfile
 import unittest
+from unittest.mock import patch
 
 loader = importlib.util.spec_from_file_location(
     "peer_draft_host", Path(__file__).resolve().parents[1] / "integration/peer-mail/thunderbird-host.py"
 )
 host = importlib.util.module_from_spec(loader)
 loader.loader.exec_module(host)
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+import peer_draft_install as installer
 
 
 class PeerDraft(unittest.TestCase):
+    def test_registration_reuses_the_selected_runtime_and_preserves_other_files(self):
+        with tempfile.TemporaryDirectory() as temp, patch.dict(os.environ, HOME=temp):
+            first, second = (Path(temp) / name for name in ("node-a", "node-b"))
+            for node in (first, second):
+                node.write_text("#!/bin/sh\nexit 0\n")
+                node.chmod(0o700)
+            manifest = installer.register(first)
+            runtime = manifest.with_suffix(".node")
+            self.assertEqual(runtime.readlink(), first)
+            self.assertEqual(installer.register(second), manifest)
+            self.assertEqual(runtime.readlink(), second)
+            manifest.write_text("existing owner registration")
+            with self.assertRaises(ValueError):
+                installer.register(first)
+            self.assertEqual(runtime.readlink(), second)
+            self.assertEqual(manifest.read_text(), "existing owner registration")
+
     def test_only_embedded_attachments_can_leave_the_owner(self):
         prefix = b'Content-Type: multipart/mixed; boundary="draft"\r\n\r\n--draft\r\n'
         part = b"Content-Type: application/octet-stream\r\n"

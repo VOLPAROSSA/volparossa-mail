@@ -8,6 +8,7 @@ from email.parser import BytesParser
 import json
 import os
 import secrets
+import shutil
 from pathlib import Path
 import socket
 import subprocess
@@ -138,9 +139,11 @@ def click_draft(driver, screen, source, compose):
     )
     assert user_manifests.is_relative_to(Path(os.environ["HOME"]))
     registered = subprocess.check_output(
-        ["/usr/bin/python3", "-B", ROOT / "scripts/peer_draft_install.py", "register"], text=True
+        ["/usr/bin/python3", "-B", ROOT / "scripts/peer_draft_install.py", "register", "--node", NODE], text=True
     ).strip()
     assert Path(registered) == user_manifests / "native-messaging-hosts/org.volparossa.peer_mail.json"
+    assert Path(registered).with_suffix(".node").resolve(strict=True) == Path(NODE)
+    assert shutil.which("node") != NODE
     assert driver.command("Addon:Install", path="/opt/peer-draft.xpi", temporary=False) == ADDON
     if driver.chrome(
         "return document.elementFromPoint(850,20)?.tagName.toLowerCase()==='account-hub-container'"
@@ -273,12 +276,17 @@ def trial(work, compose):
     home, profile, runtime = (work / name for name in ("home", "profile", "runtime"))
     for d in (home, profile, runtime):
         d.mkdir(mode=0o700)
+    # Some desktops have a different system Node. Even an unusable one first
+    # on PATH must not replace the executable selected during registration.
+    wrong_node = runtime / "node"
+    wrong_node.write_text("#!/bin/sh\nexit 91\n")
+    wrong_node.chmod(0o700)
     os.environ.update(
         HOME=str(home),
         XDG_RUNTIME_DIR=str(runtime),
         DISPLAY=":143",
         MOZ_CRASHREPORTER_DISABLE="1",
-        PATH="/trial/bin:/usr/bin:/bin",
+        PATH=f"{runtime}:/usr/bin:/bin",
     )
     Path("/tmp/.X11-unix").mkdir(mode=0o1777, exist_ok=True)
     prefs = PREFERENCES | {"mailnews.mark_message_read.auto": False}
@@ -368,6 +376,7 @@ def trial(work, compose):
     return {
         "thunderbird": "157.0",
         "native_host_root": directory,
+        "used_registered_node": True,
         "edited_and_saved_in_composer": compose,
         "filelink_refused_before_custody": compose,
         "native_toolbar_and_send_clicked": True,
