@@ -22,7 +22,7 @@ def quiet(*args):
                    stderr=subprocess.DEVNULL, timeout=15)
 
 
-def configure(admin, private):
+def issue_test_certificate(private):
     tls = private / "imap-tls"
     tls.mkdir(mode=0o700)
     ca, key, cert = tls / "ca.crt", tls / "server.key", tls / "server.crt"
@@ -36,13 +36,18 @@ def configure(admin, private):
                    "keyUsage=critical,digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth\n")
     quiet("openssl", "x509", "-req", "-days", "2", "-in", tls / "server.csr", "-CA", ca,
           "-CAkey", tls / "ca.key", "-set_serial", "2", "-out", cert, "-extfile", ext)
+    (tls / "ca.key").unlink()
+    return ca, cert, key
+
+
+def configure(admin, private):
+    ca, cert, key = issue_test_certificate(private)
     server.created(server.call("fixture-admin", admin, "x:Certificate/set", {"create": {"imap": {
         "certificate": {"@type": "Text", "value": cert.read_text()},
         "privateKey": {"@type": "Text", "secret": key.read_text()}}}}), "imap")
     server.created(server.call("fixture-admin", admin, "x:NetworkListener/set", {"create": {"imap": {
         "name": "imap", "protocol": "imap", "bind": {f"127.0.0.1:{PORT}": True},
         "useTls": True, "tlsImplicit": True}}}), "imap")
-    (tls / "ca.key").unlink()
     key.unlink()
     return ca
 
@@ -96,7 +101,7 @@ return inbox?.URI;
 """
 
 
-def read(owner, password, progress):
+def read(owner, password, progress, *, subject=SUBJECT, body=BODY, message_id="after-quit@example.test"):
     with socket.create_connection(("127.0.0.1", 2828), timeout=10) as sock, sock.makefile("rwb") as stream:
         sock.settimeout(25)
         driver = Marionette(stream)
@@ -123,7 +128,7 @@ def read(owner, password, progress):
             if (!r.width || !r.height) return null;
             return [(pane.mozInnerScreenX+r.x+r.width/2)*pane.devicePixelRatio,
                     (pane.mozInnerScreenY+r.y+r.height/2)*pane.devicePixelRatio];
-        """, uri, SUBJECT), 25)
+        """, uri, subject), 25)
         progress["phase"] = "imap-inbox-selection"
         screen = Display()
         try:
@@ -135,9 +140,9 @@ def read(owner, password, progress):
         progress["phase"] = "imap-message-pane"
         wait_for(lambda: driver.chrome(PANE + """
             const browser = pane.messageBrowser?.contentWindow?.getMessagePaneBrowser?.();
-            return pane.gDBView?.hdrForFirstSelectedMessage?.messageId == "after-quit@example.test" &&
+            return pane.gDBView?.hdrForFirstSelectedMessage?.messageId == arguments[1] &&
               browser?.contentDocument?.body?.innerText?.includes(arguments[0]);
-        """, BODY), 25)
+        """, body, message_id), 25)
         driver.command("Marionette:Quit", flags=["eAttemptQuit"])
-    return {"implicit_tls": True, "untrusted_certificate_rejected": True, "fresh_profile": True, "inbox_message_id": "after-quit@example.test",
+    return {"implicit_tls": True, "untrusted_certificate_rejected": True, "fresh_profile": True, "inbox_message_id": message_id,
             "subject_displayed": True, "message_body_displayed": True}

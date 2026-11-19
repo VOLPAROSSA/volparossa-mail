@@ -116,6 +116,7 @@ jobs:
           echo 'e24a9e4c701686327d602944de2fc383bccf1b93c371661dd5998f97d8aed7d4  integration/signal-mail/node_modules/@signalapp/libsignal-client/prebuilds/linux-x64/@signalapp+libsignal-client.node' | sha256sum --check
           python3 -B tests/peer_mail_namespace.py --node "$(command -v node)" \
             --stalwart build/stalwart-community/target/debug/stalwart --core-dir "$RUNNER_TEMP/mail-core-pair" \
+            --thunderbird-archive build/thunderbird.tar.xz --xvfb /usr/bin/Xvfb \
             > build/owner-inbox/peer-mail.json
           jq -e '.provider_acks == 2 and .exact_raw_bytes_verified and .messages_after_ack == 0' build/owner-inbox/peer-mail.json
 

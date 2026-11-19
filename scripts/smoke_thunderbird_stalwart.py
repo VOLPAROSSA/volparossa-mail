@@ -303,6 +303,17 @@ def executable(path, expected):
             and re.fullmatch("[0-9a-f]{64}", expected) and server.digest(path) == expected, "runtime-digest")
 
 
+def stage_thunderbird(archive, stage, pins):
+    distribution = stage / "mozilla.tar.xz"
+    shutil.copyfile(archive, distribution)
+    with distribution.open("rb") as raw:
+        require(hashlib.file_digest(raw, "sha512").hexdigest() == pins["distribution_sha512"], "thunderbird-sha512")
+    with tarfile.open(distribution, "r:xz") as release:
+        release.extractall(stage, filter="data")
+    distribution.unlink()
+    require(server.digest(stage / "thunderbird/thunderbird") == pins["launcher_sha256"], "launcher-digest")
+
+
 def host(args):
     from prepare_stalwart import workspace_path
     require(os.geteuid() != 0, "nonroot-required")
@@ -339,15 +350,7 @@ def host(args):
     try:
         with tempfile.TemporaryDirectory(dir=work.parent, prefix="thunderbird-runtime-") as staging:
             stage = Path(staging)
-            # Use private copies of the submitted bytes for the entire run.
-            distribution = stage / "mozilla.tar.xz"
-            shutil.copyfile(archive, distribution)
-            with distribution.open("rb") as raw:
-                require(hashlib.file_digest(raw, "sha512").hexdigest() == pins["distribution_sha512"], "thunderbird-sha512")
-            with tarfile.open(distribution, "r:xz") as release:
-                release.extractall(stage, filter="data")
-            distribution.unlink()
-            require(server.digest(stage / "thunderbird/thunderbird") == pins["launcher_sha256"], "launcher-digest")
+            stage_thunderbird(archive, stage, pins)
             for source, name, expected in ((args.stalwart, "stalwart", args.stalwart_sha256),
                                            (args.xvfb, "Xvfb", args.xvfb_sha256)):
                 destination = stage / name

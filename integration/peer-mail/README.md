@@ -58,7 +58,11 @@ reconcile. Keep the original Signal profile, journal and handoff when the comman
 reports an incomplete operation. The receipt confirms mailbox import. Read status
 belongs to the mail client.
 
-The native trial uses fictional accounts, two independently keyed Core stores
-served over local sockets and an actual Stalwart Community process. Automatic
+With the owner service’s optional IMAPS listener configured, open the selected
+mailbox in Thunderbird using implicit TLS on 127.0.0.1 port 2993. The native
+trial starts a fresh Thunderbird 157 profile after delivery, selects the message
+in its ordinary Inbox and checks the displayed subject, Message-ID and body.
+It uses fictional accounts, two independently keyed Core stores served over
+local sockets and an actual Stalwart Community process. Automatic
 address discovery, Thunderbird composition and protected multi-node mail routing
 remain separate integration work.
