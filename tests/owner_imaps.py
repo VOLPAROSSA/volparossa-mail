@@ -74,6 +74,7 @@ def inside():
         leaf = ssl.PEM_cert_to_DER_cert(cert.read_text())
         cert.unlink()
         key.unlink()
+        ingress = {}
         def login(client, supplied):
             return client.authenticate('PLAIN',lambda _: b'\0'+OWNER.encode()+b'\0'+supplied.encode())
         def serve(deliver):
@@ -107,8 +108,17 @@ def inside():
                                 pass
                             else:
                                 raise ValueError('wrong mailbox password accepted')
-                        with smtplib.SMTP('127.0.0.1',2525,timeout=8) as smtp:
-                            check(smtp.sendmail('visitor@example.test',[OWNER],MESSAGE)=={},'local mail ingress')
+                        with smtplib.SMTP('127.0.0.1',2525,local_hostname='sender.example.test',timeout=8) as smtp:
+                            check(smtp.ehlo()[0] == 250 and smtp.mail('visitor@example.test')[0] == 250
+                                  and smtp.rcpt(OWNER)[0] == 250, 'local SMTP envelope')
+                            # Stalwart processes the message before replying to DATA. Give this
+                            # single submission the remaining trial budget, including the final 250.
+                            started = time.monotonic()
+                            remaining = deadline - started
+                            check(remaining > 0, 'SMTP submission deadline')
+                            smtp.sock.settimeout(remaining)
+                            check(smtp.data(MESSAGE)[0] == 250, 'SMTP DATA confirmation')
+                            ingress['smtp_data_ms'] = round((time.monotonic() - started) * 1000)
                     login(client,password)
                     while True:
                         status, data = client.select('INBOX',readonly=True)
@@ -145,7 +155,7 @@ def inside():
     print(json.dumps(dict(implicit_tls=True,loopback_port=2993,wrong_hostname_rejected=True,
                           mismatched_key_rejected=True,incomplete_pair_rejected=True,exposed_private_key_rejected=True,
                           unknown_certificate_rejected=True,wrong_password_rejected=True,imap_write_refused=True,
-                          owner_supplied_leaf_retained=True,original_message_read_after_restart=True),sort_keys=True))
+                          owner_supplied_leaf_retained=True,original_message_read_after_restart=True, **ingress),sort_keys=True))
 
 
 def trial(binary):
