@@ -115,7 +115,10 @@ python3 integration/peer-mail/send_selected.py --owner "$owner_directory" \
 A desktop integration can supply the same complete message on binary standard
 input with `--stdin`. Close the stream after the last byte. File and stream
 input share the 4 MiB limit, address checks and operation ID. Replaying either
-form requires an exact byte match.
+form requires an exact byte match. The selector keeps the draft in its private
+durable selection until native sealing completes. It streams the original bytes
+directly to the sealer, which verifies their length and SHA-256 before changing
+the Signal session.
 
 
 The sender reads the original header block and requires a single matching

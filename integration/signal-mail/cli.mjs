@@ -4,7 +4,7 @@ import { lstatSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
 import { parseArgs } from 'node:util';
-import { MailError, privateDir, publish, read, syncDirectory } from './files.mjs';
+import { MailError, privateDir, publish, read, readExact, syncDirectory } from './files.mjs';
 import { channel, decodeBundle, makeLocal, MAX_PACKET } from './protocol.mjs';
 import { bindCoreOwner, deposit, routeMail, stageRoute } from './route.mjs';
 
@@ -16,9 +16,8 @@ const fields = new Map([
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const digest = value => typeof value === 'string' && /^[a-f0-9]{64}$/.test(value);
 
-async function seal(db, session, values) {
-  const input = read(values.input, MAX_PACKET);
-  const messageHash = hash(input);
+async function seal(db, session, values, input = read(values.input, MAX_PACKET)) {
+  const messageHash = values['stdin-sha256'] ?? hash(input);
   const existing = db.prepare('SELECT message_sha256,packet FROM outgoing WHERE id=?').get(values.id);
   if (existing && existing.message_sha256 !== messageHash) throw new MailError('operation id already seals different message bytes');
   const packet = existing?.packet ?? await session.encrypt(input);
@@ -38,15 +37,29 @@ async function run() {
     options['prepare-only'] = { type: 'boolean' };
     options['peer-bundle-sha256'] = { type: 'string' };
     options.input = { type: 'string' };
+    options['stdin-size'] = { type: 'string' };
+    options['stdin-sha256'] = { type: 'string' };
     options.invitation = { type: 'string' };
   }
   const { values } = parseArgs({ args: process.argv.slice(3), options });
   if (names.some(name => !values[name])) throw new MailError('missing command arguments');
 
+  let input;
   if (operation === 'send') {
-    const originals = [values.input,values.invitation];
-    if (values.resume ? (originals.some(Boolean) || values['prepare-only']) : (!originals.every(Boolean) || !values['core-owner-key'])) {
+    const stream = values['stdin-size'] !== undefined || values['stdin-sha256'] !== undefined;
+    if (values.resume ? (stream || values.input || values.invitation || values['prepare-only'])
+        : (Boolean(values.input) === stream || !values.invitation || !values['core-owner-key'])) {
       throw new MailError('choose the original mail, invitation and owner key, or resume the retained send');
+    }
+    if (stream) {
+      const size = Number(values['stdin-size']);
+      if (String(size) !== values['stdin-size'] || !Number.isSafeInteger(size) || size < 1 ||
+          size > MAX_PACKET || !digest(values['stdin-sha256'])) {
+        throw new MailError('invalid selected message length or digest');
+      }
+      // Read before opening the native ratchet transaction or waiting on a provider.
+      input = readExact(0, size);
+      if (hash(input) !== values['stdin-sha256']) throw new MailError('selected message digest differs');
     }
   }
   if (operation === 'init') {
@@ -101,7 +114,8 @@ async function run() {
         const session = channel(state, local, peer);
         if (operation !== 'open') {
           if (!digest(values.id)) throw new MailError('expected a 64-digit lowercase hexadecimal operation id');
-          const sealed = values.resume ? undefined : await seal(db, session, values);
+          const sealed = values.resume ? undefined : await seal(db, session, values, input);
+          input = undefined;
           route = operation === 'send' ? routeMail(db, state, values, sealed) : undefined;
           const { packet, message_sha256, message_bytes } = route ?? sealed;
           output = packet;
