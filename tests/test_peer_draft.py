@@ -15,6 +15,18 @@ loader.loader.exec_module(host)
 
 
 class PeerDraft(unittest.TestCase):
+    def test_only_embedded_attachments_can_leave_the_owner(self):
+        prefix = b'Content-Type: multipart/mixed; boundary="draft"\r\n\r\n--draft\r\n'
+        part = b"Content-Type: application/octet-stream\r\n"
+        tail = b"\r\nplaceholder\r\n--draft--\r\n"
+        for field in (b"X-Mozilla-Cloud-Part: cloudFile;\r\n provider=local", b"x-mozilla-external-attachment-url: file:///example",
+                      b"X-Mozilla-Altered: AttachmentDeleted"):
+            with self.subTest(field=field):
+                with self.assertRaises(host.IncompleteAttachment):
+                    host.correspondence(prefix + part + field + b"\r\n" + tail)
+                quoted = prefix + b"Content-Type: text/plain\r\n\r\n" + field + tail
+                self.assertEqual(host.correspondence(quoted), quoted)
+
     def test_local_headers_and_their_continuations_stay_on_the_sender(self):
         for nl in (b"\r\n", b"\n"):
             lines = [b"From: Film <sender@example.test>", b"Subject: A", b" B"]

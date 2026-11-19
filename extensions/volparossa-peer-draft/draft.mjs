@@ -56,6 +56,10 @@ send.addEventListener("click", async () => {
       status.textContent = "This draft cannot use a paired address. You can choose ordinary mail in Thunderbird.";
       return;
     }
+    if (reply.status === "attachment_unavailable") {
+      status.textContent = "Attach the original file in Thunderbird, save the draft, and select it again.";
+      return;
+    }
     status.textContent = "Custody is unconfirmed. Retry this same saved draft to check the original delivery.";
   } catch {
     status.textContent = "The local mail service did not confirm custody. Check the service and retry this draft.";

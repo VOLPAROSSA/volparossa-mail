@@ -3,6 +3,8 @@
 """Thunderbird native messaging bridge to the owner's address-bound peer sender."""
 
 import base64
+from email import policy
+from email.parser import BytesParser
 import hashlib
 import json
 import os
@@ -33,6 +35,14 @@ LOCAL_HEADERS = {
     b"x-mozilla-account-key",
     b"x-mozilla-news-host",
 }
+ATTACHMENT_MARKERS = {"x-mozilla-cloud-part", "x-mozilla-external-attachment-url", "x-mozilla-altered"}
+MAY_HAVE_PLACEHOLDER = re.compile(
+    b"^(?:" + b"|".join(name.encode("ascii") for name in sorted(ATTACHMENT_MARKERS)) + b"):", re.I | re.M
+)
+
+
+class IncompleteAttachment(ValueError):
+    pass
 
 
 def receive(stream):
@@ -70,6 +80,14 @@ def correspondence(draft):
     boundary = re.search(rb"\r?\n\r?\n", draft[:65540])
     if boundary is None or boundary.start() > 65536:
         raise ValueError("missing bounded mail headers")
+    # Filelink drafts and detached attachments can retain a local filename,
+    # provider account or provider-specific data instead of the file bytes.
+    # A literal header name quoted in ordinary body text is safe to preserve.
+    if MAY_HAVE_PLACEHOLDER.search(draft):
+        parsed = BytesParser(policy=policy.compat32).parsebytes(draft)
+        for part in parsed.walk():
+            if part.defects or ATTACHMENT_MARKERS.intersection(name.lower() for name in part.keys()):
+                raise IncompleteAttachment()
     fields = []
     keep = None
     for line in draft[: boundary.start()].splitlines(keepends=True):
@@ -121,6 +139,8 @@ def main():
     os.umask(0o077)
     try:
         reply = deliver(receive(sys.stdin.buffer))
+    except IncompleteAttachment:
+        reply = {"status": "attachment_unavailable"}
     except (OSError, ValueError, TypeError, AttributeError, RecursionError, subprocess.SubprocessError):
         reply = {"status": "unconfirmed"}
     encoded = json.dumps(reply).encode("ascii")

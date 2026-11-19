@@ -10,6 +10,7 @@ on:
       - 'extensions/volparossa-peer-draft/**'
       - 'scripts/peer_draft_install.py'
       - 'tests/thunderbird_peer_draft_guest.py'
+      - 'tests/thunderbird_composed_draft.py'
       - 'scripts/*stalwart*.py'
       - 'scripts/export_mail_custody.py'
       - 'scripts/thunderbird_*.py'
@@ -128,11 +129,14 @@ jobs:
       - name: Send a native Thunderbird draft to its paired owner
         run: |
           python3 -B scripts/peer_draft_install.py package build/owner-inbox/volparossa-peer-draft.xpi
-          python3 -B tests/peer_mail_namespace.py --draft --node "$(command -v node)" \
-            --stalwart build/stalwart-community/target/debug/stalwart --core-dir "$RUNNER_TEMP/mail-core-pair" \
-            --thunderbird-archive build/thunderbird.tar.xz --xvfb /usr/bin/Xvfb \
-            > build/owner-inbox/peer-draft.json
-          jq -e '.native_toolbar_and_send_clicked and .original_correspondence_bytes and .verified_import_acknowledgements == 2 and .receiver_inbox.message_body_displayed' build/owner-inbox/peer-draft.json
+          for trial in draft compose; do
+            receipt="build/owner-inbox/peer-$trial.json"
+            python3 -B tests/peer_mail_namespace.py --"$trial" --node "$(command -v node)" \
+              --stalwart build/stalwart-community/target/debug/stalwart --core-dir "$RUNNER_TEMP/mail-core-pair" \
+              --thunderbird-archive build/thunderbird.tar.xz --xvfb /usr/bin/Xvfb > "$receipt"
+            jq -e '.native_toolbar_and_send_clicked and .original_correspondence_bytes and .verified_import_acknowledgements == 2 and .receiver_inbox.message_body_displayed' "$receipt"
+          done
+          jq -e '.edited_and_saved_in_composer and .filelink_refused_before_custody' build/owner-inbox/peer-compose.json
       - name: Export the proven Linux mailbox runtime for the routed Core trial
         run: python3 -I -B scripts/export_mail_custody.py
 
@@ -161,6 +165,7 @@ jobs:
             build/owner-inbox/owner-service.json
             build/owner-inbox/peer-mail.json
             build/owner-inbox/peer-draft.json
+            build/owner-inbox/peer-compose.json
             build/owner-inbox/volparossa-peer-draft.xpi
             build/owner-inbox/owner-imaps.json
           if-no-files-found: error

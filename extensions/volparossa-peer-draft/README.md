@@ -31,6 +31,8 @@ this add-on’s exact extension ID.
    that delivery yourself.
 
 Thunderbird’s local status flags, tags and draft bookkeeping stay on the sender.
+Private delivery requires the attached file itself. For a Filelink, detached or
+deleted attachment, attach the original file in Thunderbird and save the draft again.
 The native bridge passes the selected correspondence directly to the sender on
 standard input. The recipient receives the message headers and original encoded MIME body,
 including its attachments. The draft remains in Local Folders.

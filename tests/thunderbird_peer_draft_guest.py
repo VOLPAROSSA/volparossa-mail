@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: GPL-3.0-only
 """Select a real local Thunderbird draft and verify the resulting offline peer deposit."""
 
+import argparse
 import contextlib
 from email import policy
 from email.parser import BytesParser
@@ -32,6 +33,7 @@ from thunderbird_owner_inbox import issue_test_certificate
 from smoke_thunderbird_stalwart import PREFERENCES, port_open, retire
 from thunderbird_import_ui import CENTER, Display, Marionette, wait_for
 from thunderbird_owner_inbox import PANE
+from thunderbird_composed_draft import save_in_composer
 
 ADDON = "volparossa-peer-draft@volparossa.local"
 CREATE = """
@@ -128,7 +130,7 @@ def launched(args):
         assert retire(child), "test process did not retire"
 
 
-def click_draft(driver, screen, source):
+def click_draft(driver, screen, source, compose):
     driver.command("Marionette:SetContext", value="chrome")
     wait_for(lambda: driver.chrome(PANE + "return !!pane?.folderPane"))
     user_manifests = Path(
@@ -144,26 +146,49 @@ def click_draft(driver, screen, source):
         "return document.elementFromPoint(850,20)?.tagName.toLowerCase()==='account-hub-container'"
     ):
         screen.click(938, 206)
-    uri = driver.chrome(CREATE, str(source))
+    if compose:
+        uri, original = save_in_composer(driver, screen, source)
+    else:
+        uri, original = driver.chrome(CREATE, str(source)), MESSAGE
+    message_id = str(BytesParser(policy=policy.default).parsebytes(original)["Message-ID"]).strip("<>")
+    if compose:
+        # Native Filelink drafts can hold owner-side provider parameters on a MIME part.
+        placeholder = source.parent / "filelink.eml"
+        placeholder.write_bytes(MESSAGE.replace(b"Private peer acceptance", b"Filelink review")
+            .replace(b"peer-test@example.test", b"filelink@example.test")
+            .replace(b"Content-Transfer-Encoding:", b"X-Mozilla-Cloud-Part: cloudFile; url=https://example.invalid/file;\r\n"
+                     b" provider=synthetic-local-account\r\nContent-Transfer-Encoding:"))
+        assert driver.chrome(CREATE, str(placeholder)) == uri
+        review(driver, screen, uri, "Filelink review", "filelink@example.test")
+        screen.click(*driver.page(CENTER, "#send"))
+        wait_for(lambda: driver.page('return document.querySelector("#status").textContent')
+                 == "Attach the original file in Thunderbird, save the draft, and select it again.")
+        driver.chrome('const t=document.getElementById("tabmail"); t.closeTab(t.currentTabInfo);')
+        wait_for(lambda: driver.chrome(PANE + "return !!pane?.folderPane"))
+    review(driver, screen, uri, "Private peer acceptance", message_id)
+    return str(user_manifests.relative_to(Path(os.environ["HOME"]))), original, message_id
+
+
+def review(driver, screen, uri, subject, message_id):
     driver.chrome(PANE + "pane.displayFolder(arguments[0])", uri)
     coords = wait_for(
         lambda: driver.chrome(
             PANE
             + """
       const s = [...pane.document.querySelectorAll("#threadTree .subject, #threadTree .subject-line")]
-        .find(e => e.textContent.trim()==="Private peer acceptance");
+        .find(e => e.textContent.trim()===arguments[0]);
       if (!s) return null;
       const r=s.getBoundingClientRect();
       return r.width && [(pane.mozInnerScreenX+r.x+r.width/2)*pane.devicePixelRatio,
                          (pane.mozInnerScreenY+r.y+r.height/2)*pane.devicePixelRatio];
-    """
+    """, subject
         ),
         30,
     )
     screen.click(*coords)
     wait_for(
         lambda: driver.chrome(
-            PANE + 'return pane.gDBView?.hdrForFirstSelectedMessage?.messageId==="peer-test@example.test"'
+            PANE + 'return pane.gDBView?.hdrForFirstSelectedMessage?.messageId===arguments[0]', message_id
         )
     )
     screen.click(*driver.chrome(CENTER, f"button[extension='{ADDON}']"))
@@ -176,11 +201,10 @@ def click_draft(driver, screen, source):
     assert driver.page("return document.title") == "Send to a paired contact"
     wait_for(lambda: driver.page('return document.querySelector("#send")?.disabled === false'))
     assert "owner@volparossa.test" in driver.page('return document.querySelector("#to").textContent')
-    assert driver.page('return document.querySelector("#subject").textContent') == "Private peer acceptance"
-    return str(user_manifests.relative_to(Path(os.environ["HOME"])))
+    assert driver.page('return document.querySelector("#subject").textContent') == subject
 
 
-def receive_in_inbox(work, recipient_profile, handoff, fetched):
+def receive_in_inbox(work, recipient_profile, handoff, fetched, original, message_id):
     """Open the one UI-selected message in the other owner’s fresh Thunderbird profile."""
     home = work / "recipient-ui"
     home.mkdir(mode=0o700)
@@ -240,12 +264,12 @@ def receive_in_inbox(work, recipient_profile, handoff, fetched):
             ],
             password=password.encode(),
         )
-        assert receipt["message_sha256"] == digest(MESSAGE) and receipt["acknowledged_providers"] == 2
+        assert receipt["message_sha256"] == digest(original) and receipt["acknowledged_providers"] == 2
         assert fetched("after-import")["messages_fetched"] == 0
-        return open_in_thunderbird(home, ca, user, password)
+        return open_in_thunderbird(home, ca, user, password, message_id)
 
 
-def trial(work):
+def trial(work, compose):
     home, profile, runtime = (work / name for name in ("home", "profile", "runtime"))
     for d in (home, profile, runtime):
         d.mkdir(mode=0o700)
@@ -261,8 +285,9 @@ def trial(work):
     (profile / "user.js").write_text(
         "".join(f"user_pref({json.dumps(k)}, {json.dumps(v)});\n" for k, v in prefs.items())
     )
-    source = work / "source.eml"
-    source.write_bytes(MESSAGE)
+    attachment = bytes.fromhex("000102030405feff")
+    source = work / ("attachment.bin" if compose else "source.eml")
+    source.write_bytes(attachment if compose else MESSAGE)
     with offline_providers(work / "providers") as providers:
         recipient_profile = pair(work, providers)
 
@@ -303,7 +328,7 @@ def trial(work):
                     assert caps["browserVersion"] == "157.0" and caps["moz:buildID"] == "20260928193122"
                     screen = Display()
                     try:
-                        directory = click_draft(driver, screen, source)
+                        directory, original, message_id = click_draft(driver, screen, source, compose)
                         assert fetch("before-click")["messages_fetched"] == 0
                         screen.click(*driver.page(CENTER, "#send"))
                         wait_for(
@@ -333,16 +358,18 @@ def trial(work):
             ]
         )
         raw = output.read_bytes()
-        assert opened["message_sha256"] == digest(raw) and raw == MESSAGE
+        assert opened["message_sha256"] == digest(raw) and raw == original
         msg = BytesParser(policy=policy.default).parsebytes(raw)
-        assert msg["Message-ID"] == "<peer-test@example.test>" and msg["Subject"] == "Private peer acceptance"
+        assert msg["Message-ID"] == f"<{message_id}>" and msg["Subject"] == "Private peer acceptance"
         parts = list(msg.iter_parts())
         assert "The recipient was offline." in parts[0].get_content()
-        assert parts[1].get_payload(decode=True) == bytes.fromhex("000102030405feff")
-        inbox = receive_in_inbox(work, recipient_profile, handoff, fetch)
+        assert parts[1].get_payload(decode=True) == attachment
+        inbox = receive_in_inbox(work, recipient_profile, handoff, fetch, original, message_id)
     return {
         "thunderbird": "157.0",
         "native_host_root": directory,
+        "edited_and_saved_in_composer": compose,
+        "filelink_refused_before_custody": compose,
         "native_toolbar_and_send_clicked": True,
         "packaged_addon_installed": True,
         "no_message_before_click": True,
@@ -360,6 +387,9 @@ def trial(work):
 
 if __name__ == "__main__":
     assert os.geteuid() != 0 and socket.if_nameindex() == [(1, "lo")]
+    options = argparse.ArgumentParser()
+    options.add_argument("--compose", action="store_true")
+    args = options.parse_args()
     os.umask(0o077)
     with tempfile.TemporaryDirectory(dir="/tmp") as tmp:
-        print(json.dumps(trial(Path(tmp)), sort_keys=True))
+        print(json.dumps(trial(Path(tmp), args.compose), sort_keys=True))
