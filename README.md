@@ -110,6 +110,16 @@ upstream default web-interface download has no external network access. New moun
 live under disposable `/opt/work`; synthetic addresses use `.test`, which the pinned
 server accepts as a reserved domain. No real mail account or public SMTP service is used.
 
+After a separate adapter import, the fixture removed the selected message file,
+killed Stalwart and confirmed that its listening socket had closed. A new
+Stalwart process reopened the original SQLite database. The server refused an
+incorrect password with HTTP 401. The original owner could open the same account
+and mailbox and retrieve the exact 313 MIME bytes by the original message ID.
+This used a disposable Community server in recovery mode. Add
+`--crash-recovery` to the smoke command below to repeat it.
+[Mailbox recovery receipt](third_party/stalwart-mailbox-crash-recovery/result.json)
+· [Cleanup and host checks](third_party/stalwart-mailbox-crash-recovery/boundary.json).
+
 The September run used the connector adapter directly. The November Thunderbird run
 above exercised the same JMAP operations through the interface. SMTP delivery, peer
 delivery, offline Internet reception and recovery of an installed background service

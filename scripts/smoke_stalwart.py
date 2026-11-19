@@ -37,7 +37,9 @@ ERROR_CODES = frozenset(('host-netns-refused', 'non-loopback-interface-refused',
     'http-status', 'http-response-bound', 'redirect-rejected', 'jmap-method-rejected',
     'jmap-create-rejected', 'invalid-id', 'owner-account-binding',
     'extension-live-import-failed', 'extension-receipt-binding', 'readback-count',
-    'readback-mailbox-binding', 'readback-blob-id', 'raw-message-mismatch'))
+    'readback-mailbox-binding', 'readback-blob-id', 'raw-message-mismatch',
+    'server-stop-unconfirmed', 'mailbox-port-still-open', 'store-replaced',
+    'wrong-owner-credential-accepted'))
 JMAP_ERROR_TYPES = frozenset(('forbidden', 'invalidProperties', 'invalidArguments',
     'invalidResultReference', 'serverFail', 'serverUnavailable', 'notFound',
     'overQuota', 'rateLimit', 'validationFailed', 'primaryKeyViolation',
@@ -185,9 +187,47 @@ def limits():
     os.sched_setaffinity(0, cpus[:2])
 
 
-def child(host_netns):
+def start_server(env, log, admin_password, processes):
+    server = subprocess.Popen(['/opt/stalwart', '--config', '/opt/work/private/store.json'],
+        env=env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True, preexec_fn=limits)
+    processes.append(server)
+    deadline = time.monotonic() + 100
+    while True:
+        require(server.poll() is None, 'server-exited')
+        try:
+            http('fixture-admin', admin_password, '/jmap/session')
+            return server
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            require(time.monotonic() < deadline, 'server-start-timeout')
+            time.sleep(0.2)
+
+
+def verify_owner(owner, password, account):
+    session = http(owner, password, '/jmap/session')
+    require(session['primaryAccounts'][MAIL] == account
+            and list(session['accounts']) == [account], 'owner-account-binding')
+
+
+def crash_server(server):
+    os.killpg(server.pid, signal.SIGKILL)
+    require(server.wait(timeout=5) == -signal.SIGKILL, 'server-stop-unconfirmed')
+    try:
+        os.killpg(server.pid, 0)
+    except ProcessLookupError:
+        pass
+    else:
+        raise ValueError('server-stop-unconfirmed')
+    try:
+        with socket.create_connection(('127.0.0.1', 8080), timeout=2):
+            raise ValueError('mailbox-port-still-open')
+    except ConnectionRefusedError:
+        pass
+
+
+def child(host_netns, crash_recovery=False):
     report = {'version': 1, 'kind': 'stalwart-extension-live-jmap', 'success': False,
               'phase': 'namespace-preflight', 'source_revision': REVISION,
+              'crash_recovery_requested': crash_recovery,
               'server_executed': False, 'recovery_mode': True,
               'external_network_available': False, 'smtp_tested': False,
               'thunderbird_ui_tested': False, 'overlay_tested': False,
@@ -212,20 +252,7 @@ def child(host_netns):
                'STALWART_RECOVERY_ADMIN': 'fixture-admin:' + admin_password}
         report['phase'] = 'server-start'
         with (private / 'server.log').open('xb') as log:
-            server = subprocess.Popen(['/opt/stalwart', '--config', '/opt/work/private/store.json'],
-                env=env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True,
-                preexec_fn=limits)
-            processes.append(server)
-            report['server_executed'] = True
-            deadline = time.monotonic() + 100
-            while True:
-                require(server.poll() is None, 'server-exited')
-                try:
-                    http('fixture-admin', admin_password, '/jmap/session')
-                    break
-                except (urllib.error.URLError, TimeoutError, ConnectionError):
-                    require(time.monotonic() < deadline, 'server-start-timeout')
-                    time.sleep(0.2)
+            server = start_server(env, log, admin_password, processes)
             # Recovery disables background services but the unmodified upstream
             # still tries to fetch its default web-UI bundle. No route exists.
             report['upstream_webui_fetch_network_blocked'] = True
@@ -239,9 +266,7 @@ def child(host_netns):
                 'create': {'fixture': account_object(domain, owner_password)}}), 'fixture')
             owner = 'owner@volparossa.test'
             report['phase'] = 'owner-session'
-            session = http(owner, owner_password, '/jmap/session')
-            require(session['primaryAccounts'][MAIL] == account
-                    and list(session['accounts']) == [account], 'owner-account-binding')
+            verify_owner(owner, owner_password, account)
             report['phase'] = 'mailbox-create'
             mailbox = created(call(owner, owner_password, 'Mailbox/set', {'accountId': account,
                 'create': {'fixture': {'name': 'VOLPAROSSA fixture', 'parentId': None}}}), 'fixture')
@@ -259,10 +284,35 @@ def child(host_netns):
             receipt = json.loads((private / 'import.json').read_text())
             require(receipt['accountId'] == account and receipt['mailboxId'] == mailbox
                     and receipt['metadataReadback'] is True, 'extension-receipt-binding')
+            if crash_recovery:
+                report['phase'] = 'stop-imported-mailbox'
+                database = private / 'store.sqlite'
+                stored = database.stat()
+                (private / 'fixture.eml').unlink()
+                (private / 'owner.json').unlink()
+                (private / 'import.json').unlink()
+                crash_server(server)
+                processes.remove(server)
+                report['server_killed_and_offline'] = True
+                report['phase'] = 'reopen-imported-mailbox'
+                start_server(env, log, admin_password, processes)
+                require(os.path.samestat(stored, database.stat()), 'store-replaced')
+                report['same_database_reopened'] = True
+                try:
+                    http(owner, secrets.token_urlsafe(32), '/jmap/session')
+                except urllib.error.HTTPError as error:
+                    with error:
+                        if error.code != 401:
+                            raise
+                else:
+                    raise ValueError('wrong-owner-credential-accepted')
+                report['wrong_password_denied'] = True
+                verify_owner(owner, owner_password, account)
             report['phase'] = 'independent-raw-readback'
             result = call(owner, owner_password, 'Email/get', {'accountId': account,
                 'ids': [receipt['emailId']], 'properties': ['id', 'blobId', 'mailboxIds', 'size']})
-            require(len(result['list']) == 1 and not result['notFound'], 'readback-count')
+            require(result['accountId'] == account and len(result['list']) == 1
+                    and not result['notFound'], 'readback-count')
             saved = result['list'][0]
             require(saved['id'] == receipt['emailId'] and saved['mailboxIds'].get(mailbox) is True,
                     'readback-mailbox-binding')
@@ -270,7 +320,7 @@ def child(host_netns):
             require(isinstance(blob, str) and blob.isalnum() and blob.isascii(), 'readback-blob-id')
             raw = http(owner, owner_password,
                 f'/jmap/download/{account}/{blob}/fixture.eml', raw=True)
-            require(raw == MESSAGE, 'raw-message-mismatch')
+            require(saved['size'] == len(MESSAGE) and raw == MESSAGE, 'raw-message-mismatch')
             report.update({'phase': 'complete', 'success': True, 'metadata_readback': True,
                 'independent_raw_readback': True, 'fixture_bytes': len(MESSAGE),
                 'fixture_sha256': hashlib.sha256(MESSAGE).hexdigest()})
@@ -288,6 +338,7 @@ def child(host_netns):
         if isinstance(error, urllib.error.HTTPError):
             report['http_status'] = error.code
     finally:
+        report['server_executed'] = bool(processes) or report.get('server_killed_and_offline', False)
         joined = [group_join(process) for process in reversed(processes)]
         report['process_groups_joined'] = all(joined)
         if private.is_dir() and not private.is_symlink() and all(joined):
@@ -301,6 +352,7 @@ def child(host_netns):
 def command(args, work, host_netns):
     # All new mount targets live under the disposable /opt tmpfs; /work need
     # not exist on the host and cannot be created on its read-only root mount.
+    mode = '--inside-crash-recovery' if args.crash_recovery else '--inside'
     return ['/usr/bin/bwrap', '--die-with-parent', '--new-session', '--unshare-user',
         '--uid', str(os.getuid()), '--gid', str(os.getgid()), '--unshare-net', '--unshare-pid',
         '--unshare-ipc', '--unshare-uts', '--cap-drop', 'ALL', '--ro-bind', '/', '/',
@@ -312,7 +364,7 @@ def command(args, work, host_netns):
         '--ro-bind', str(Path(__file__).resolve()), '/opt/smoke_stalwart.py',
         '--bind', str(work), '/opt/work', '--chdir', '/opt/work', '--clearenv',
         '--setenv', 'PATH', '/usr/bin:/bin', '--setenv', 'LANG', 'C.UTF-8',
-        '--', '/usr/bin/python3', '-B', '/opt/smoke_stalwart.py', '--inside', host_netns]
+        '--', '/usr/bin/python3', '-B', '/opt/smoke_stalwart.py', mode, host_netns]
 
 
 def host_snapshot():
@@ -337,7 +389,8 @@ def run(args):
     plan = {'kind': 'stalwart-disposable-smoke-plan', 'source_revision': REVISION,
         'binary_sha256': args.binary_sha256, 'node_sha256': args.node_sha256,
         'extension_sha256': digest(ROOT / 'extensions/volparossa-mail-host/jmap.mjs'),
-        'output': str(work), 'new_user_net_pid_ipc_uts_namespaces': True,
+        'output': str(work), 'crash_recovery': args.crash_recovery,
+        'new_user_net_pid_ipc_uts_namespaces': True,
         'only_persistent_writable_path': str(work), 'server_listener_inside_only': '[::]:8080',
         'external_routes': False, 'real_mail': False, 'smtp': False,
         'private_state_deleted_after_join': True,
@@ -380,14 +433,16 @@ def run(args):
 
 def main():
     os.umask(0o077)
-    if len(sys.argv) == 3 and sys.argv[1] == '--inside':
-        return child(sys.argv[2])
+    if len(sys.argv) == 3 and sys.argv[1] in ('--inside', '--inside-crash-recovery'):
+        return child(sys.argv[2], crash_recovery=sys.argv[1] == '--inside-crash-recovery')
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--binary', type=Path, required=True)
     parser.add_argument('--binary-sha256', required=True)
     parser.add_argument('--node', type=Path, required=True)
     parser.add_argument('--node-sha256', required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--crash-recovery', action='store_true',
+        help='kill the fixture server after import and read from the reopened SQLite mailbox')
     parser.add_argument('--execute', action='store_true')
     return run(parser.parse_args())
 
