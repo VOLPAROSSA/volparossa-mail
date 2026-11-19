@@ -25,7 +25,8 @@ owner-only Core configuration used to fetch the message. It contains absolute `s
 ## Pick up mail for one paired contact
 
 Use one private journal directory for this pair, invitation and destination
-mailbox. Run the command from the Mail checkout. It prompts for the mailbox
+mailbox and a Core CLI that supports `content mailbox verify-import-acks`.
+Run the command from the Mail checkout. It prompts for the mailbox
 password, or reads one line on standard input.
 
 ```sh
@@ -40,7 +41,9 @@ retry and how many providers answered. A pending message, an incomplete provider
 listing, or a failed fetch returns a nonzero exit status. If a new listing fails,
 `fetch_complete` is false and `listed_providers` is null. The totals still include
 messages whose saved readback and two original acknowledgements were recovered
-locally while the providers were offline. Repeat the same
+locally while the providers were offline. Core verifies each provider's signature
+against the original invitation and message, including when an interruption
+prevented Core from publishing its combined confirmation. Repeat the same
 command after reconnecting. Concurrent invocations share the journal. Selecting
 a different receiver or mailbox requires a separate journal.
 

@@ -249,19 +249,22 @@ def native_trial(work, providers, ca, user, password):
         # Restart with the same journal. Inspect the real confirmation inputs without logging private bytes.
         wrapper = work / "observed-core"
         wrapper.write_text(f"""#!/usr/bin/python3
-import hashlib, os, signal, subprocess, sys
+import hashlib, os, resource, signal, subprocess, sys
 from pathlib import Path
-if os.environ.get("OFFLINE_AFTER_ACK") == "1":
-    if "fetch" not in sys.argv:
-        Path({str(work / "unexpected-offline-confirm")!r}).touch()
-    sys.exit(72)
+if os.environ.get("OFFLINE_AFTER_ACK") == "1" and "confirm-import" in sys.argv:
+    Path({str(work / "unexpected-offline-confirm")!r}).touch()
 if "confirm-import" in sys.argv:
     def signature(flag):
         return hashlib.sha256(Path(sys.argv[sys.argv.index(flag)+1]).read_bytes()).hexdigest()
     assert signature("--pending") == {original_pending!r} and signature("--import-token-file") == {original_token!r}
     Path({str(work / "same-handoff")!r}).touch()
     if os.environ.get("INTERRUPT_AFTER_TEST_ACK") == "1":
-        done = subprocess.run([{CORE!r}, *sys.argv[1:]], stdout=subprocess.DEVNULL, check=True)
+        # The two individual signed receipts fit; their combined JSON cannot be published.
+        def limit_aggregate():
+            resource.setrlimit(resource.RLIMIT_FSIZE, (1024, 1024))
+        done = subprocess.run([{CORE!r}, *sys.argv[1:]], stdout=subprocess.DEVNULL, preexec_fn=limit_aggregate)
+        root = Path(sys.argv[sys.argv.index("--pending") + 1]).parent
+        assert done.returncode and len(list(root.glob("ack-*.json"))) == 2 and not (root / "confirmed.json").exists()
         os.kill(os.getppid(), signal.SIGKILL)
         sys.exit(0)
 os.execv({CORE!r}, [{CORE!r}, *sys.argv[1:]])
@@ -288,32 +291,54 @@ os.execv({NODE!r}, [{NODE!r}, *sys.argv[1:]])
         assert fetch("still-after-readback")["messages_fetched"] == 1
         interrupted = subprocess.run(resumed, input=password.encode(), capture_output=True, timeout=100,
                                      env=dict(os.environ, INTERRUPT_AFTER_TEST_ACK="1"))
-        assert interrupted.returncode == -signal.SIGKILL and (retained_item / "confirmed.json").is_file()
+        assert interrupted.returncode == -signal.SIGKILL and not (retained_item / "confirmed.json").exists()
+        assert len(list(retained_item.glob("ack-*.json"))) == 2
         assert not (state / ".accept-work").exists()
         assert not (state / "pickup/receipts" / (opaque_id + ".json")).exists()
         assert fetch("confirmed-before-restart")["messages_fetched"] == 0
-        # Two callers can start together. The durable pickup directory serializes their progress.
-        procs = [subprocess.Popen(resumed, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                                  env=dict(os.environ, OFFLINE_AFTER_ACK="1"))
-                 for _ in range(2)]
-        for proc in procs:
-            proc.stdin.write(password.encode())
-            proc.stdin.close()
-            proc.stdin = None
-        totals = []
-        for proc in procs:
-            out, err = proc.communicate(timeout=100)
-            assert proc.returncode == 1 and not err
-            totals.append(json.loads(out))
-        assert sorted(r["imported"] for r in totals) == [0, 1]
-        assert all(r["pending"] == 0 and r["listed_providers"] is None and r["degraded"]
-                   and not r["fetch_complete"] for r in totals)
-        assert not (work / "unexpected-offline-confirm").exists()
+        # Disconnect the receiver's actual Unix endpoint for both provider routes.
+        socket_path = Path(recipient["socket"])
+        disconnected = socket_path.with_name("offline-test.sock")
+        socket_path.rename(disconnected)
+        try:
+            offline_env = dict(os.environ, OFFLINE_AFTER_ACK="1")
+            first_ack, second_ack = sorted(retained_item.glob("ack-*.json"))
+            original = first_ack.read_bytes()
+            candidate = json.loads(original)
+            signed = bytearray.fromhex(candidate["receipt"])
+            signed[-1] ^= 1
+            for replacement in (json.loads(second_ack.read_bytes())["receipt"], signed.hex()):
+                candidate["receipt"] = replacement
+                first_ack.write_text(json.dumps(candidate))
+                rejected = subprocess.run(resumed, input=password.encode(), capture_output=True,
+                                          env=offline_env, timeout=100)
+                assert rejected.returncode == 1 and b"could not verify" in rejected.stderr
+                assert first_ack.is_file() and second_ack.is_file() and not (state / "pickup/receipts" / (opaque_id + ".json")).exists()
+            first_ack.write_bytes(original)
+            # Two callers can start together. The durable pickup directory serializes their progress.
+            procs = [subprocess.Popen(resumed, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                      env=offline_env) for _ in range(2)]
+            for proc in procs:
+                proc.stdin.write(password.encode())
+                proc.stdin.close()
+                proc.stdin = None
+            totals = []
+            for proc in procs:
+                out, err = proc.communicate(timeout=100)
+                assert proc.returncode == 1 and not err
+                totals.append(json.loads(out))
+            assert sorted(r["imported"] for r in totals) == [0, 1]
+            assert all(r["pending"] == 0 and r["listed_providers"] is None and r["degraded"]
+                       and not r["fetch_complete"] for r in totals)
+            assert not (work / "unexpected-offline-confirm").exists()
+        finally:
+            disconnected.rename(socket_path)
         online = command(resumed, password=password.encode())
         assert online["fetch_complete"] and online["listed_providers"] == 2 and not online["degraded"]
         assert online["imported"] == online["pending"] == 0
         assert (work / "same-handoff").is_file() and not list((state / "pickup/pending").iterdir())
         saved = json.loads((state / "pickup/receipts" / (opaque_id + ".json")).read_bytes())
+        assert saved["confirmation"]["operation"] == "mailbox_verify_import_acks" and not saved["confirmation"]["network_used"]
         assert len(saved["confirmation"]["acknowledgement_receipts"]) == 2
         accepted = saved["delivery"]
         assert accepted["message_id"] == opaque_id and accepted["signal_packet_sha256"] == sent["packet_sha256"]
@@ -329,6 +354,7 @@ os.execv({NODE!r}, [{NODE!r}, *sys.argv[1:]])
             "same_email_after_restart": True, "different_same_size_refused": True, "exact_raw_bytes_verified": True, "provider_acks": 2,
             "messages_after_ack": 0, "provider_transport": "isolated-local-stream", "owner_invitation_pickup": True,
             "original_handoff_resumed": True, "pickup_killed_after_provider_acks": True,
+            "individual_signed_acks_recovered_without_aggregate": True, "altered_and_mixed_acks_refused": True,
             "interrupted_plaintext_staging_removed": True, "changed_mailbox_refused": True,
             "concurrent_pickups_imported_once": True, "final_receipts_recovered_while_offline": True}
 

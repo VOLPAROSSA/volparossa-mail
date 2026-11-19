@@ -99,7 +99,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: VOLPAROSSA/volparossa
-          ref: 67ae4b6948f77cd33fd2af719878fc2d9b14ec96
+          ref: afec77da8317707225dd6c94e02c26803fb4e02a
           path: build/paired-core
           persist-credentials: false
 
@@ -109,7 +109,7 @@ jobs:
           CARGO_PROFILE_DEV_DEBUG: '0'
           CARGO_INCREMENTAL: '0'
         run: |
-          test "$(git rev-parse HEAD)" = 67ae4b6948f77cd33fd2af719878fc2d9b14ec96
+          test "$(git rev-parse HEAD)" = afec77da8317707225dd6c94e02c26803fb4e02a
           rustup toolchain install 1.89.0 --profile minimal
           cargo +1.89.0 fetch --locked --target x86_64-unknown-linux-gnu
           cargo +1.89.0 build --locked --offline -p volparossa --bin volparossa --example mailbox-provider-pair
@@ -124,7 +124,14 @@ jobs:
             --stalwart build/stalwart-community/target/debug/stalwart --core-dir "$RUNNER_TEMP/mail-core-pair" \
             --thunderbird-archive build/thunderbird.tar.xz --xvfb /usr/bin/Xvfb \
             > build/owner-inbox/peer-mail.json
-          jq -e '.provider_acks == 2 and .exact_raw_bytes_verified and .messages_after_ack == 0 and .original_handoff_resumed and .pickup_killed_after_provider_acks and .interrupted_plaintext_staging_removed and .concurrent_pickups_imported_once and .final_receipts_recovered_while_offline and .automatic_pickup.reconnected and .automatic_pickup.automatic_imports == 1 and .automatic_pickup.stopped_cleanly' build/owner-inbox/peer-mail.json
+          jq -e '
+            .provider_acks == 2 and .exact_raw_bytes_verified and .messages_after_ack == 0
+            and .original_handoff_resumed and .pickup_killed_after_provider_acks
+            and .interrupted_plaintext_staging_removed and .concurrent_pickups_imported_once
+            and .final_receipts_recovered_while_offline and .individual_signed_acks_recovered_without_aggregate
+            and .altered_and_mixed_acks_refused and .automatic_pickup.reconnected
+            and .automatic_pickup.automatic_imports == 1 and .automatic_pickup.stopped_cleanly
+          ' build/owner-inbox/peer-mail.json
 
       - name: Send a native Thunderbird draft to its paired owner
         run: |
