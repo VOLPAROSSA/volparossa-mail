@@ -127,7 +127,7 @@ def native_trial(work, providers):
         boxes = call(user, password, "Mailbox/get", {"accountId": account, "ids": None, "properties": ["id", "role"]})
         inbox, = [box["id"] for box in boxes["list"] if box["role"] == "inbox"]
         conf = dict(server="http://127.0.0.1:8080", username=user, accountId=account, mailboxId=inbox,
-                    controlSocket=recipient["socket"], identity=recipient["identity"], passphraseFile=recipient["passphrase"])
+                    coreConfig=str(work / "providers/b/core.json"))
         dest.write_text(json.dumps(conf))
         # Drop only the successful Email/import response, after the actual server committed it.
         # NODE_OPTIONS also reaches the Signal process, where no HTTP requests are made.

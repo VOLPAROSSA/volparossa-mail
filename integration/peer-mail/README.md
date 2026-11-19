@@ -19,8 +19,8 @@ volparossa --control-socket "$SOCKET" content mailbox fetch \
 
 Create an owner-only directory (mode 0700) for the local delivery journal and
 a private connection file (mode 0600, in a directory with mode 0700). Choose
-the account and destination mailbox IDs from the owner's JMAP server. The Core
-paths must be absolute and refer to the same owner who fetched the message.
+the account and destination mailbox IDs from the owner's JMAP server. Point `coreConfig` to the same owner-only Core configuration used to fetch the
+message. It contains absolute `socket`, `identity` and `passphrase` file paths.
 
 ```json
 {
@@ -28,9 +28,7 @@ paths must be absolute and refer to the same owner who fetched the message.
   "username": "owner@example.test",
   "accountId": "b",
   "mailboxId": "a",
-  "controlSocket": "/run/user/1000/volparossa/control.sock",
-  "identity": "/home/owner/.local/share/volparossa/identity",
-  "passphraseFile": "/home/owner/.config/volparossa/identity-passphrase"
+  "coreConfig": "/home/owner/.config/volparossa/core.json"
 }
 ```
 
