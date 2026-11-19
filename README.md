@@ -218,6 +218,9 @@ Thunderbird’s ordinary IMAP inbox. The trial also needs `openssl` and the NSS
 with a fresh profile, a synthetic owner account and the fixture’s local certificate
 authority. It selects the delivered subject in the message list and checks the
 rendered body. The IMAP listener uses implicit TLS on loopback port 2993.
+[Native inbox result](third_party/thunderbird-stalwart-native-inbox/ui-restart.json) ·
+[Verified inputs](third_party/thunderbird-stalwart-native-inbox/inputs.json) ·
+[Cleanup](third_party/thunderbird-stalwart-native-inbox/boundary.json)
 
 
 The verified Thunderbird 157.0 run recovered all 313 bytes after both lifecycle
