@@ -14,7 +14,8 @@ recipient and send it into encrypted peer custody. The receiving owner’s
 Stalwart mailbox checks the complete message before acknowledging both providers.
 A fresh Thunderbird profile can then open that message in its ordinary Inbox.
 [Install the paired-mail add-on](extensions/volparossa-peer-draft/README.md) ·
-[Configure the receiver](integration/peer-mail/README.md)
+[Configure the receiver](integration/peer-mail/README.md) ·
+[Read the Thunderbird delivery results](docs/evidence/README.md)
 
 **Development integration, not a finished mail client.** No production account, mail
 server, DNS record or network participation is activated by this repository.
