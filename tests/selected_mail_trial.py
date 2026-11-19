@@ -34,8 +34,8 @@ def run(root, node, cfg, owners, bundles, raw, fetch, core, app):
     draft=root/'selected-draft.eml'
     command=[sys.executable,'-B',SOURCE/'integration/peer-mail/send_selected.py','--node',node,
              '--owner',owner,'--id',op]
-    def action(*args,code):
-        done=subprocess.run([*command,*args],capture_output=True,timeout=90)
+    def action(*args,code,body=None):
+        done=subprocess.run([*command,*args],input=body,capture_output=True,timeout=90)
         report=json.loads(done.stdout)
         check(done.returncode==code and not done.stderr, 'address action result')
         return report
@@ -46,6 +46,7 @@ def run(root, node, cfg, owners, bundles, raw, fetch, core, app):
     ]:
         draft.write_bytes(raw.replace(old,new))
         decision=action('--input',draft,code=3)
+        check(action('--stdin',body=draft.read_bytes(),code=3)==decision,'stream changed address decision')
         check(decision['status']=='ordinary_mail_required' and decision['reason']==reason,'explicit ordinary mail decision')
     check(not (root/'a/core-send'/op).exists(),'ordinary route made a private deposit')
     # Hold local publication AFTER the two providers have accepted this original
@@ -53,8 +54,8 @@ def run(root, node, cfg, owners, bundles, raw, fetch, core, app):
     stage=root/'a/core-send'/op
     stage.mkdir(mode=0o700)
     (stage/'.custody-next').mkdir()
-    draft.write_bytes(raw)
-    attempted=action('--input',draft,code=1)
+    draft.unlink()
+    attempted=action('--stdin',body=raw,code=1)
     check(attempted['status']=='retry_selected_send','private route error offered another route')
     packet=(stage/'packet').read_bytes()
     with sqlite3.connect(owner/'selected-mail.sqlite') as db:
@@ -64,7 +65,6 @@ def run(root, node, cfg, owners, bundles, raw, fetch, core, app):
     configure(contact('b','a',cfg['b']['sendInvitation'],root/'providers/b/core.json'))
     chosen_cfg.write_text(json.dumps(cfg['b']))
     chosen_invite.unlink()
-    draft.unlink()
     (stage/'.custody-next').rmdir()
     delivered=action('--resume',code=0)
     check(delivered['status']=='provider_custody' and delivered['confirmed_providers']==2,'original addressed custody')
@@ -78,7 +78,12 @@ def run(root, node, cfg, owners, bundles, raw, fetch, core, app):
     check(restored.read_bytes()==raw,'selected original MIME changed')
     book.unlink()
     check(action('--resume',code=0)==delivered,'completed receipt requires a mutable address book')
+    check(action('--stdin',body=raw,code=0)==delivered,'identical streamed replay changed custody')
+    draft.write_bytes(raw)
+    check(action('--input',draft,code=0)==delivered,'file replay changed streamed selection')
+    check(action('--stdin',body=raw+b'changed',code=1)['status']=='invalid_selection_or_state','conflicting stream reused')
     draft.write_bytes(raw+b'changed')
     check(action('--input',draft,code=1)['status']=='invalid_selection_or_state','conflicting operation id reused')
     return dict(address_selection_verified=True, ordinary_mail_decisions_without_send=3,
-                original_peer_retained_after_catalog_replacement=True, selected_message_restored=True)
+                original_peer_retained_after_catalog_replacement=True, selected_message_restored=True,
+                binary_stdin_and_file_replay_preserved=True)

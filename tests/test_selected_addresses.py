@@ -1,4 +1,5 @@
 # SPDX-License-Identifier: GPL-3.0-only
+from io import BytesIO
 from pathlib import Path
 import runpy
 import unittest
@@ -10,6 +11,14 @@ parse, Ordinary = MODULE['headers'], MODULE['Ordinary']
 class AddressTests(unittest.TestCase):
     def message(self, fields):
         return (fields+'\r\n\r\nTo: other@example.test\r\nbody').encode()
+
+    def test_binary_input_enforces_the_original_four_mib_limit(self):
+        read, maximum = MODULE['selected_bytes'], MODULE['LIMIT']
+        body = b'\xff\x00\r\n' * (maximum // 4)
+        self.assertEqual(read(BytesIO(body)), body)
+        for raw in (b'', body + b'x'):
+            with self.assertRaises(ValueError):
+                read(BytesIO(raw))
 
     def test_original_headers_and_individual_mailbox_addresses(self):
         for name in ('To','Cc','Bcc'):
