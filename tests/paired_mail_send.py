@@ -11,6 +11,8 @@ import subprocess
 import tempfile
 import time
 
+import selected_mail_trial
+
 SOURCE = Path(__file__).resolve().parents[1]
 MIME = (b'From: alice@example.invalid\r\nTo: bob@example.invalid\r\n'
         b'Subject: private attachment\r\nMIME-Version: 1.0\r\n'
@@ -128,7 +130,8 @@ def run(root, node, fixture):
         opened = root/'restored.eml'
         app('open','b','--input',again[0]/'payload','--output',opened)
         check(opened.read_bytes() == MIME, 'opened MIME')
-        return dict(two_signed_provider_receipts=True, manifest_free_preparation_recovered=True, source_and_invitation_removed_before_resume=True,
+        addressed = selected_mail_trial.run(root,node,cfg,owners,bundles,MIME,fetch,core,app)
+        return dict(**addressed, two_signed_provider_receipts=True, manifest_free_preparation_recovered=True, source_and_invitation_removed_before_resume=True,
                     original_packet_manifest_chunks_retained=True, distinct_provider_messages=1,
                     original_mime_bytes_restored=True, receiver_acknowledgements=0)
     finally:
