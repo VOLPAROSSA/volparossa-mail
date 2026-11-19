@@ -1,0 +1,22 @@
+{
+  "source_revision": "17ada11e5a4dbaf64804d46a9821ffcd24573ebb",
+  "result": {
+    "error_class": "TimeoutError",
+    "error_line": 145,
+    "error_source": "thunderbird_import_ui.py",
+    "kind": "thunderbird-stalwart-owner-restart",
+    "phase": "thunderbird-ui",
+    "private_data_removed": true,
+    "process_groups_joined": true,
+    "success": false,
+    "version": 1
+  },
+  "boundary": {
+    "exit_status": 1,
+    "group_joined": true,
+    "host_network_unchanged": true,
+    "private_data_removed": true,
+    "success": false,
+    "version": 1
+  }
+}

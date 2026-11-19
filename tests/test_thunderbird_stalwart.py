@@ -28,6 +28,22 @@ class Fixture(unittest.TestCase):
         self.assertNotIn("/home", args)
         self.assertNotIn("/workspace", args)
 
+    def test_smtp_variant_requires_its_own_closed_receipt_and_namespace(self):
+        from stalwart_owner_smtp import MESSAGE, check_receipt
+        args = smoke.namespace(Path("/example/work"), Path("/example/runtime"), "net:[1]", smtp=True)
+        self.assertEqual(args[-2:], ["--inside-smtp", "net:[1]"])
+        expected = {"after_thunderbird_exit": True, "recovery_admin_removed": True, "accepted_status": 250,
+                    "external_recipient_status": 550, "unknown_local_recipient_status": 550,
+                    "original_bytes": len(MESSAGE), "original_sha256": hashlib.sha256(MESSAGE).hexdigest(),
+                    "inbox_read_after_restart": True}
+        check_receipt(expected)
+        for key, value in (("external_recipient_status", 250), ("inbox_read_after_restart", 1),
+                           ("raw_response", "private"), ("original_bytes", 0)):
+            with self.subTest(key=key), self.assertRaises(ValueError):
+                check_receipt(dict(expected, **{key: value}))
+        with self.assertRaises(ValueError):
+            check_receipt(None)
+
     def test_executable_hash_and_source_match_are_checked_before_launch(self):
         with tempfile.TemporaryDirectory() as temporary:
             exe = Path(temporary) / "program"

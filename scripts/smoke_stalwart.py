@@ -187,7 +187,7 @@ def limits():
     os.sched_setaffinity(0, cpus[:2])
 
 
-def start_server(env, log, admin_password, processes):
+def start_server(env, log, password, processes, *, username='fixture-admin'):
     server = subprocess.Popen(['/opt/stalwart', '--config', '/opt/work/private/store.json'],
         env=env, stdout=log, stderr=subprocess.STDOUT, start_new_session=True, preexec_fn=limits)
     processes.append(server)
@@ -195,7 +195,7 @@ def start_server(env, log, admin_password, processes):
     while True:
         require(server.poll() is None, 'server-exited')
         try:
-            http('fixture-admin', admin_password, '/jmap/session')
+            http(username, password, '/jmap/session')
             return server
         except (urllib.error.URLError, TimeoutError, ConnectionError):
             require(time.monotonic() < deadline, 'server-start-timeout')
