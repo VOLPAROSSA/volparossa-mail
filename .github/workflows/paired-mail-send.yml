@@ -7,6 +7,8 @@ on:
       - '.github/workflows/paired-mail-send.yml'
       - 'integration/signal-mail/**'
       - 'tests/paired_mail_send.py'
+      - 'tests/selected_mail_trial.py'
+      - 'integration/peer-mail/send_selected.py'
 
 permissions:
   contents: read

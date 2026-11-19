@@ -84,7 +84,7 @@ class CooperativeIntegrationTests(unittest.TestCase):
 
     def test_native_assets_have_packaged_routes(self):
         expected = set(source.ADDITIONS.values())
-        self.assertEqual(expected | {"integration/signal-mail"},
+        self.assertEqual(expected | {"integration/signal-mail", "integration/peer-mail"},
                          {str(p.relative_to(ROOT)) for p in (ROOT / "integration").iterdir()})
         self.assertTrue((ROOT / "integration/signal-mail").is_dir())
         for path in expected:

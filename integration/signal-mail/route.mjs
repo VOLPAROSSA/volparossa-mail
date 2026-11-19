@@ -17,7 +17,7 @@ export function bindCoreOwner(state, key) {
 
 export function routeMail(db, state, values, sealed) {
   const owner = storedOwner(state);
-  if (!owner || (!values.resume && values['core-owner-key'] !== owner)) {
+  if (!owner || (values['core-owner-key'] !== undefined && values['core-owner-key'] !== owner)) {
     throw new MailError('expected the independently paired Core owner');
   }
   // Existing profiles gain the route journal on their first explicit Core send.
