@@ -46,6 +46,10 @@ class IncompleteAttachment(ValueError):
     pass
 
 
+class TooLarge(ValueError):
+    pass
+
+
 def receive(stream):
     header = stream.read(4)
     if len(header) != 4:
@@ -71,7 +75,7 @@ def receive(stream):
         raise ValueError("draft size")
     message = correspondence(mime)
     if len(message) > MAX_MIME:
-        raise ValueError("message size")
+        raise TooLarge()
     return message
 
 
@@ -128,6 +132,10 @@ def deliver(mime):
         reply = json.load(output)
     if result.returncode == 3 and reply.get("status") == "ordinary_mail_required":
         return {"status": "ordinary_mail_required"}
+    if (result.returncode == 4 and reply.get("status") == "message_too_large"
+            and reply.get("limit_bytes") == MAX_MIME
+            and reply.get("reason") in ("input_exceeds_limit", "encrypted_packet_exceeds_limit")):
+        return {"status": "message_too_large"}
     if (
         result.returncode == 0
         and reply.get("status") == "provider_custody"
@@ -144,6 +152,8 @@ def main():
         reply = deliver(receive(sys.stdin.buffer))
     except IncompleteAttachment:
         reply = {"status": "attachment_unavailable"}
+    except TooLarge:
+        reply = {"status": "message_too_large"}
     except (OSError, ValueError, TypeError, AttributeError, RecursionError, subprocess.SubprocessError):
         reply = {"status": "unconfirmed"}
     encoded = json.dumps(reply).encode("ascii")

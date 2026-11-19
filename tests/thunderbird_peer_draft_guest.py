@@ -161,15 +161,28 @@ def click_draft(driver, screen, source, compose):
             .replace(b"peer-test@example.test", b"filelink@example.test")
             .replace(b"Content-Transfer-Encoding:", b"X-Mozilla-Cloud-Part: cloudFile; url=https://example.invalid/file;\r\n"
                      b" provider=synthetic-local-account\r\nContent-Transfer-Encoding:"))
-        assert driver.chrome(CREATE, str(placeholder)) == uri
-        review(driver, screen, uri, "Filelink review", "filelink@example.test")
-        screen.click(*driver.page(CENTER, "#send"))
-        wait_for(lambda: driver.page('return document.querySelector("#status").textContent')
-                 == "Attach the original file in Thunderbird, save the draft, and select it again.")
-        driver.chrome('const t=document.getElementById("tabmail"); t.closeTab(t.currentTabInfo);')
-        wait_for(lambda: driver.chrome(PANE + "return !!pane?.folderPane"))
+        reject_draft(driver, screen, uri, placeholder, "Filelink review", "filelink@example.test",
+                     "Attach the original file in Thunderbird, save the draft, and select it again.")
+        # The raw correspondence fits exactly; Signal framing must also fit the Core limit.
+        large = source.parent / "large.eml"
+        header = (b"From: sender@example.test\r\nTo: owner@volparossa.test\r\nSubject: Size review\r\n"
+                  b"Message-ID: <size@example.test>\r\nContent-Type: text/plain\r\n\r\n")
+        count, last = divmod(4 * 1024 * 1024 - len(header) - 2, 80)
+        large.write_bytes(header + (b"a" * 78 + b"\r\n") * count + b"b" * last + b"\r\n")
+        assert large.stat().st_size == 4 * 1024 * 1024
+        reject_draft(driver, screen, uri, large, "Size review", "size@example.test",
+                     "The encrypted message exceeds 4 MiB. Reduce the message or its attachments and save the draft again.")
     review(driver, screen, uri, "Private peer acceptance", message_id)
     return str(user_manifests.relative_to(Path(os.environ["HOME"]))), original, message_id
+
+
+def reject_draft(driver, screen, uri, source, subject, message_id, explanation):
+    assert driver.chrome(CREATE, str(source)) == uri
+    review(driver, screen, uri, subject, message_id)
+    screen.click(*driver.page(CENTER, "#send"))
+    wait_for(lambda: driver.page('return document.querySelector("#status").textContent') == explanation, 35)
+    driver.chrome('const t=document.getElementById("tabmail"); t.closeTab(t.currentTabInfo);')
+    wait_for(lambda: driver.chrome(PANE + "return !!pane?.folderPane"))
 
 
 def review(driver, screen, uri, subject, message_id):
@@ -379,6 +392,7 @@ def trial(work, compose):
         "used_registered_node": True,
         "edited_and_saved_in_composer": compose,
         "filelink_refused_before_custody": compose,
+        "oversize_encrypted_message_refused_before_custody": compose,
         "native_toolbar_and_send_clicked": True,
         "packaged_addon_installed": True,
         "no_message_before_click": True,

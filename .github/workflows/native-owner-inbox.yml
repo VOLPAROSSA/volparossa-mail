@@ -136,7 +136,7 @@ jobs:
               --thunderbird-archive build/thunderbird.tar.xz --xvfb /usr/bin/Xvfb > "$receipt"
             jq -e '.native_toolbar_and_send_clicked and .original_correspondence_bytes and .verified_import_acknowledgements == 2 and .receiver_inbox.message_body_displayed' "$receipt"
           done
-          jq -e '.edited_and_saved_in_composer and .filelink_refused_before_custody' build/owner-inbox/peer-compose.json
+          jq -e '.edited_and_saved_in_composer and .filelink_refused_before_custody and .oversize_encrypted_message_refused_before_custody' build/owner-inbox/peer-compose.json
       - name: Export the proven Linux mailbox runtime for the routed Core trial
         run: python3 -I -B scripts/export_mail_custody.py
 

@@ -60,6 +60,10 @@ send.addEventListener("click", async () => {
       status.textContent = "Attach the original file in Thunderbird, save the draft, and select it again.";
       return;
     }
+    if (reply.status === "message_too_large") {
+      status.textContent = "The encrypted message exceeds 4 MiB. Reduce the message or its attachments and save the draft again.";
+      return;
+    }
     status.textContent = "Custody is unconfirmed. Retry this same saved draft to check the original delivery.";
   } catch {
     status.textContent = "The local mail service did not confirm custody. Check the service and retry this draft.";
