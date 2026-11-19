@@ -123,9 +123,13 @@ class Display:
 CENTER = """
 const e=document.querySelector(arguments[0]);
 e.scrollIntoView({block:'center',behavior:'instant'});
-const r=e.getBoundingClientRect();
-return [(window.mozInnerScreenX+r.x+r.width/2)*window.devicePixelRatio,
-        (window.mozInnerScreenY+r.y+r.height/2)*window.devicePixelRatio];
+// XTest delivers a physical pointer event. Let the new scroll position reach
+// the compositor before measuring the window coordinates for that event.
+return new Promise(resolve => window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+  const r=e.getBoundingClientRect();
+  resolve([(window.mozInnerScreenX+r.x+r.width/2)*window.devicePixelRatio,
+           (window.mozInnerScreenY+r.y+r.height/2)*window.devicePixelRatio]);
+})));
 """
 FIELD = """
 const e=document.querySelector(arguments[0]); e.value=arguments[1];
@@ -160,6 +164,7 @@ def interact(driver, screen, origin, owner, password, account, mailbox, message,
     page(FIELD, "#username", owner)
     page(FIELD, "#password", password)
     click("#owner-confirmed")
+    wait_for(lambda: page("return document.getElementById('owner-confirmed').checked"))
     click("#connect")
     wait_for(lambda: chrome("const p=document.getElementById('addon-webext-permissions-notification');"
                             "return p?.getBoundingClientRect().width>0 && p.getAttribute('buttonlabel')==='Allow'"))
@@ -187,6 +192,7 @@ def interact(driver, screen, origin, owner, password, account, mailbox, message,
             screen.press("Return")
     wait_for(lambda: page("return document.getElementById('message-file').files[0]?.name") == message.name)
     click("#import-confirmed")
+    wait_for(lambda: page("return !document.getElementById('import').disabled"))
     click("#import")
     wait_for(lambda: page("return !document.getElementById('recheck-import').hidden"), 20)
     require("server reported an import" in page("return document.getElementById('status').textContent")

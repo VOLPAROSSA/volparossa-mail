@@ -4,6 +4,7 @@
 import copy
 import hashlib
 import io
+import json
 from pathlib import Path
 import sys
 import tempfile
@@ -43,6 +44,23 @@ class Fixture(unittest.TestCase):
                 check_receipt(dict(expected, **{key: value}))
         with self.assertRaises(ValueError):
             check_receipt(None)
+
+    def test_native_inbox_requires_the_owner_message_and_verified_tls(self):
+        original = SCRIPTS.parent / "third_party/thunderbird-stalwart-owner-smtp/ui-restart.json"
+        smtp = json.loads(original.read_text())
+        inbox = {"implicit_tls": True, "untrusted_certificate_rejected": True, "fresh_profile": True,
+                 "inbox_message_id": "after-quit@example.test", "subject_displayed": True,
+                 "message_body_displayed": True}
+        smoke.verified_receipt(dict(smtp, inbox=inbox), smtp=True, inbox=True)
+        for change in ({"inbox_message_id": "another@example.test"}, {"message_body_displayed": False},
+                       {"subject_displayed": 1}, {"untrusted_certificate_rejected": False}, {"private": "text"}):
+            with self.subTest(change=change), self.assertRaises(ValueError):
+                smoke.verified_receipt(dict(smtp, inbox=inbox | change), smtp=True, inbox=True)
+        with self.assertRaises(ValueError):
+            smoke.verified_receipt(smtp, smtp=True, inbox=True)
+        args = smoke.namespace(Path("/example/work"), Path("/example/runtime"), "net:[1]", smtp=True, inbox=True)
+        self.assertIn("--inside-inbox", args)
+        self.assertNotIn("--inside-smtp", args)
 
     def test_executable_hash_and_source_match_are_checked_before_launch(self):
         with tempfile.TemporaryDirectory() as temporary:
