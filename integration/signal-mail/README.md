@@ -80,3 +80,52 @@ original source or invitation file. An operation that has a Core manifest always
 resumes that original publication. The sender keeps both provider receipts in
 its private profile. Successful JSON includes `confirmed_providers: 2` and the
 opaque `message_id`. Recipient import and read status are separate evidence.
+
+## Send a draft to its explicitly paired email address
+
+The Thunderbird host can hand a complete original draft to the address-aware
+sender. Keep an owner-private (0700) directory containing a mode-0600
+`address-book.json`. Its address belongs to the sending owner. Each contact
+associates one explicit mailbox address with an already paired local profile,
+the independently verified Signal bundle fingerprint and the independently
+verified Core owner key. Use the actual canonical paths and keys from pairing.
+
+```json
+{
+  "version": 1,
+  "address": "alice@example.test",
+  "contacts": [{
+    "address": "bob@example.test",
+    "profile": "/private/path/to/alice-bob-profile",
+    "peer_bundle_sha256": "<64 lowercase hex digits>",
+    "core_owner_key": "<64 lowercase hex digits>",
+    "invitation": "/private/path/to/original-invitation",
+    "core_config": "/private/path/to/core.json"
+  }]
+}
+```
+
+```sh
+python3 integration/peer-mail/send_selected.py --owner "$owner_directory" \
+  --id "$stable_operation_id" --input "$draft_file"
+python3 integration/peer-mail/send_selected.py --owner "$owner_directory" \
+  --id "$stable_operation_id" --resume
+```
+
+The sender reads the original header block and requires a single matching
+From mailbox. An explicit Sender must name that same mailbox. Across To, Cc
+and Bcc there must be exactly one individual recipient. Domain matching
+ignores case, and the local part must match exactly. Address groups, resent
+messages, ambiguous headers and unpaired recipients require an explicit
+ordinary-mail decision. The result carries `status=ordinary_mail_required`
+and exit code 3. This command performs no ordinary-mail submission.
+
+The initial choice commits the original draft digest, trusted pair, invitation
+and Core configuration. Once the native Signal profile durably owns the exact
+packet, the address selector releases its extra draft copy. Subsequent retries
+use the originally selected profile and invitation even if the owner edits or
+removes the address book. Successful JSON carries `status=provider_custody`,
+`confirmed_providers=2` and the opaque Core `message_id`. A pending provider
+operation returns exit code 1 with `status=retry_selected_send`; its retry
+retains the authorised private route. The command finds Node on PATH or accepts
+its explicit location with `--node`.

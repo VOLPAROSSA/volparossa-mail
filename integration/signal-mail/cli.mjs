@@ -35,6 +35,8 @@ async function run() {
   if (operation === 'pair' || operation === 'send') options['core-owner-key'] = { type: 'string' };
   if (operation === 'send') {
     options.resume = { type: 'boolean' };
+    options['prepare-only'] = { type: 'boolean' };
+    options['peer-bundle-sha256'] = { type: 'string' };
     options.input = { type: 'string' };
     options.invitation = { type: 'string' };
   }
@@ -42,8 +44,8 @@ async function run() {
   if (names.some(name => !values[name])) throw new MailError('missing command arguments');
 
   if (operation === 'send') {
-    const originals = [values.input,values.invitation,values['core-owner-key']];
-    if (values.resume ? originals.some(Boolean) : !originals.every(Boolean)) {
+    const originals = [values.input,values.invitation];
+    if (values.resume ? (originals.some(Boolean) || values['prepare-only']) : (!originals.every(Boolean) || !values['core-owner-key'])) {
       throw new MailError('choose the original mail, invitation and owner key, or resume the retained send');
     }
   }
@@ -93,6 +95,8 @@ async function run() {
         result = { bundle_sha256: fingerprint };
       } else {
         if (!previous) throw new MailError('owner pairing required');
+        if (operation === 'send' && values['peer-bundle-sha256'] !== undefined &&
+            values['peer-bundle-sha256'] !== hash(previous)) throw new MailError('selected peer fingerprint differs from paired device');
         const peer = decodeBundle(previous);
         const session = channel(state, local, peer);
         if (operation !== 'open') {
@@ -123,7 +127,10 @@ async function run() {
     }
   } finally { db.close(); }
   // Waiting for two providers never takes the local Signal ratchet lock.
-  if (route) Object.assign(result, deposit(routeDirectory, values['core-config'], route.owner));
+  if (route) {
+    if (values['prepare-only']) result.status = 'prepared';
+    else Object.assign(result, deposit(routeDirectory, values['core-config'], route.owner));
+  }
   return { operation, ...result };
 }
 
