@@ -109,6 +109,52 @@ def open_in_thunderbird(work, ca, user, password, message_id="peer-test@example.
         assert retire(display), "display did not retire"
 
 
+def watch_new_delivery(work, pickup, send, sender, recipient, owner_key, password, records, account, user):
+    # Start with the actual Core socket unavailable. Supply a password once and close stdin.
+    control = Path(recipient["socket"])
+    unavailable = control.with_name(control.name + ".offline")
+    control.rename(unavailable)
+    log = work / "watch-status.jsonl"
+    incoming = MESSAGE.replace(b"peer-test@example.test", b"later-test@example.test")
+    source = work / "later.eml"
+    source.write_bytes(incoming)
+    try:
+        with log.open("wb") as output, subprocess.Popen([*pickup, "--watch", "1"], stdin=subprocess.PIPE,
+                 stdout=output, stderr=subprocess.DEVNULL) as watcher:
+            try:
+                watcher.stdin.write(password.encode())
+                watcher.stdin.close()
+                watcher.stdin = None
+
+                def status(match):
+                    assert watcher.poll() is None, "pickup watch exited before delivery"
+                    return any(match(json.loads(row)) for row in log.read_bytes().splitlines(keepends=True)
+                               if row.endswith(b"\n"))
+
+                wait_for(lambda: status(lambda r: not r["fetch_complete"] and r["listed_providers"] is None))
+                unavailable.rename(control)
+                wait_for(lambda: status(lambda r: r["fetch_complete"] and r["listed_providers"] == 2))
+                later = send.copy()
+                later[later.index("--id") + 1] = secrets.token_hex(32)
+                sent = command([*later, "--input", source, "--invitation", sender["sendInvitation"],
+                                "--core-owner-key", owner_key])
+                assert sent["confirmed_providers"] == 2
+                wait_for(lambda: status(lambda r: r["imported"] == 1 and r["pending"] == 0), 60)
+            finally:
+                watcher.terminate()
+                watcher.wait(timeout=30)
+            assert watcher.returncode == 0
+    finally:
+        if unavailable.exists():
+            unavailable.rename(control)
+    report = json.loads((work / "accepted/pickup/receipts" / (sent["message_id"] + ".json")).read_bytes())
+    assert report["delivery"]["message_sha256"] == digest(incoming) and report["delivery"]["acknowledged_providers"] == 2
+    assert set(call(user, password, "Email/query", {"accountId": account, "limit": 3})["ids"]) == {
+        *records, report["delivery"]["email_id"]}
+    return {"reconnected": True, "automatic_imports": 1, "message_bytes": len(incoming),
+            "message_sha256": digest(incoming), "provider_acks": 2, "stopped_cleanly": True}
+
+
 def native_trial(work, providers, ca, user, password):
     sender, recipient = providers
     sender_profile, recipient_profile = work / "sender", work / "recipient"
@@ -276,7 +322,9 @@ os.execv({NODE!r}, [{NODE!r}, *sys.argv[1:]])
         assert fetch("empty")["messages_fetched"] == 0
         assert call(user, password, "Email/query", {"accountId": account, "limit": 2})["ids"] == records
         native_inbox = open_in_thunderbird(work, ca, user, password)
-    return {"schema": 2, "native_inbox": native_inbox, "message_bytes": len(MESSAGE), "message_sha256": digest(MESSAGE),
+        automatic = watch_new_delivery(work, pickup, send, sender, recipient, owners[1], password, records, account, user)
+        assert fetch("empty-after-watch")["messages_fetched"] == 0
+    return {"schema": 2, "native_inbox": native_inbox, "automatic_pickup": automatic, "message_bytes": len(MESSAGE), "message_sha256": digest(MESSAGE),
             "sender_command": "send", "sender_resumed_without_inputs": True, "offline_custodians": 2, "fetched_before_confirmation": 1, "lost_import_reply": True,
             "same_email_after_restart": True, "different_same_size_refused": True, "exact_raw_bytes_verified": True, "provider_acks": 2,
             "messages_after_ack": 0, "provider_transport": "isolated-local-stream", "owner_invitation_pickup": True,

@@ -12,10 +12,12 @@ import os
 from pathlib import Path
 import re
 import shutil
+import signal
 import stat
 import subprocess
 import sys
 import tempfile
+import threading
 
 HERE = Path(__file__).resolve().parent
 MAX_PACKET = 4 * 1024 * 1024
@@ -156,6 +158,24 @@ def accept(args, password, cfg=None, hold=(), on_verified=None):
         return dict(delivery, acknowledged_providers=2)
 
 
+def watch(args, password, pickup):
+    stopped = threading.Event()
+
+    def stop(signum, frame):
+        stopped.set()
+
+    signal.signal(signal.SIGINT, stop)
+    signal.signal(signal.SIGTERM, stop)
+    previous = None
+    while not stopped.is_set():
+        result = pickup(args, password)
+        if result != previous or result["imported"]:
+            print(json.dumps(result), flush=True)
+        previous = result
+        stopped.wait(args.watch)
+    return 0
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     source = parser.add_mutually_exclusive_group(required=True)
@@ -165,7 +185,11 @@ def main():
         parser.add_argument("--" + name, required=True, type=Path)
     parser.add_argument("--node", default=shutil.which("node") or "node")
     parser.add_argument("--core", default=shutil.which("volparossa") or "volparossa")
+    parser.add_argument("--watch", type=int, nargs="?", const=60, metavar="SECONDS",
+                        help="keep picking up new mail until stopped (default interval 60 seconds)")
     args = parser.parse_args()
+    if args.watch is not None and (not args.invitation or not 1 <= args.watch <= 86400):
+        parser.error("--watch requires --invitation and an interval of 1 to 86400 seconds")
     os.umask(0o077)
     try:
         if sys.stdin.isatty():
@@ -178,6 +202,8 @@ def main():
             if str(HERE) not in sys.path:
                 sys.path.insert(0, str(HERE))
             from pickup import pickup
+            if args.watch is not None:
+                return watch(args, password, pickup)
             result = pickup(args, password)
         else:
             result = accept(args, password)

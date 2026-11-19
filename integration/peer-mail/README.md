@@ -44,6 +44,13 @@ locally while the providers were offline. Repeat the same
 command after reconnecting. Concurrent invocations share the journal. Selecting
 a different receiver or mailbox requires a separate journal.
 
+To receive new mail automatically while you are signed in, add `--watch` to the
+same command. It asks for the password once and checks the pair every 60 seconds.
+Supply `--watch 300` for five minutes between checks. If the providers disconnect,
+the receiver keeps the unfinished handoffs and checks again when the interval
+elapses. Its output records new imports and changes in availability. Stop it with
+Ctrl+C. Thunderbird receives the imported messages through its ordinary IMAP Inbox.
+
 After Stalwart verifies its stored bytes and both providers acknowledge, the
 journal keeps the delivery and signed provider receipts under
 `pickup/receipts/<message-id>.json`. It releases the temporary packet, token
