@@ -1,0 +1,10 @@
+{
+  "name": "volparossa-owner-signal-mail",
+  "version": "0.1.0",
+  "private": true,
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "engines": { "node": ">=24.19.0" },
+  "dependencies": { "@signalapp/libsignal-client": "0.100.0" },
+  "scripts": { "test": "node --test test.mjs" }
+}

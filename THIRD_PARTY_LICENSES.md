@@ -41,3 +41,11 @@ Thunderbird, Gecko or Stalwart code.
   [provenance directory](third_party/stalwart/NOTICE.md). The independently written JMAP
   adapter records the source-verified protocol paths in
   [its interoperability pin](extensions/volparossa-mail-host/upstream.json).
+
+## Signal Protocol for paired Mail owners
+
+The separate Node adapter loads the original `@signalapp/libsignal-client`
+0.100.0 package under AGPL-3.0-only. The
+[package lock](integration/signal-mail/package-lock.json) identifies its npm archive
+and all dependencies. The upstream source and notices are available in
+[libsignal v0.100.0](https://github.com/signalapp/libsignal/tree/v0.100.0).
