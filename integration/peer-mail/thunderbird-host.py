@@ -68,7 +68,7 @@ def correspondence(draft):
     # Retain each original header octet and the entire MIME body, including its
     # line endings and transfer encoding. Do not reserialize the message.
     boundary = re.search(rb"\r?\n\r?\n", draft[:65540])
-    if boundary is None:
+    if boundary is None or boundary.start() > 65536:
         raise ValueError("missing bounded mail headers")
     fields = []
     keep = None
@@ -93,21 +93,18 @@ def correspondence(draft):
 def deliver(mime):
     # Each saved original has a stable operation ID across popup and process restarts.
     operation = hashlib.sha256(b"VOLPAROSSA Thunderbird saved draft v1\0" + mime).hexdigest()
-    with tempfile.TemporaryDirectory(prefix="volparossa-draft-") as directory:
-        source = Path(directory) / "selected.eml"
-        source.write_bytes(mime)
-        with tempfile.TemporaryFile() as output:
-            result = subprocess.run(
-                [sys.executable, "-I", "-B", SENDER, "--owner", OWNER, "--id", operation, "--input", source],
-                stdin=subprocess.DEVNULL,
-                stdout=output,
-                stderr=subprocess.DEVNULL,
-                timeout=1300,
-            )
-            if not 0 < output.tell() <= 8192:
-                return {"status": "unconfirmed"}
-            output.seek(0)
-            reply = json.load(output)
+    with tempfile.TemporaryFile() as output:
+        result = subprocess.run(
+            [sys.executable, "-I", "-B", SENDER, "--owner", OWNER, "--id", operation, "--stdin"],
+            input=mime,
+            stdout=output,
+            stderr=subprocess.DEVNULL,
+            timeout=1300,
+        )
+        if not 0 < output.tell() <= 8192:
+            return {"status": "unconfirmed"}
+        output.seek(0)
+        reply = json.load(output)
     if result.returncode == 3 and reply.get("status") == "ordinary_mail_required":
         return {"status": "ordinary_mail_required"}
     if (

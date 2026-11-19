@@ -6,12 +6,29 @@ from email import policy
 from email.parser import BytesParser
 import json
 import os
+import secrets
 from pathlib import Path
 import socket
 import subprocess
 import tempfile
 
-from peer_mail_guest import CORE, MESSAGE, NODE, ROOT, SIGNAL, command, core, digest, offline_providers
+from peer_mail_guest import (
+    ACCEPT,
+    CORE,
+    MESSAGE,
+    NODE,
+    ROOT,
+    SIGNAL,
+    command,
+    core,
+    digest,
+    offline_providers,
+    open_in_thunderbird,
+    owner_server,
+)
+import owner_service_guest as mailbox
+from smoke_stalwart import MAIL, call
+from thunderbird_owner_inbox import issue_test_certificate
 from smoke_thunderbird_stalwart import PREFERENCES, port_open, retire
 from thunderbird_import_ui import CENTER, Display, Marionette, wait_for
 from thunderbird_owner_inbox import PANE
@@ -163,6 +180,71 @@ def click_draft(driver, screen, source):
     return str(user_manifests.relative_to(Path(os.environ["HOME"])))
 
 
+def receive_in_inbox(work, recipient_profile, handoff, fetched):
+    """Open the one UI-selected message in the other owner’s fresh Thunderbird profile."""
+    home = work / "recipient-ui"
+    home.mkdir(mode=0o700)
+    ca, cert, key = issue_test_certificate(home)
+    user, password = "owner@volparossa.test", secrets.token_urlsafe(32)
+    subprocess.run(
+        [
+            "/usr/bin/python3",
+            "-B",
+            mailbox.LIB / "initialize-owner.py",
+            user,
+            "--imap-cert",
+            cert,
+            "--imap-key",
+            key,
+        ],
+        input=password.encode(),
+        check=True,
+        stdout=subprocess.DEVNULL,
+        timeout=100,
+    )
+    key.unlink()
+    with owner_server(user, password) as account:
+        boxes = call(user, password, "Mailbox/get", {"accountId": account, "properties": ["id", "role"]})
+        (inbox,) = [box["id"] for box in boxes["list"] if box["role"] == "inbox"]
+        dest = home / "connection.json"
+        dest.write_text(
+            json.dumps(
+                {
+                    "server": "http://127.0.0.1:8080",
+                    "username": user,
+                    "accountId": account,
+                    "mailboxId": inbox,
+                    "coreConfig": str(work / "providers/b/core.json"),
+                }
+            )
+        )
+        journal = home / "journal"
+        journal.mkdir(mode=0o700)
+        receipt = command(
+            [
+                "/usr/bin/python3",
+                "-B",
+                ACCEPT,
+                "--profile",
+                recipient_profile,
+                "--handoff",
+                handoff,
+                "--connection",
+                dest,
+                "--state-dir",
+                journal,
+                "--node",
+                NODE,
+                "--core",
+                CORE,
+            ],
+            password=password.encode(),
+        )
+        assert receipt["message_sha256"] == digest(MESSAGE) and receipt["acknowledged_providers"] == 2
+        assert fetched("after-import")["messages_fetched"] == 0
+        return open_in_thunderbird(home, ca, user, password)
+
+
 def trial(work):
     home, profile, runtime = (work / name for name in ("home", "profile", "runtime"))
     for d in (home, profile, runtime):
@@ -257,6 +339,7 @@ def trial(work):
         parts = list(msg.iter_parts())
         assert "The recipient was offline." in parts[0].get_content()
         assert parts[1].get_payload(decode=True) == bytes.fromhex("000102030405feff")
+        inbox = receive_in_inbox(work, recipient_profile, handoff, fetch)
     return {
         "thunderbird": "157.0",
         "native_host_root": directory,
@@ -264,6 +347,8 @@ def trial(work):
         "packaged_addon_installed": True,
         "no_message_before_click": True,
         "offline_provider_count": 2,
+        "receiver_inbox": inbox,
+        "verified_import_acknowledgements": 2,
         "fetched_messages": 1,
         "message_bytes": len(raw),
         "message_sha256": digest(raw),

@@ -31,5 +31,6 @@ this add-on’s exact extension ID.
    that delivery yourself.
 
 Thunderbird’s local status flags, tags and draft bookkeeping stay on the sender.
-The recipient receives the message headers and the original encoded MIME body,
+The native bridge passes the selected correspondence directly to the sender on
+standard input. The recipient receives the message headers and original encoded MIME body,
 including its attachments. The draft remains in Local Folders.
