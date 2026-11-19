@@ -11,6 +11,7 @@ import secrets
 import shutil
 from pathlib import Path
 import socket
+import sqlite3
 import subprocess
 import tempfile
 
@@ -174,6 +175,43 @@ def click_draft(driver, screen, source, compose):
                      "The encrypted message exceeds 4 MiB. Reduce the message or its attachments and save the draft again.")
     review(driver, screen, uri, "Private peer acceptance", message_id)
     return str(user_manifests.relative_to(Path(os.environ["HOME"]))), original, message_id
+
+
+def wait_for_custody(driver, home, work):
+    states = {
+        "The paired recipient will receive this saved version, including its attachments.": "preview",
+        "Requesting custody from both providers…": "requested",
+        "Both providers have the message for the recipient.": "confirmed",
+        "The local mail service did not confirm custody. Check the service and retry this draft.": "native-connection",
+        "Custody is unconfirmed. Retry this same saved draft to check the original delivery.": "sender-unconfirmed",
+        "This draft cannot use a paired address. You can choose ordinary mail in Thunderbird.": "unpaired",
+    }
+
+    def state():
+        text = driver.page('return document.querySelector("#status").textContent')
+        return states.get(text, "other")
+
+    try:
+        wait_for(lambda: state() == "confirmed", 45)
+    except TimeoutError:
+        # Allowlisted observations only. A failure report never contains a message, account, grant, or path.
+        selector = home / ".config/volparossa/mail/selected-mail.sqlite"
+        result = {"ui": state(), "selector_opened": selector.exists(), "selection_rows": 0,
+                  "signal_envelopes": 0, "provider_receipt": False}
+        if selector.is_file():
+            with sqlite3.connect(selector.as_uri() + "?mode=ro", uri=True) as db:
+                result["selection_rows"] = db.execute("SELECT count(*) FROM selections").fetchone()[0]
+                result["provider_receipt"] = bool(db.execute("SELECT count(*) FROM selections WHERE result IS NOT NULL").fetchone()[0])
+        with sqlite3.connect((work / "sender/signal-mail.sqlite").as_uri() + "?mode=ro", uri=True) as db:
+            result["signal_envelopes"] = db.execute("SELECT count(*) FROM outgoing").fetchone()[0]
+        console = driver.chrome("""
+            const messages = Services.console.getMessageArray().map(item => item.message || "");
+            return ["No such native application", "Native messaging proxy/portal is not available", "Permission denied",
+                    "Failed to start", "disconnected port", "not executable"].filter(
+                      needle => messages.some(message => message.includes(needle)));
+        """)
+        result["native_diagnostics"] = console
+        raise RuntimeError("Draft delivery stopped: " + json.dumps(result, sort_keys=True)) from None
 
 
 def reject_draft(driver, screen, uri, source, subject, message_id, explanation):
@@ -352,11 +390,7 @@ def trial(work, compose):
                         directory, original, message_id = click_draft(driver, screen, source, compose)
                         assert fetch("before-click")["messages_fetched"] == 0
                         screen.click(*driver.page(CENTER, "#send"))
-                        wait_for(
-                            lambda: driver.page('return document.querySelector("#status").textContent')
-                            == "Both providers have the message for the recipient.",
-                            35,
-                        )
+                        wait_for_custody(driver, home, work)
                     finally:
                         screen.x.XCloseDisplay(screen.display)
                     driver.command("Marionette:Quit", flags=["eAttemptQuit"])
