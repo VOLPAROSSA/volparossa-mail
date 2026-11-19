@@ -41,11 +41,10 @@ export function publish(path, bytes, profileId) {
   // directory also recovers an interrupted link or a partial temporary write.
   const temporary = join(parent, '.signal-mail-' + profileId);
   if (resolve(path) === temporary) throw new MailError('reserved output name');
-  const previous = lstatSync(temporary, { throwIfNoEntry: false });
-  if (previous) {
-    if (!previous.isFile() || previous.uid !== process.getuid() || (previous.mode & 0o077)) throw Error();
-    unlinkSync(temporary);
-  }
+  // Unlink the reserved name atomically. A symlink here loses only its
+  // directory entry; the target is never opened, truncated or removed.
+  try { unlinkSync(temporary); }
+  catch (error) { if (error.code !== 'ENOENT') throw error; }
   const fd = openSync(temporary, 'wx', 0o600);
   try {
     try { writeFileSync(fd, bytes); fsyncSync(fd); } finally { closeSync(fd); }
