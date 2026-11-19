@@ -11,6 +11,7 @@ on:
       - 'scripts/thunderbird_*.py'
       - 'packaging/systemd/**'
       - 'tests/owner_service_*'
+      - 'tests/owner_imaps.py'
       - 'third_party/stalwart/**'
       - 'third_party/stalwart-source.json'
       - 'third_party/stalwart-rust-toolchain.json'
@@ -96,5 +97,6 @@ jobs:
             build/owner-inbox/ui-restart.json
             build/owner-inbox/boundary.json
             build/owner-inbox/owner-service.json
+            build/owner-inbox/owner-imaps.json
           if-no-files-found: error
           retention-days: 14
