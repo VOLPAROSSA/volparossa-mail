@@ -165,3 +165,30 @@ hashes for an existing Stalwart executable and Node runtime, plus a fresh direct
 `build/`. By default it validates inputs and prints the intended changes; `--execute`
 runs the isolated test. It downloads or installs nothing. Run its offline fixture checks
 with `python3 -B tests/test_stalwart_smoke.py`.
+
+### Reproduce the Thunderbird mailbox recovery trial
+
+Use a nonroot Linux x86_64 account with Python 3.12+, bubblewrap with user namespaces,
+D-Bus, X11 client libraries including XTest, and xwininfo. Supply the official en-US
+Thunderbird 157.0 archive, a verified Community SQLite Stalwart build and a verified Xvfb
+executable. The pinned Mozilla SHA-512 and launcher SHA-256 are recorded in the
+[release receipt](third_party/thunderbird-extension-smoke.json).
+
+```sh
+mkdir -p build
+python3 -B scripts/smoke_thunderbird_stalwart.py \
+  --thunderbird-archive "$THUNDERBIRD_ARCHIVE" \
+  --stalwart "$STALWART_BINARY" --stalwart-sha256 "$STALWART_SHA256" \
+  --xvfb "$XVFB_BINARY" --xvfb-sha256 "$XVFB_SHA256" \
+  --output build/thunderbird-recovery --execute
+```
+
+Use absolute input paths and hashes obtained from the reviewed builds. Omit `--execute`
+to validate the inputs and print the exact revisions. Each execution needs a fresh output
+directory. The runner starts a private X display, a new Thunderbird profile and a Stalwart
+server with only loopback available. It clicks the extension toolbar action, selects a
+synthetic MIME file, interrupts the first metadata response and clicks the retry button.
+It then quits Thunderbird and reads the saved mail from the running server. After an
+isolated Stalwart process crash, it reopens the same SQLite file, checks that a wrong
+password receives HTTP 401 and reads the original account, metadata and message bytes.
+The three JSON receipts record the verified inputs, observed sequence and cleanup.

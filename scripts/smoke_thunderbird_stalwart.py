@@ -121,8 +121,8 @@ def exercise(report, processes, log):
             client = launch(["dbus-run-session", "--", "/opt/thunderbird/thunderbird", "--no-remote",
                              "--profile", str(profile), "--marionette", "--remote-allow-system-access"])
             wait_for(lambda: port_open(2828), 30)
-            run("http://127.0.0.1:" + str(observer.server_port), owner, password, account,
-                destination, message, observer.events)
+            report["application"] = run("http://127.0.0.1:" + str(observer.server_port), owner, password,
+                                        account, destination, message, observer.events)
             report["phase"] = "client-exit"
             require(client.wait(timeout=30) == 0 and retire(client) and not port_open(2828), "thunderbird-quit")
             processes.remove(client)
@@ -206,6 +206,24 @@ def namespace(work, stage, netns):
                    "/usr/bin/python3", "-B", "/opt/tools/smoke_thunderbird_stalwart.py", "--inside", netns]
 
 
+def verified_receipt(value):
+    from thunderbird_import_observer import EXPECTED
+    require(value.get("kind") == "thunderbird-stalwart-owner-restart" and value.get("phase") == "complete"
+            and value.get("success") is True and value.get("client_exit_code") == 0
+            and value.get("wrong_password_status") == 401 and value.get("message_bytes") == len(server.MESSAGE)
+            and value.get("message_sha256") == hashlib.sha256(server.MESSAGE).hexdigest(), "recovery-result")
+    for flag in ("original_server_readable_after_client_exit", "server_killed_and_offline", "same_sqlite_reopened",
+                 "original_account_metadata_and_mime", "process_groups_joined", "private_data_removed"):
+        require(value.get(flag) is True, "recovery-observation")
+    expected = [{"operation": method, "upstream_status": 200, "delivered_status": 503 if i == 4 else 200}
+                for i, method in enumerate(EXPECTED)]
+    require(value.get("operations") == expected, "metadata-retry")
+    application = value.get("application", {})
+    require(application.get("thunderbird_version") == "157.0" and application.get("build_id") == "20260928193122"
+            and all(application.get(flag) is True for flag in ("native_toolbar", "native_file_chooser",
+                    "metadata_retry_confirmed", "disconnected", "temporary_extension_removed")), "native-ui")
+
+
 def checked_source(relative, revision):
     data = subprocess.check_output(["git", "-C", str(ROOT), "show", f"{revision}:{relative}"])
     require((ROOT / relative).read_bytes() == data, "uncommitted-fixture-source")
@@ -271,6 +289,9 @@ def host(args):
                                            stderr=subprocess.STDOUT, start_new_session=True)
                 try:
                     boundary["exit_status"] = process.wait(timeout=330)
+                    if boundary["exit_status"] == 0:
+                        verified_receipt(json.loads((work / "ui-restart.json").read_text()))
+                        boundary["receipt_verified"] = True
                 finally:
                     boundary["group_joined"] = retire(process)
     finally:
@@ -280,7 +301,7 @@ def host(args):
             shutil.rmtree(private)
         boundary["private_data_removed"] = not private.exists() and not private.is_symlink()
         (work / "private-boundary.log").unlink(missing_ok=True)
-        boundary["success"] = (boundary["exit_status"] == 0 and boundary["group_joined"] and
+        boundary["success"] = (boundary.get("receipt_verified") is True and boundary["group_joined"] and
                                boundary["host_network_unchanged"] and boundary["private_data_removed"])
         server.write_json(work / "boundary.json", boundary)
     print(json.dumps(boundary, sort_keys=True))

@@ -172,6 +172,9 @@ def interact(driver, screen, origin, owner, password, account, mailbox, message,
     require(page("return !document.getElementById('connect').disabled && document.getElementById('recheck-import').hidden"), "disconnect")
     command("Addon:Uninstall", id=identity)
     command("Marionette:Quit", flags=["eAttemptQuit"])
+    return {"thunderbird_version": cap["browserVersion"], "build_id": cap["moz:buildID"],
+            "native_toolbar": True, "native_file_chooser": True, "metadata_retry_confirmed": True,
+            "disconnected": True, "temporary_extension_removed": True}
 
 
 def run(*args):
@@ -180,6 +183,6 @@ def run(*args):
         driver = Marionette(stream)
         display = Display()
         try:
-            interact(driver, display, *args)
+            return interact(driver, display, *args)
         finally:
             display.x.XCloseDisplay(display.display)
