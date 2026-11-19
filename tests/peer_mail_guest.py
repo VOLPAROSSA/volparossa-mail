@@ -162,8 +162,8 @@ def native_trial(work, providers, ca, user, password):
     state = work / "accepted"
     state.mkdir(mode=0o700)
     dest = work / "owner.json"
-    accept = [sys.executable, "-B", ACCEPT, "--node", NODE, "--core", CORE, "--profile", recipient_profile,
-              "--handoff", handoff, "--connection", dest, "--state-dir", state]
+    pickup = [sys.executable, "-B", ACCEPT, "--node", NODE, "--core", CORE, "--profile", recipient_profile,
+              "--invitation", recipient["receiveInvitation"], "--connection", dest, "--state-dir", state]
     with owner_server(user, password, hard_stop=True) as account:
         boxes = call(user, password, "Mailbox/get", {"accountId": account, "ids": None, "properties": ["id", "role"]})
         inbox, = [box["id"] for box in boxes["list"] if box["role"] == "inbox"]
@@ -173,8 +173,12 @@ def native_trial(work, providers, ca, user, password):
         # Drop only the successful Email/import response, after the actual server committed it.
         # NODE_OPTIONS also reaches the Signal process, where no HTTP requests are made.
         environ = dict(os.environ, NODE_OPTIONS="--import=/trial/lost-import.mjs")
-        error = command(accept, password=password.encode(), expected=1, env=environ)
-        assert b"Stalwart import unconfirmed" in error and not (handoff / "confirmed.json").exists()
+        first = subprocess.run(pickup, input=password.encode(), capture_output=True, env=environ, timeout=100)
+        assert first.returncode == 1 and json.loads(first.stdout)["pending"] == 1
+        retained_item = state / "pickup/pending" / opaque_id
+        assert not (retained_item / "confirmed.json").exists()
+        original_token = digest((retained_item / "import-token").read_bytes())
+        original_pending = digest((retained_item / "pending.pb").read_bytes())
         retained = fetch("still-in-custody")
         assert retained["messages_fetched"] == 1 and retained["listed_providers"] == 2
         assert retained["acknowledged_providers_per_message"] == 0
@@ -182,6 +186,10 @@ def native_trial(work, providers, ca, user, password):
         records = call(user, password, "Email/query", {"accountId": account, "limit": 2})["ids"]
         assert len(records) == 1
     with owner_server(user, password) as account:
+        dest.write_text(json.dumps(dict(conf, mailboxId="different")))
+        assert b"another route or mailbox" in command(pickup, password=password.encode(), expected=1)
+        assert not (retained_item / "confirmed.json").exists()
+        dest.write_text(json.dumps(conf))
         # With no local journal to consult, a mismatched but equal-sized candidate must
         # fail while reading the real stored blob. The existing email stays in place.
         wrong = work / "different.eml"
@@ -192,7 +200,76 @@ def native_trial(work, providers, ca, user, password):
         error = command([NODE, ROOT / "integration/peer-mail/import-mime.mjs", jmap, wrong, work / "other.json",
                          sent["packet_sha256"]], password=password.encode(), expected=1)
         assert b"peer_bytes_unverified" in error
-        accepted = command(accept, password=password.encode())
+        # Restart with the same journal. Inspect the real confirmation inputs without logging private bytes.
+        wrapper = work / "observed-core"
+        wrapper.write_text(f"""#!/usr/bin/python3
+import hashlib, os, signal, subprocess, sys
+from pathlib import Path
+if os.environ.get("OFFLINE_AFTER_ACK") == "1":
+    if "fetch" not in sys.argv:
+        Path({str(work / "unexpected-offline-confirm")!r}).touch()
+    sys.exit(72)
+if "confirm-import" in sys.argv:
+    def signature(flag):
+        return hashlib.sha256(Path(sys.argv[sys.argv.index(flag)+1]).read_bytes()).hexdigest()
+    assert signature("--pending") == {original_pending!r} and signature("--import-token-file") == {original_token!r}
+    Path({str(work / "same-handoff")!r}).touch()
+    if os.environ.get("INTERRUPT_AFTER_TEST_ACK") == "1":
+        done = subprocess.run([{CORE!r}, *sys.argv[1:]], stdout=subprocess.DEVNULL, check=True)
+        os.kill(os.getppid(), signal.SIGKILL)
+        sys.exit(0)
+os.execv({CORE!r}, [{CORE!r}, *sys.argv[1:]])
+""")
+        wrapper.chmod(0o700)
+        resumed = pickup.copy()
+        resumed[resumed.index(CORE)] = wrapper
+        # Stop the receiver with plaintext staged and after the real JMAP readback, before Core ACK.
+        stop_at_readback = work / "stop-after-jmap"
+        stop_at_readback.write_text(f"""#!/usr/bin/python3
+import os, signal, subprocess, sys
+from pathlib import Path
+if Path(sys.argv[1]).name == "import-mime.mjs":
+    subprocess.run([{NODE!r}, *sys.argv[1:]], stdout=subprocess.DEVNULL, check=True)
+    os.kill(os.getppid(), signal.SIGKILL)
+    sys.exit(0)
+os.execv({NODE!r}, [{NODE!r}, *sys.argv[1:]])
+""")
+        stop_at_readback.chmod(0o700)
+        interrupted_import = resumed.copy()
+        interrupted_import[interrupted_import.index(NODE)] = stop_at_readback
+        stopped = subprocess.run(interrupted_import, input=password.encode(), capture_output=True, timeout=100)
+        assert stopped.returncode == -signal.SIGKILL and (state / ".accept-work/message.eml").read_bytes() == MESSAGE
+        assert fetch("still-after-readback")["messages_fetched"] == 1
+        interrupted = subprocess.run(resumed, input=password.encode(), capture_output=True, timeout=100,
+                                     env=dict(os.environ, INTERRUPT_AFTER_TEST_ACK="1"))
+        assert interrupted.returncode == -signal.SIGKILL and (retained_item / "confirmed.json").is_file()
+        assert not (state / ".accept-work").exists()
+        assert not (state / "pickup/receipts" / (opaque_id + ".json")).exists()
+        assert fetch("confirmed-before-restart")["messages_fetched"] == 0
+        # Two callers can start together. The durable pickup directory serializes their progress.
+        procs = [subprocess.Popen(resumed, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                  env=dict(os.environ, OFFLINE_AFTER_ACK="1"))
+                 for _ in range(2)]
+        for proc in procs:
+            proc.stdin.write(password.encode())
+            proc.stdin.close()
+            proc.stdin = None
+        totals = []
+        for proc in procs:
+            out, err = proc.communicate(timeout=100)
+            assert proc.returncode == 1 and not err
+            totals.append(json.loads(out))
+        assert sorted(r["imported"] for r in totals) == [0, 1]
+        assert all(r["pending"] == 0 and r["listed_providers"] is None and r["degraded"]
+                   and not r["fetch_complete"] for r in totals)
+        assert not (work / "unexpected-offline-confirm").exists()
+        online = command(resumed, password=password.encode())
+        assert online["fetch_complete"] and online["listed_providers"] == 2 and not online["degraded"]
+        assert online["imported"] == online["pending"] == 0
+        assert (work / "same-handoff").is_file() and not list((state / "pickup/pending").iterdir())
+        saved = json.loads((state / "pickup/receipts" / (opaque_id + ".json")).read_bytes())
+        assert len(saved["confirmation"]["acknowledgement_receipts"]) == 2
+        accepted = saved["delivery"]
         assert accepted["message_id"] == opaque_id and accepted["signal_packet_sha256"] == sent["packet_sha256"]
         assert accepted["message_sha256"] == digest(MESSAGE) and accepted["email_id"] == records[0]
         assert accepted["message_bytes"] == len(MESSAGE) and accepted["acknowledged_providers"] == 2
@@ -202,7 +279,10 @@ def native_trial(work, providers, ca, user, password):
     return {"schema": 2, "native_inbox": native_inbox, "message_bytes": len(MESSAGE), "message_sha256": digest(MESSAGE),
             "sender_command": "send", "sender_resumed_without_inputs": True, "offline_custodians": 2, "fetched_before_confirmation": 1, "lost_import_reply": True,
             "same_email_after_restart": True, "different_same_size_refused": True, "exact_raw_bytes_verified": True, "provider_acks": 2,
-            "messages_after_ack": 0, "provider_transport": "isolated-local-stream"}
+            "messages_after_ack": 0, "provider_transport": "isolated-local-stream", "owner_invitation_pickup": True,
+            "original_handoff_resumed": True, "pickup_killed_after_provider_acks": True,
+            "interrupted_plaintext_staging_removed": True, "changed_mailbox_refused": True,
+            "concurrent_pickups_imported_once": True, "final_receipts_recovered_while_offline": True}
 
 
 if __name__ == "__main__":

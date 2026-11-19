@@ -120,7 +120,7 @@ jobs:
             --stalwart build/stalwart-community/target/debug/stalwart --core-dir "$RUNNER_TEMP/mail-core-pair" \
             --thunderbird-archive build/thunderbird.tar.xz --xvfb /usr/bin/Xvfb \
             > build/owner-inbox/peer-mail.json
-          jq -e '.provider_acks == 2 and .exact_raw_bytes_verified and .messages_after_ack == 0' build/owner-inbox/peer-mail.json
+          jq -e '.provider_acks == 2 and .exact_raw_bytes_verified and .messages_after_ack == 0 and .original_handoff_resumed and .pickup_killed_after_provider_acks and .interrupted_plaintext_staging_removed and .concurrent_pickups_imported_once and .final_receipts_recovered_while_offline' build/owner-inbox/peer-mail.json
 
       - name: Export the proven Linux mailbox runtime for the routed Core trial
         run: python3 -I -B scripts/export_mail_custody.py

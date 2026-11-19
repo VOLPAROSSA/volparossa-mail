@@ -1,10 +1,55 @@
 # Receive Signal-encrypted mail into an owner mailbox
 
-An owner can accept a complete RFC 5322 message from a specific Core handoff.
+An owner can pick up complete RFC 5322 messages with a paired invitation, or
+accept an individual Core handoff.
 The sender selects the original message, including its headers and attachments,
 and uses the paired Signal Mail profile’s `send` command. It encrypts the message
 and deposits it with both providers named by the recipient’s signed invitation.
 The recipient can be offline during deposit. [Pair the devices and send a message](../signal-mail/README.md#send-a-selected-message-through-the-recipients-core-mailbox).
+
+Create an owner-only directory (mode 0700) for the local delivery journal and
+a private connection file (mode 0600, in a directory with mode 0700). Choose
+the account and destination mailbox IDs from the owner's JMAP server. Point `coreConfig` to the
+owner-only Core configuration used to fetch the message. It contains absolute `socket`, `identity` and `passphrase` file paths.
+
+```json
+{
+  "server": "http://127.0.0.1:8080",
+  "username": "owner@example.test",
+  "accountId": "b",
+  "mailboxId": "a",
+  "coreConfig": "/home/owner/.config/volparossa/core.json"
+}
+```
+
+## Pick up mail for one paired contact
+
+Use one private journal directory for this pair, invitation and destination
+mailbox. Run the command from the Mail checkout. It prompts for the mailbox
+password, or reads one line on standard input.
+
+```sh
+python3 -B integration/peer-mail/accept.py \
+  --profile "$SIGNAL_RECIPIENT_PROFILE" --invitation "$RECEIVE_INVITATION" \
+  --connection "$PRIVATE_CONNECTION_FILE" --state-dir "$PRIVATE_JOURNAL"
+```
+
+The command first resumes previously fetched messages, then checks the providers
+for new ones. It reports how many messages it imported, how many still need a
+retry and how many providers answered. A pending message, an incomplete provider
+listing, or a failed fetch returns a nonzero exit status. If a new listing fails,
+`fetch_complete` is false and `listed_providers` is null. The totals still include
+messages whose saved readback and two original acknowledgements were recovered
+locally while the providers were offline. Repeat the same
+command after reconnecting. Concurrent invocations share the journal. Selecting
+a different receiver or mailbox requires a separate journal.
+
+After Stalwart verifies its stored bytes and both providers acknowledge, the
+journal keeps the delivery and signed provider receipts under
+`pickup/receipts/<message-id>.json`. It releases the temporary packet, token
+and decrypted staging files. Keep this owner-only directory private.
+
+## Accept an existing Core handoff
 
 Use the normal Core client to fetch from the recipient's invitation into a new
 private directory. Retain that directory until Stalwart and both providers confirm
@@ -17,24 +62,7 @@ volparossa --control-socket "$SOCKET" content mailbox fetch \
   --identity "$OWNER_IDENTITY" --passphrase-file "$OWNER_PASSPHRASE_FILE"
 ```
 
-Create an owner-only directory (mode 0700) for the local delivery journal and
-a private connection file (mode 0600, in a directory with mode 0700). Choose
-the account and destination mailbox IDs from the owner's JMAP server. Point `coreConfig` to the same owner-only Core configuration used to fetch the
-message. It contains absolute `socket`, `identity` and `passphrase` file paths.
-
-```json
-{
-  "server": "http://127.0.0.1:8080",
-  "username": "owner@example.test",
-  "accountId": "b",
-  "mailboxId": "a",
-  "coreConfig": "/home/owner/.config/volparossa/core.json"
-}
-```
-
-Run the receiver from the Mail checkout and enter the mailbox password at its
-hidden prompt. A service can supply a one-line password on standard input.
-Use the particular message directory named by the Core fetch receipt.
+The same receiver can accept one handoff that another owner process already fetched.
 
 ```sh
 python3 -B integration/peer-mail/accept.py \
