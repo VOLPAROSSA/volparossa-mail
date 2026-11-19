@@ -83,12 +83,18 @@ def object_pairs(pairs):
     return obj
 
 
+def selected_bytes(stream):
+    raw = stream.read(LIMIT + 1)
+    require(0 < len(raw) <= LIMIT)
+    return raw
+
+
 def selected_file(path):
     with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as handle:
         info = os.fstat(handle.fileno())
         require(stat.S_ISREG(info.st_mode) and info.st_uid == os.getuid() and not info.st_mode & 0o022
                 and 0 < info.st_size <= LIMIT)
-        raw = handle.read(LIMIT + 1)
+        raw = selected_bytes(handle)
         require(len(raw) == info.st_size)
         return raw
 
@@ -144,7 +150,11 @@ def send(args):
     owner, op = args.owner.absolute(), args.id
     private(owner,directory=True)
     require(HEX.fullmatch(op))
-    raw = selected_file(args.input) if args.input else None
+    raw = None
+    if args.input:
+        raw = selected_file(args.input)
+    elif args.stdin:
+        raw = selected_bytes(sys.stdin.buffer)
     raw_hash = hashlib.sha256(raw).hexdigest() if raw is not None else None
     with contextlib.closing(db_open(owner)) as db:
         with db:
@@ -218,6 +228,7 @@ def main():
     parser.add_argument('--node',type=Path,default=shutil.which('node'))
     source=parser.add_mutually_exclusive_group(required=True)
     source.add_argument('--input',type=Path)
+    source.add_argument('--stdin',action='store_true',help='read the complete RFC 5322 message as binary stdin')
     source.add_argument('--resume',action='store_true')
     args=parser.parse_args()
     try:
