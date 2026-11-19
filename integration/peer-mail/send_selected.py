@@ -4,7 +4,7 @@
 import argparse
 import contextlib
 from email import policy
-from email.errors import MessageError
+from email.errors import MessageError, MultipartInvariantViolationDefect
 from email.headerregistry import Address
 from email.parser import BytesHeaderParser
 import fcntl
@@ -52,7 +52,9 @@ def key(address):
 def headers(raw):
     try:
         msg = BytesHeaderParser(policy=policy.default).parsebytes(raw)
-        if msg.defects:
+        # Python 3.10 reports the intentionally unparsed multipart body as a
+        # defect in headers-only mode. Every actual header defect still counts.
+        if any(not isinstance(defect, MultipartInvariantViolationDefect) for defect in msg.defects):
             raise Ordinary('invalid_headers')
         if any(name.lower().startswith('resent-') for name in msg.keys()):
             raise Ordinary('resent_headers')
