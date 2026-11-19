@@ -11,6 +11,7 @@ import subprocess
 import tempfile
 import time
 
+import managed_mail_contacts
 import selected_mail_trial
 
 SOURCE = Path(__file__).resolve().parents[1]
@@ -131,7 +132,8 @@ def run(root, node, fixture):
         app('open','b','--input',again[0]/'payload','--output',opened)
         check(opened.read_bytes() == MIME, 'opened MIME')
         addressed = selected_mail_trial.run(root,node,cfg,owners,bundles,MIME,fetch,core,app)
-        return dict(**addressed, two_signed_provider_receipts=True, manifest_free_preparation_recovered=True, source_and_invitation_removed_before_resume=True,
+        managed = managed_mail_contacts.run(root,node,cfg,owners,MIME,fetch,app)
+        return dict(**addressed, **managed, two_signed_provider_receipts=True, manifest_free_preparation_recovered=True, source_and_invitation_removed_before_resume=True,
                     original_packet_manifest_chunks_retained=True, distinct_provider_messages=1,
                     original_mime_bytes_restored=True, receiver_acknowledgements=0)
     finally:

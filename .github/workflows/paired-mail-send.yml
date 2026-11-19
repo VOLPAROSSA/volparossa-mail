@@ -8,6 +8,8 @@ on:
       - 'integration/signal-mail/**'
       - 'tests/paired_mail_send.py'
       - 'tests/selected_mail_trial.py'
+      - 'tests/managed_mail_contacts.py'
+      - 'integration/peer-mail/contacts.py'
       - 'integration/peer-mail/send_selected.py'
 
 permissions:
@@ -35,7 +37,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: VOLPAROSSA/volparossa
-          ref: 67ae4b6948f77cd33fd2af719878fc2d9b14ec96
+          ref: e5242afee22cd5edd4305a1b37bd2f3c199786d1
           path: build/pinned-core
           persist-credentials: false
       - name: Build locked Core sources with the pinned compiler
@@ -57,6 +59,7 @@ jobs:
             --reuid="$(id -u)" --regid="$(id -g)" --clear-groups --no-new-privs \
             python3 -B tests/paired_mail_send.py --fixture "$PWD/build/tools/mailbox-provider-pair" \
             --node "$(command -v node)" >build/paired-mail-send.json
+          jq -e '.native_contacts_verified and .contact_removal_and_repair and .original_mail_opened_with_managed_contact' build/paired-mail-send.json
           cat build/paired-mail-send.json
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:

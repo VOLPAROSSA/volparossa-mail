@@ -23,7 +23,10 @@ sys.path.insert(0, str(SIGNAL))
 from deposit import HEX, flush_directory, owned, private, read  # noqa: E402
 
 LIMIT = 4 * 1024 * 1024
-CONTACT = {'address','profile','peer_bundle_sha256','core_owner_key','invitation','core_config'}
+BOOK_LIMIT = 1024 * 1024
+IDENTITY = {'address','profile','peer_bundle_sha256','core_owner_key'}
+CONTACT = IDENTITY | {'invitation','core_config'}
+STORED_CONTACT = IDENTITY | {'invitation_hex','core'}
 CORE = {'executable','socket','identity','passphrase'}
 
 
@@ -110,29 +113,60 @@ def selected_file(path):
         return raw
 
 
-def choose(owner, raw):
-    sender, recipient = headers(raw)
-    book = json.loads(read(owner/'address-book.json',65536),object_pairs_hook=object_pairs)
-    require(set(book)=={'version','address','contacts'} and type(book['version']) is int and book['version']==1
-            and isinstance(book['contacts'],list))
-    if key(Address(addr_spec=book['address'])) != sender:
-        raise Ordinary('sender_not_owner')
+def address_book(owner):
+    path = owner/'address-book.json'
+    book = json.loads(read(path, BOOK_LIMIT), object_pairs_hook=object_pairs)
+    require(isinstance(book,dict) and set(book)=={'version','address','contacts'}
+            and type(book['version']) is int and book['version']==1 and isinstance(book['contacts'],list))
+    local = key(Address(addr_spec=book['address']))
     contacts = {}
     for entry in book['contacts']:
-        require(isinstance(entry,dict) and set(entry)==CONTACT and all(isinstance(v,str) and v for v in entry.values()))
+        require(isinstance(entry,dict) and set(entry) in (CONTACT, STORED_CONTACT)
+                and all(isinstance(entry[k],str) and entry[k] for k in IDENTITY))
+        if set(entry) == CONTACT:
+            require(all(isinstance(entry[k],str) and entry[k] for k in ('invitation','core_config')))
+        else:
+            require(isinstance(entry['core'],dict) and isinstance(entry['invitation_hex'],str))
         address = key(Address(addr_spec=entry['address']))
         require(address not in contacts and HEX.fullmatch(entry['peer_bundle_sha256']) and HEX.fullmatch(entry['core_owner_key']))
         contacts[address] = entry
+    return book, local, contacts
+
+
+def core_settings(cfg, remote_owner):
+    require(isinstance(cfg,dict) and (set(cfg)==CORE or
+            (set(cfg)==CORE|{'sendInvitation','receiveInvitation','remoteOwner'} and cfg['remoteOwner']==remote_owner)))
+    require(all(isinstance(cfg[k],str) and Path(cfg[k]).is_absolute() for k in CORE))
+    return {k:cfg[k] for k in sorted(CORE)}
+
+
+def contact_route(entry):
+    if 'invitation_hex' in entry:
+        encoded = entry['invitation_hex']
+        require(isinstance(encoded,str) and 0 < len(encoded) <= 32768)
+        invitation = bytes.fromhex(encoded)
+        require(encoded == invitation.hex())
+        cfg = entry['core']
+    else:
+        invitation = read(Path(entry['invitation']), 16384)
+        cfg = json.loads(read(Path(entry['core_config']),8192), object_pairs_hook=object_pairs)
+    return invitation, core_settings(cfg,entry['core_owner_key'])
+
+
+def choose(owner, raw):
+    sender, recipient = headers(raw)
+    if not os.path.lexists(owner/'address-book.json'):
+        raise Ordinary('no_trusted_recipient')
+    _, local, contacts = address_book(owner)
+    if local != sender:
+        raise Ordinary('sender_not_owner')
     if recipient not in contacts:
         raise Ordinary('no_trusted_recipient')
     entry = contacts[recipient]
     profile = Path(entry['profile'])
     private(profile,directory=True)
-    cfg = json.loads(read(Path(entry['core_config']),8192),object_pairs_hook=object_pairs)
-    require(set(cfg)==CORE or (set(cfg)==CORE|{'sendInvitation','receiveInvitation','remoteOwner'}
-                               and cfg['remoteOwner']==entry['core_owner_key']))
-    require(all(isinstance(cfg[k],str) and Path(cfg[k]).is_absolute() for k in CORE))
-    return str(profile), entry['peer_bundle_sha256'], entry['core_owner_key'], read(Path(entry['invitation']),16384), json.dumps({k:cfg[k] for k in sorted(CORE)})
+    invitation, cfg = contact_route(entry)
+    return str(profile), entry['peer_bundle_sha256'], entry['core_owner_key'], invitation, json.dumps(cfg)
 
 
 def db_open(owner):
