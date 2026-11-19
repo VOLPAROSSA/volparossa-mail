@@ -102,13 +102,6 @@ def exercise(report, processes, log, *, smtp=False):
     report["phase"] = "mailbox-provision"
     original = server.start_server(environment, log, admin, processes)
     owner, account, destination = mailbox(admin, password, smtp=smtp)
-    if smtp:
-        report["phase"] = "normal-mailbox-start"
-        receiver.configure(admin)
-        require(retire(original), "bootstrap-stop")
-        processes.remove(original)
-        del environment["STALWART_RECOVERY_MODE"], environment["STALWART_RECOVERY_ADMIN"]
-        original = server.start_server(environment, log, password, processes, username=owner)
     message = PRIVATE / "fixture.eml"
     message.write_bytes(server.MESSAGE)
     profile = PRIVATE / "profile"
@@ -125,6 +118,14 @@ def exercise(report, processes, log, *, smtp=False):
     launch(["/opt/Xvfb", ":143", "-screen", "0", "1280x960x24", "-nolisten", "tcp"])
     wait_for(lambda: Path("/tmp/.X11-unix/X143").exists())
     with Observer(owner, password, account, destination, server.MESSAGE) as observer:
+        if smtp:
+            report["phase"] = "normal-mailbox-start"
+            receiver.configure(admin)
+            require(retire(original), "bootstrap-stop")
+            processes.remove(original)
+            del environment["STALWART_RECOVERY_MODE"], environment["STALWART_RECOVERY_ADMIN"]
+            environment["STALWART_PUBLIC_URL"] = f"http://127.0.0.1:{observer.server_port}"
+            original = server.start_server(environment, log, password, processes, username=owner)
         thread = threading.Thread(target=observer.serve_forever, daemon=True)
         thread.start()
         try:
@@ -158,7 +159,7 @@ def exercise(report, processes, log, *, smtp=False):
 
     if smtp:
         report["phase"] = "smtp-after-client-exit"
-        incoming = receiver.receive(owner, password, account, email_id)
+        incoming, envelope = receiver.receive(owner, password, account, email_id)
         received = receiver.inbox_message(owner, password, account, incoming)
 
     report["phase"] = "server-process-loss"
@@ -185,8 +186,7 @@ def exercise(report, processes, log, *, smtp=False):
     if smtp:
         require(receiver.inbox_message(owner, password, account, incoming) == received, "received-mime-changed")
         report["smtp"] = {"after_thunderbird_exit": True, "recovery_admin_removed": True,
-            "external_recipient_status": 550, "unknown_local_recipient_status": 550, "accepted_status": 250,
-            "original_bytes": len(receiver.MESSAGE), "original_sha256": hashlib.sha256(receiver.MESSAGE).hexdigest(),
+            **envelope, "original_bytes": len(receiver.MESSAGE), "original_sha256": hashlib.sha256(receiver.MESSAGE).hexdigest(),
             "inbox_read_after_restart": True}
     report.update(phase="complete", same_sqlite_reopened=True, wrong_password_status=401,
                   original_account_metadata_and_mime=True, message_bytes=len(server.MESSAGE),

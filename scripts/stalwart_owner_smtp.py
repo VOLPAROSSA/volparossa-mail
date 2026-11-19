@@ -46,13 +46,17 @@ def receive(owner, password, account, imported):
         external = smtp.rcpt("unrelated@external.test")[0]
         absent = smtp.rcpt("unregistered@volparossa.test")[0]
         require(external == absent == 550, "unexpected-recipient-acceptance")
-        require(smtp.rcpt(owner)[0] == 250 and smtp.data(MESSAGE)[0] == 250, "smtp-delivery")
+        require(smtp.rcpt(owner)[0] == 250, "smtp-owner")
+        delivered = smtp.data(MESSAGE)[0]
+        require(delivered == 250, "smtp-delivery")
     deadline = time.monotonic() + 30
     while True:
         current = ids()
         if current != [imported]:
             require(len(current) == 2 and len(set(current)) == 2 and imported in current, "delivery-count")
-            return next(item for item in current if item != imported)
+            received = next(item for item in current if item != imported)
+            return received, {"external_recipient_status": external, "unknown_local_recipient_status": absent,
+                              "accepted_status": delivered}
         require(time.monotonic() < deadline, "delivery-timeout")
         time.sleep(0.2)
 
