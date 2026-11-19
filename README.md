@@ -192,3 +192,8 @@ It then quits Thunderbird and reads the saved mail from the running server. Afte
 isolated Stalwart process crash, it reopens the same SQLite file, checks that a wrong
 password receives HTTP 401 and reads the original account, metadata and message bytes.
 The three JSON receipts record the verified inputs, observed sequence and cleanup.
+
+The verified Thunderbird 157.0 run recovered all 313 bytes after both lifecycle
+checks. [UI and mailbox result](third_party/thunderbird-stalwart-mailbox-crash-recovery/ui-restart.json)
+· [Runtime and source hashes](third_party/thunderbird-stalwart-mailbox-crash-recovery/inputs.json)
+· [Cleanup and host network](third_party/thunderbird-stalwart-mailbox-crash-recovery/boundary.json)
