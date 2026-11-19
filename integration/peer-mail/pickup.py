@@ -129,7 +129,7 @@ def handoff_binding(item):
             for name, limit in (("payload", MAX_PACKET), ("pending.pb", 16384), ("import-token", 32))}
 
 
-def completed(item, cfg):
+def completed(item, cfg, args, invitation, hold):
     proof = json.loads(read(item / "mail-readback.json", 8192))
     delivery = proof["delivery"]
     bound = handoff_binding(item)
@@ -139,19 +139,25 @@ def completed(item, cfg):
             and MESSAGE_ID.fullmatch(delivery["message_sha256"]) and type(delivery["message_bytes"]) is int
             and 0 < delivery["message_bytes"] <= MAX_PACKET and isinstance(delivery["email_id"], str)
             and delivery["email_id"], "stored mailbox readback differs from the pending handoff")
-    confirmation = json.loads(read(item / "confirmed.json", 32768))
+    confirmation = invoke([args.core, "--control-socket", cfg["controlSocket"], "content", "mailbox", "verify-import-acks",
+                           "--invitation", invitation, "--pending", item / "pending.pb",
+                           "--import-token-file", item / "import-token", "--imported-sha256", bound["payload"],
+                           "--identity", cfg["identity"], "--passphrase-file", cfg["passphraseFile"]],
+                          "Core could not verify both retained signed provider acknowledgements", hold=hold)
     acks = confirmation["acknowledgement_receipts"]
-    require(confirmation["operation"] == "mailbox_confirm_import" and confirmation["message_id"] == item.name
-            and confirmation["consumer_import_attested"] is True and confirmation["acknowledged_providers"] == 2
-            and isinstance(acks, list) and len(acks) == 2, "missing final provider receipts")
-    providers = set()
-    for ack in acks:
-        key = ack["provider_key"]
-        require(MESSAGE_ID.fullmatch(key) and key not in providers and ack["message_id"] == item.name
-                and ack["version"] == 1 and re.fullmatch(r"(?:[0-9a-f]{2})+", ack["receipt"])
-                and ack == json.loads(read(item / ("ack-" + key + ".json"), 32768)),
-                "provider acknowledgement differs from its original")
-        providers.add(key)
+    require(confirmation["operation"] == "mailbox_verify_import_acks" and confirmation["network_used"] is False
+            and confirmation["message_id"] == item.name and confirmation["acknowledged_providers"] == 2
+            and isinstance(acks, list) and len(acks) == 2, "incomplete historical provider verification")
+    expected = {"ack-" + ack["provider_key"] + ".json" for ack in acks}
+    require(len(expected) == 2 and expected == {p.name for p in item.glob("ack-*.json")},
+            "unexpected provider acknowledgement in handoff")
+    # Keep older completed journals byte-for-byte compatible when Core published its final report.
+    if os.path.lexists(item / "confirmed.json"):
+        original = json.loads(read(item / "confirmed.json", 32768))
+        require(original["operation"] == "mailbox_confirm_import" and original["message_id"] == item.name
+                and original["consumer_import_attested"] is True and original["acknowledged_providers"] == 2
+                and original["acknowledgement_receipts"] == acks, "aggregate confirmation changed")
+        confirmation = original
     return {"delivery": dict(delivery, acknowledged_providers=2), "confirmation": confirmation}
 
 
@@ -171,7 +177,8 @@ def import_pending(args, password, cfg, hold, work, attempted):
         directory(item)
         receipt = receipts / (item.name + ".json")
         proof = item / "mail-readback.json"
-        if not (os.path.lexists(proof) and os.path.lexists(item / "confirmed.json")):
+        has_acks = os.path.lexists(item / "confirmed.json") or len(list(item.glob("ack-*.json"))) >= 2
+        if not (os.path.lexists(proof) and has_acks):
             selected = argparse.Namespace(**(vars(args) | {"handoff": item}))
 
             def record(delivery):
@@ -181,7 +188,7 @@ def import_pending(args, password, cfg, hold, work, attempted):
                 accept(selected, password, cfg, hold, on_verified=record)
             except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
                 continue
-        result = completed(item, cfg)
+        result = completed(item, cfg, args, work / "invitation", hold)
         entries = retiring_files(item)
         if os.path.lexists(receipt):
             require(json.loads(read(receipt, 49152)) == result, "completed receipt differs from retained message")
