@@ -134,7 +134,7 @@ jobs:
             python3 -B tests/peer_mail_namespace.py --"$trial" --node "$(command -v node)" \
               --stalwart build/stalwart-community/target/debug/stalwart --core-dir "$RUNNER_TEMP/mail-core-pair" \
               --thunderbird-archive build/thunderbird.tar.xz --xvfb /usr/bin/Xvfb > "$receipt"
-            jq -e '.native_toolbar_and_send_clicked and .original_correspondence_bytes and .verified_import_acknowledgements == 2 and .receiver_inbox.message_body_displayed' "$receipt"
+            jq -e '.receiver_picked_up_paired_invitation and .native_toolbar_and_send_clicked and .original_correspondence_bytes and .verified_import_acknowledgements == 2 and .receiver_inbox.message_body_displayed' "$receipt"
           done
           jq -e '.edited_and_saved_in_composer and .filelink_refused_before_custody and .oversize_encrypted_message_refused_before_custody' build/owner-inbox/peer-compose.json
       - name: Export the proven Linux mailbox runtime for the routed Core trial
