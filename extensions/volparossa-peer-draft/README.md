@@ -1,11 +1,11 @@
 # Send a local Thunderbird draft to a paired contact
 
 This Linux add-on sends the selected saved draft to the one address approved
-in the owner’s Mail address book. Configure the two paired profiles and test
-the address-bound sender first. The native host reads its configuration from
+in the owner’s Mail address book. Use `contacts.py pair` on each owner’s
+device to authorize the other address and its trusted identities. The native host reads its configuration from
 `$XDG_CONFIG_HOME/volparossa/mail` or `~/.config/volparossa/mail`. Keep the
 Mail checkout and the Node runtime used for pairing at their registered paths.
-[Pair and configure a contact](../../integration/signal-mail/README.md)
+[Pair and configure a contact](../../integration/signal-mail/README.md#send-a-draft-to-its-explicitly-paired-email-address)
 
 From that checkout, build the add-on and register the executable for the
 current Linux account.
