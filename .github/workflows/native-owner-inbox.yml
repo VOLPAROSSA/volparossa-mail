@@ -36,16 +36,17 @@ jobs:
 
       - name: Prepare the disposable display and verify namespace support
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y --no-install-recommends bubblewrap xvfb x11-utils x11-xkb-utils \
+          apt_options=(-o Acquire::Retries=3 -o Acquire::http::Timeout=15 -o Acquire::https::Timeout=15)
+          sudo apt-get "${apt_options[@]}" update -qq
+          sudo apt-get "${apt_options[@]}" install -y --no-install-recommends bubblewrap xvfb x11-utils x11-xkb-utils \
             dbus-x11 fonts-dejavu-core libgtk-3-0t64 libasound2t64 libdbus-glib-1-2 libxtst6 \
-            libnss3-tools openssl clang libclang-dev pkg-config cmake build-essential libssl-dev
+            libnss3-tools openssl clang libclang-dev pkg-config cmake gcc g++ make libssl-dev
           bwrap --unshare-user --unshare-pid --unshare-net --cap-drop ALL --ro-bind / / \
             --proc /proc --dev /dev -- /usr/bin/true
           mkdir -p build/display
           cd build/display
           version=$(dpkg-query -W -f='${Version}' xvfb)
-          apt-get download "xvfb=$version"
+          apt-get "${apt_options[@]}" download "xvfb=$version"
           dpkg-deb -x ./*.deb package
           cmp package/usr/bin/Xvfb /usr/bin/Xvfb
 
