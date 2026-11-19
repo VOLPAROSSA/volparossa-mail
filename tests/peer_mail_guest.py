@@ -85,21 +85,32 @@ def native_trial(work, providers):
     for profile, bundle in local:
         record = command([NODE, SIGNAL, "init", "--profile", profile, "--bundle", bundle])
         assert record["bundle_sha256"] == digest(bundle.read_bytes())
-    for (profile, _), (_, peer) in zip(local, reversed(local)):
+    # Authenticate each Core identity independently of any invitation.
+    owners = []
+    for config in providers:
+        key = command([CORE, "--control-socket", config["socket"], "content", "recipient-key",
+                       "--identity", config["identity"], "--passphrase-file", config["passphrase"]])
+        owners.append(key["identity_public_key_hex"])
+    for (profile, _), (_, peer), owner in zip(local, reversed(local), reversed(owners)):
         command([NODE, SIGNAL, "pair", "--profile", profile, "--peer-bundle", peer,
-                 "--trusted-bundle-sha256", digest(peer.read_bytes())])
-    original, packet = work / "original.eml", work / "packet"
-    original.write_bytes(MESSAGE)
-    seal = [NODE, SIGNAL, "seal", "--profile", sender_profile, "--id", secrets.token_hex(32),
-            "--input", original, "--output", packet]
-    sealed = command(seal)
-    assert command(seal) == sealed and sealed["packet_sha256"] == digest(packet.read_bytes())
-    assert sealed["message_sha256"] == digest(MESSAGE) and b"Private peer acceptance" not in packet.read_bytes()
+                 "--trusted-bundle-sha256", digest(peer.read_bytes()), "--core-owner-key", owner])
 
-    sent = core(sender, "send", "--invitation", sender["sendInvitation"], "--owner-key", sender["remoteOwner"],
-                "--input", packet, "--cache", work / "cipher-cache", "--manifest", work / "original.manifest")
-    assert sent["confirmed_providers"] == sent["retained_providers"] == 2
+    original, invitation = work / "selected.eml", work / "selected.invitation"
+    original.write_bytes(MESSAGE)
+    invitation.write_bytes(Path(sender["sendInvitation"]).read_bytes())
+    operation = secrets.token_hex(32)
+    send = [NODE, SIGNAL, "send", "--profile", sender_profile, "--id", operation,
+            "--core-config", work / "providers/a/core.json"]
+    sent = command([*send, "--input", original, "--invitation", invitation, "--core-owner-key", owners[1]])
+    assert sent["operation"] == "send" and sent["confirmed_providers"] == 2
+    assert sent["message_sha256"] == digest(MESSAGE) and sent["message_bytes"] == len(MESSAGE)
+    original.unlink()
+    invitation.unlink()
+    assert command([*send, "--resume"]) == sent
     opaque_id = sent["message_id"]
+    packet = sender_profile / "core-send" / operation / "packet"
+    assert digest(packet.read_bytes()) == sent["packet_sha256"]
+    assert b"Private peer acceptance" not in packet.read_bytes()
     provider_dirs = sorted((work / "providers").glob(".providers-*/provider-*"))
     assert len(provider_dirs) == 2
     for provider in provider_dirs:
@@ -142,13 +153,13 @@ def native_trial(work, providers):
         assert len(records) == 1
     with owner_server(user, password) as account:
         accepted = command(accept, password=password.encode())
-        assert accepted["message_id"] == opaque_id and accepted["signal_packet_sha256"] == sealed["packet_sha256"]
+        assert accepted["message_id"] == opaque_id and accepted["signal_packet_sha256"] == sent["packet_sha256"]
         assert accepted["message_sha256"] == digest(MESSAGE) and accepted["email_id"] == records[0]
         assert accepted["message_bytes"] == len(MESSAGE) and accepted["acknowledged_providers"] == 2
         assert fetch("empty")["messages_fetched"] == 0
         assert call(user, password, "Email/query", {"accountId": account, "limit": 2})["ids"] == records
     return {"schema": 1, "message_bytes": len(MESSAGE), "message_sha256": digest(MESSAGE),
-            "offline_custodians": 2, "fetched_before_confirmation": 1, "lost_import_reply": True,
+            "sender_command": "send", "sender_resumed_without_inputs": True, "offline_custodians": 2, "fetched_before_confirmation": 1, "lost_import_reply": True,
             "same_email_after_restart": True, "exact_raw_bytes_verified": True, "provider_acks": 2,
             "messages_after_ack": 0, "provider_transport": "isolated-local-stream"}
 

@@ -1,10 +1,10 @@
 # Receive Signal-encrypted mail into an owner mailbox
 
 An owner can accept a complete RFC 5322 message from a specific Core handoff.
-The sender seals the message, including its headers and attachments, using the
-paired Signal Mail profile. Core stores that opaque packet with the two providers
-named by the recipient's signed invitation. The recipient can be offline during
-deposit. [Pair the Signal profiles](../signal-mail/README.md).
+The sender selects the original message, including its headers and attachments,
+and uses the paired Signal Mail profile’s `send` command. It encrypts the message
+and deposits it with both providers named by the recipient’s signed invitation.
+The recipient can be offline during deposit. [Pair the devices and send a message](../signal-mail/README.md#send-a-selected-message-through-the-recipients-core-mailbox).
 
 Use the normal Core client to fetch from the recipient's invitation into a new
 private directory. Retain that directory until Stalwart and both providers confirm
