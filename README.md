@@ -104,6 +104,23 @@ sudo systemd-run --quiet --pty --wait --collect -p PrivateNetwork=yes \
   /usr/bin/python3 -B /usr/local/libexec/volparossa-mail/initialize-owner.py owner@example.test
 ```
 
+To read this new mailbox in Thunderbird's normal Inbox, add both
+`--imap-cert /absolute/path/owner-chain.pem` and
+`--imap-key /absolute/path/owner-key.pem` to the initialization command.
+Use a PEM server certificate containing the IP Subject Alternative Name
+`127.0.0.1`, followed by any needed intermediate certificates. The
+matching unencrypted PEM key must be readable only by the service account.
+The initializer opens an authenticated TLS connection and selects the owner's
+Inbox before publishing the store. The certificate and key are held in the
+owner's private Stalwart store across service restarts.
+
+In Thunderbird, choose IMAP at `127.0.0.1`, port `2993`, **SSL/TLS**,
+**Normal password**, the full mailbox address and the owner's password. Use a
+certificate chain trusted by that Thunderbird profile. For a private CA,
+import its independently authenticated CA certificate into the intended profile.
+The optional owner account receives IMAP read commands. The default setup
+continues to provide the JMAP and SMTP listeners described below.
+
 The local drop-in makes JMAP discovery advertise the same address as the local
 listener. The new mailbox accepts JMAP on `http://127.0.0.1:8080` and inbound SMTP on
 `127.0.0.1:2525`. The Mail host extension can connect with the full address and
