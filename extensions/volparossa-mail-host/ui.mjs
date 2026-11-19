@@ -149,16 +149,12 @@ el.import.addEventListener("click", async () => {
   if (!file || !file.size || file.size > connection.maxMessageBytes) { explain(new MailHostError("message_size")); return; }
   busy = true; el["import-confirmed"].checked = false; controls();
   status("Importing this selected file once, then checking the stored message's metadata…");
-  let bytes;
   try {
-    bytes = new Uint8Array(await file.arrayBuffer());
-    if (run !== generation) return;
-    const result = await connection.importMessage({accountId, mailboxId, bytes, confirmed: true});
+    const result = await connection.importMessage({accountId, mailboxId, bytes: file, confirmed: true});
     if (run !== generation) return;
     showImport(result);
   } catch (error) { if (run === generation) explain(error); }
   finally {
-    bytes?.fill(0);
     if (run === generation) { busy = false; el["message-file"].value = ""; controls(); }
   }
 });

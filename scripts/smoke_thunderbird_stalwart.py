@@ -181,7 +181,12 @@ def guest(host_namespace):
         report["error_class"] = type(exc).__name__
         import traceback
         # Fixed-source line numbers aid diagnosis without exposing request bodies, credentials or paths.
-        report["error_line"] = traceback.extract_tb(exc.__traceback__)[-1].lineno
+        frames = traceback.extract_tb(exc.__traceback__)
+        frame = frames[-2] if frames[-1].name == "wait_for" and len(frames) > 1 else frames[-1]
+        source = Path(frame.filename).name
+        if source in SCRIPTS:
+            report["error_source"] = source
+            report["error_line"] = frame.lineno
     finally:
         report["process_groups_joined"] = all([retire(p) for p in reversed(processes)])
         if report["process_groups_joined"] and PRIVATE.is_dir() and not PRIVATE.is_symlink():

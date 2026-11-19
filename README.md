@@ -86,6 +86,13 @@ message. The connector issued one upload, one import and two metadata reads. An 
 download from Stalwart matched all 313 selected MIME bytes.
 [Thunderbird and Stalwart proof](third_party/thunderbird-stalwart-extension-smoke.json).
 
+The connector now uploads the file chosen in Thunderbird directly. In a browser trial
+at the 8 MiB limit, this removed one 8 MiB JavaScript copy while the server received
+identical bytes. The mailbox and message requests also omit the unused folder role,
+parent and Internet Message-ID. Thunderbird 157.0 repeated the import, explicit
+metadata retry and Stalwart crash recovery with the updated connector.
+[Native trial inputs and receipts](third_party/thunderbird-selected-file-smoke.json).
+
 A separate native UI test used a controlled JMAP server and a 165-byte message.
 [Controlled JMAP proof](third_party/thunderbird-extension-smoke.json).
 

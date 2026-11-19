@@ -33,7 +33,7 @@ function backend(options = {}) {
     if (url.endsWith("/session")) return json(options.session ?? session());
     if (url.endsWith("/upload/42/")) {
       assert.equal(request.headers["Content-Type"], "message/rfc822");
-      assert.deepEqual(request.body, message);
+      assert.strictEqual(request.body, options.uploadBody ?? message);
       return json(options.upload ?? {accountId: "42", blobId: "blob_1", size: message.length});
     }
     const body = JSON.parse(request.body);
@@ -42,13 +42,15 @@ function backend(options = {}) {
     assert.equal(args.accountId, "42");
     if (options.throwOn === method) throw new Error("private raw server failure must not escape");
     let value;
-    if (method === "Mailbox/get") value = options.boxes ?? boxes();
-    else if (method === "Email/import") {
+    if (method === "Mailbox/get") {
+      assert.deepEqual(args.properties, ["id", "name", "totalEmails", "unreadEmails", "myRights"]);
+      value = options.boxes ?? boxes();
+    } else if (method === "Email/import") {
       assert.deepEqual(args.emails, {selected: {blobId: "blob_1", mailboxIds: {inbox: true}, keywords: {}}});
       value = options.import ?? {accountId: "42", created: {selected: {id: "message_1"}}, notCreated: null};
     } else if (method === "Email/get") {
       assert.deepEqual(args.ids, ["message_1"]);
-      assert.deepEqual(args.properties, ["id", "blobId", "mailboxIds", "size", "messageId"]);
+      assert.deepEqual(args.properties, ["id", "blobId", "mailboxIds", "size"]);
       value = options.readback ?? {accountId: "42", list: [{id: "message_1", blobId: "stored_blob",
         mailboxIds: {inbox: true}, size: message.length}], notFound: []};
     } else throw new Error("unexpected method");
@@ -96,6 +98,23 @@ test("explicit mailbox confirmation and selected-file import use real JMAP opera
   assert.equal(calls.length, 5);
   assert.deepEqual(calls.filter(call => call.url.endsWith("/jmap/")).map(call => JSON.parse(call.request.body).methodCalls[0][0]),
     ["Mailbox/get", "Email/import", "Email/get"]);
+  client.disconnect();
+});
+
+test("selected message file is the upload body and uses the server size limit", async () => {
+  const file = new Blob([message], {type: "message/rfc822"});
+  const value = session();
+  value.capabilities[CORE].maxSizeUpload = file.size;
+  const {client, calls} = backend({session: value, uploadBody: file});
+  await client.connect();
+  await client.mailboxes("42", true);
+  const send = bytes => client.importMessage({accountId: "42", mailboxId: "inbox", bytes, confirmed: true});
+  for (const other of [new Blob(), new Blob([file, "x"]), {size: file.size}]) {
+    await assert.rejects(send(other), code("message_size"));
+  }
+  assert.equal(calls.length, 2);
+  assert.equal((await send(file)).metadataReadback, true);
+  assert.equal(calls.length, 5);
   client.disconnect();
 });
 
