@@ -35,6 +35,11 @@ export function read(path, maximum) {
   } finally { closeSync(fd); }
 }
 
+export function syncDirectory(path) {
+  const fd = openSync(path, constants.O_DIRECTORY);
+  try { fsyncSync(fd); } finally { closeSync(fd); }
+}
+
 export function publish(path, bytes, profileId) {
   const parent = privateDir(dirname(path));
   // The caller holds the profile's write lock. One fixed slot per profile and
@@ -54,6 +59,5 @@ export function publish(path, bytes, profileId) {
       if (!read(path, bytes.length).equals(bytes)) throw new MailError('existing output contains different bytes');
     }
   } finally { unlinkSync(temporary); }
-  const dir = openSync(parent, constants.O_DIRECTORY);
-  try { fsyncSync(dir); } finally { closeSync(dir); }
+  syncDirectory(parent);
 }

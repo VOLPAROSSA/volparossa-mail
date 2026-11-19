@@ -50,3 +50,33 @@ Opened mail and outgoing ciphertext remain in the profile to support retries.
 Protect the profile and its backups like a local mailstore. It contains local
 secret keys and message content, with owner-only filesystem permissions.
 The adapter performs no network operations and never submits mail over SMTP.
+
+## Send a selected message through the recipient's Core mailbox
+
+On the sender, include `--core-owner-key "$trusted_core_owner"` when pairing.
+An existing Signal-only profile can repeat its original pairing with this
+option. Obtain the recipient's Ed25519 Core identity through an independent
+authenticated channel and associate it with the same intended device as the
+trusted Signal bundle. The profile pins this choice.
+
+```sh
+node cli.mjs send --profile "$profile" --id "$stable_operation_id" \
+  --input "$handoff/outgoing.eml" --invitation "$handoff/recipient.invitation" \
+  --core-owner-key "$trusted_core_owner" --core-config "$config"
+node cli.mjs send --profile "$profile" --id "$stable_operation_id" \
+  --resume --core-config "$config"
+```
+
+The private JSON config contains absolute paths for `executable` (Core CLI),
+`socket` (the local agent), `identity` (the sending owner's identity file) and
+`passphrase` (its private passphrase file). The existing dual-direction Core
+fixture config is also supported when its `remoteOwner` equals the trusted
+owner. The Core CLI verifies the recipient-signed invitation, the allowed
+sender and each provider's signed custody response.
+
+The first command seals the original bytes and commits the exact invitation and
+opaque packet before contacting the Core daemon. Resume works without the
+original source or invitation file. An operation that has a Core manifest always
+resumes that original publication. The sender keeps both provider receipts in
+its private profile. Successful JSON includes `confirmed_providers: 2` and the
+opaque `message_id`. Recipient import and read status are separate evidence.

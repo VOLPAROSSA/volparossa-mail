@@ -1,0 +1,63 @@
+name: Paired Mail send through two Core providers
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/paired-mail-send.yml'
+      - 'integration/signal-mail/**'
+      - 'tests/paired_mail_send.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  paired-mail-send:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.19.0'
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+        working-directory: integration/signal-mail
+      - name: Check out the ordinary signed Core mailbox CLI and provider fixture
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: VOLPAROSSA/volparossa
+          ref: 67ae4b6948f77cd33fd2af719878fc2d9b14ec96
+          path: build/pinned-core
+          persist-credentials: false
+      - name: Build locked Core sources with the pinned compiler
+        working-directory: build/pinned-core
+        env:
+          CARGO_PROFILE_DEV_DEBUG: '0'
+          CARGO_INCREMENTAL: '0'
+        run: |
+          rustup toolchain install 1.89.0 --profile minimal
+          rustup run 1.89.0 cargo fetch --locked --target x86_64-unknown-linux-gnu
+          rustup run 1.89.0 cargo build --locked --offline -p volparossa --example mailbox-provider-pair --bin volparossa
+          install -d -m 700 ../tools
+          install -m 500 target/debug/volparossa target/debug/examples/mailbox-provider-pair ../tools/
+          cmp ../tools/volparossa target/debug/volparossa
+          cmp ../tools/mailbox-provider-pair target/debug/examples/mailbox-provider-pair
+      - name: Restart the sender before and after remote custody
+        run: |
+          sudo unshare --net -- sh -eu -c 'ip link set dev lo up; exec setpriv "$@"' sh \
+            --reuid="$(id -u)" --regid="$(id -g)" --clear-groups --no-new-privs \
+            python3 -B tests/paired_mail_send.py --fixture "$PWD/build/tools/mailbox-provider-pair" \
+            --node "$(command -v node)" >build/paired-mail-send.json
+          cat build/paired-mail-send.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: paired-mail-send-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build/paired-mail-send.json
+          if-no-files-found: error
