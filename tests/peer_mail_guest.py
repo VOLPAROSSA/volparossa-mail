@@ -81,7 +81,7 @@ def core(who, operation, *args):
                     "--identity", who["identity"], "--passphrase-file", who["passphrase"]])
 
 
-def open_in_thunderbird(work, ca, user, password):
+def open_in_thunderbird(work, ca, user, password, message_id="peer-test@example.test"):
     profile = reader.open_profile(work, ca, PREFERENCES)
     home, runtime = work / "home", work / "runtime"
     home.mkdir(mode=0o700)
@@ -100,7 +100,7 @@ def open_in_thunderbird(work, ca, user, password):
         try:
             wait_for(lambda: port_open(2828), 30)
             receipt = reader.read(user, password, {}, subject="Private peer acceptance",
-                                  body="The recipient was offline.", message_id="peer-test@example.test")
+                                  body="The recipient was offline.", message_id=message_id)
             assert client.wait(timeout=30) == 0
             return receipt
         finally:

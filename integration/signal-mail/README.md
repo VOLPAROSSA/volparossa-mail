@@ -118,7 +118,13 @@ input share the 4 MiB limit, address checks and operation ID. Replaying either
 form requires an exact byte match. The selector keeps the draft in its private
 durable selection until native sealing completes. It streams the original bytes
 directly to the sealer, which verifies their length and SHA-256 before changing
-the Signal session.
+the Signal session. A size refusal returns exit code 4 and JSON with
+`status: message_too_large`, `limit_bytes: 4194304` and either
+`reason: input_exceeds_limit` or `reason: encrypted_packet_exceeds_limit`.
+A sealed-size refusal is retained under its original operation ID. Its raw
+draft and grant are cleared, and `--resume` returns the same decision.
+Reducing the draft creates a new operation. Both providers keep their
+previous state.
 
 
 The sender reads the original header block and requires a single matching

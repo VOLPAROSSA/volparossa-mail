@@ -9,10 +9,12 @@ contacts you already use. VOLPAROSSA Mail builds on Thunderbird, aiming to keep
 ordinary email alongside encrypted delivery between compatible participants and
 an owner-controlled mailbox using Stalwart.
 
-The reusable [VOLPAROSSA core](https://github.com/VOLPAROSSA/volparossa) is intended
-to handle peer delivery, encrypted offline custody and cooperative intelligence.
-The Mail extension can already import a selected message from Thunderbird into a Stalwart
-mailbox and confirm its stored metadata. Peer delivery remains in development.
+On Linux, a Thunderbird user can save a draft locally, review its paired
+recipient and send it into encrypted peer custody. The receiving owner’s
+Stalwart mailbox checks the complete message before acknowledging both providers.
+A fresh Thunderbird profile can then open that message in its ordinary Inbox.
+[Install the paired-mail add-on](extensions/volparossa-peer-draft/README.md) ·
+[Configure the receiver](integration/peer-mail/README.md)
 
 **Development integration, not a finished mail client.** No production account, mail
 server, DNS record or network participation is activated by this repository.
@@ -30,14 +32,10 @@ The [paired-owner mail adapter](integration/signal-mail/README.md) uses libsigna
 devices. Separate local profiles preserve the original encrypted packet and
 message bytes across process restarts.
 
-The core is developed in [volparossa](https://github.com/VOLPAROSSA/volparossa).
-Mailbox transport, application import, authenticated address/device discovery and Signal
-sessions still need to be joined and tested in real Thunderbird. Existing core HPKE
-messages are not a substitute for the Signal Protocol.
-
-The [peer-mail receiver](integration/peer-mail/README.md) imports a complete
-Signal-encrypted message from a fetched Core handoff into the owner's Stalwart
-mailbox. It compares the stored MIME bytes before acknowledging both custodians.
+The current alpha requires the owners to pair their devices and approve the
+recipient’s address. The two-desktop trial uses independently keyed provider
+stores on the same machine. Automatic address discovery and public Internet
+mail reception remain in development. [Core](https://github.com/VOLPAROSSA/volparossa)
 
 ## Cooperative intelligence
 
@@ -57,7 +55,7 @@ and an exact upstream overlay do not prove a working Thunderbird/peer deployment
 The requested self-hosting extension uses **Stalwart Community** as a separate background
 mail service. Closing Thunderbird must not shut down that service. The first integration
 work connects an owner-controlled instance. On Linux, an owner can provision a new
-local mailbox and run it as a system service. Offline peer custody remains unfinished.
+local mailbox and run it as a system service independently of the mail client.
 
 The intended service supports both ordinary Internet mail and preferred VOLPAROSSA
 delivery. Arbitrary peers must not receive readable mail. Owner-controlled or deliberately
@@ -209,8 +207,11 @@ This used a disposable Community server in recovery mode. Add
 
 The September run used the connector adapter directly. The November Thunderbird run
 above exercised the same JMAP operations through the interface. A separate local
-SMTP trial received mail after Thunderbird quit. Public Internet reception, peer
-delivery and recovery of an installed background service remain open. [September adapter proof](third_party/stalwart-extension-smoke.json).
+SMTP trial received mail after Thunderbird quit. The later owner-service trial
+exercised process recovery, and the paired receiver verified a peer delivery in
+the Inbox after a lost import reply. Public Internet reception remains open.
+[September adapter proof](third_party/stalwart-extension-smoke.json) ·
+[Owner service and paired delivery](https://github.com/VOLPAROSSA/volparossa-mail/actions/runs/44547309790)
 
 ## Source development
 

@@ -26,6 +26,16 @@ class AddressTests(unittest.TestCase):
                              +name+': =?UTF-8?Q?B=C3=A9b=C3=A9?=\r\n <bob+tag@Example.Test>')
             self.assertEqual(parse(msg),(('Alice','example.test'),('bob+tag','example.test')))
 
+    def test_multipart_addresses_and_malformed_outer_headers(self):
+        headers = (b'From: Alice <alice@example.test>\r\nTo: bob@example.test\r\n'
+                   b'MIME-Version: 1.0\r\nContent-Type: multipart/mixed; boundary=parts\r\n')
+        body = (b'\r\n--parts\r\nContent-Type: text/plain\r\n\r\nHello\r\n'
+                b'--parts\r\nContent-Type: message/rfc822\r\n\r\n'
+                b'To: other@example.test\r\n\r\nForwarded mail\r\n--parts--\r\n')
+        self.assertEqual(parse(headers + body), (('alice','example.test'),('bob','example.test')))
+        with self.assertRaisesRegex(Ordinary, 'invalid_headers'):
+            parse(headers + b'Malformed outer field\r\n' + body)
+
     def test_ambiguous_origins_and_hidden_recipients_require_explicit_ordinary_mail(self):
         for fields in ('To: b@domain.test', 'From: a@domain.test', 'From: a@domain.test, b@domain.test\r\nTo: b@domain.test',
                        'From: a@domain.test\r\nFrom: a@domain.test\r\nTo: b@domain.test',

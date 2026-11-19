@@ -4,7 +4,7 @@
 import argparse
 import contextlib
 from email import policy
-from email.errors import MessageError
+from email.errors import MessageError, MultipartInvariantViolationDefect
 from email.headerregistry import Address
 from email.parser import BytesHeaderParser
 import fcntl
@@ -27,6 +27,11 @@ CONTACT = {'address','profile','peer_bundle_sha256','core_owner_key','invitation
 CORE = {'executable','socket','identity','passphrase'}
 
 
+class MessageTooLarge(ValueError):
+    def result(self):
+        return {'operation':'send_selected','status':'message_too_large','reason':self.args[0],'limit_bytes':LIMIT}
+
+
 class Ordinary(Exception):
     pass
 
@@ -47,7 +52,9 @@ def key(address):
 def headers(raw):
     try:
         msg = BytesHeaderParser(policy=policy.default).parsebytes(raw)
-        if msg.defects:
+        # Python 3.10 reports the intentionally unparsed multipart body as a
+        # defect in headers-only mode. Every actual header defect still counts.
+        if any(not isinstance(defect, MultipartInvariantViolationDefect) for defect in msg.defects):
             raise Ordinary('invalid_headers')
         if any(name.lower().startswith('resent-') for name in msg.keys()):
             raise Ordinary('resent_headers')
@@ -85,7 +92,9 @@ def object_pairs(pairs):
 
 def selected_bytes(stream):
     raw = stream.read(LIMIT + 1)
-    require(0 < len(raw) <= LIMIT)
+    if len(raw) > LIMIT:
+        raise MessageTooLarge('input_exceeds_limit')
+    require(raw)
     return raw
 
 
@@ -93,7 +102,9 @@ def selected_file(path):
     with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as handle:
         info = os.fstat(handle.fileno())
         require(stat.S_ISREG(info.st_mode) and info.st_uid == os.getuid() and not info.st_mode & 0o022
-                and 0 < info.st_size <= LIMIT)
+                and info.st_size > 0)
+        if info.st_size > LIMIT:
+            raise MessageTooLarge('input_exceeds_limit')
         raw = selected_bytes(handle)
         require(len(raw) == info.st_size)
         return raw
@@ -150,13 +161,18 @@ def send(args):
     owner, op = args.owner.absolute(), args.id
     private(owner,directory=True)
     require(HEX.fullmatch(op))
-    raw = None
-    if args.input:
-        raw = selected_file(args.input)
-    elif args.stdin:
-        raw = selected_bytes(sys.stdin.buffer)
-    raw_hash = hashlib.sha256(raw).hexdigest() if raw is not None else None
     with contextlib.closing(db_open(owner)) as db:
+        raw = None
+        try:
+            if args.input:
+                raw = selected_file(args.input)
+            elif args.stdin:
+                raw = selected_bytes(sys.stdin.buffer)
+        except MessageTooLarge:
+            # A larger replacement for an already selected ID is a conflict.
+            require(db.execute('SELECT 1 FROM selections WHERE id=?',(op,)).fetchone() is None)
+            raise
+        raw_hash = hashlib.sha256(raw).hexdigest() if raw is not None else None
         with db:
             db.execute('BEGIN IMMEDIATE')
             row = db.execute('SELECT * FROM selections WHERE id=?',(op,)).fetchone()
@@ -196,27 +212,34 @@ def send(args):
                     done = subprocess.run([*command,*arguments],input=body,
                                           stdin=subprocess.DEVNULL if body is None else None,stdout=subprocess.PIPE,
                                           stderr=subprocess.DEVNULL,pass_fds=(lock.fileno(),),timeout=1280)
+                    if done.returncode == 4 and body is not None:
+                        refusal = MessageTooLarge('encrypted_packet_exceeds_limit')
+                        require(json.loads(done.stdout) == dict(refusal.result(), operation='send'))
+                        raise refusal
                     if done.returncode:
                         raise RuntimeError('selected send pending')
                     reply = json.loads(done.stdout)
                     require(reply['operation']=='send' and reply['message_sha256']==expected_digest
                             and reply['message_bytes']==expected_size and HEX.fullmatch(reply['packet_sha256']))
                     return reply
-                if row['raw'] is not None:
-                    reserved(invitation,row['invitation'])
-                    prepared = invoke('--prepare-only','--stdin-size',str(expected_size),'--stdin-sha256',expected_digest,
-                                      '--invitation',invitation,body=row['raw'])
-                    require(prepared['status']=='prepared')
-                    # The native profile owns the exact ciphertext and invitation
-                    # now. Drop the extra draft before waiting on any provider.
-                    with db:
-                        db.execute('UPDATE selections SET raw=NULL,invitation=NULL WHERE id=?',(op,))
-                del row
-                invitation.unlink(missing_ok=True)
-                flush_directory(active)
-                result = invoke('--resume')
-                require(result['confirmed_providers']==2 and HEX.fullmatch(result['message_id']))
-                result.update(operation='send_selected',status='provider_custody')
+                try:
+                    if row['raw'] is not None:
+                        reserved(invitation,row['invitation'])
+                        prepared = invoke('--prepare-only','--stdin-size',str(expected_size),'--stdin-sha256',expected_digest,
+                                          '--invitation',invitation,body=row['raw'])
+                        require(prepared['status']=='prepared')
+                        # The native profile owns the exact ciphertext and invitation
+                        # now. Drop the extra draft before waiting on any provider.
+                        with db:
+                            db.execute('UPDATE selections SET raw=NULL,invitation=NULL WHERE id=?',(op,))
+                    del row
+                    invitation.unlink(missing_ok=True)
+                    flush_directory(active)
+                    result = invoke('--resume')
+                    require(result['confirmed_providers']==2 and HEX.fullmatch(result['message_id']))
+                    result.update(operation='send_selected',status='provider_custody')
+                except MessageTooLarge as refusal:
+                    result = refusal.result()
                 with db:
                     db.execute('UPDATE selections SET result=?,raw=NULL,invitation=NULL,config=NULL WHERE id=?',
                                (json.dumps(result),op))
@@ -239,7 +262,12 @@ def main():
     args=parser.parse_args()
     try:
         require(args.node is not None)
-        print(json.dumps(send(args)))
+        result = send(args)
+        print(json.dumps(result))
+        return 4 if result['status']=='message_too_large' else 0
+    except MessageTooLarge as refusal:
+        print(json.dumps(refusal.result()))
+        return 4
     except Ordinary as decision:
         print(json.dumps({'operation':'send_selected','status':'ordinary_mail_required','reason':decision.args[0]}))
         return 3
@@ -249,7 +277,6 @@ def main():
     except (AttributeError, OSError, ValueError, TypeError, KeyError, MessageError, sqlite3.Error, subprocess.SubprocessError):
         print(json.dumps({'operation':'send_selected','status':'invalid_selection_or_state'}))
         return 1
-    return 0
 
 
 if __name__=='__main__':
