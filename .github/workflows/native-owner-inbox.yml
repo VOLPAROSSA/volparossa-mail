@@ -8,6 +8,7 @@ on:
       - '.github/workflows/native-owner-inbox.yml'
       - 'extensions/volparossa-mail-host/**'
       - 'scripts/*stalwart*.py'
+      - 'scripts/export_mail_custody.py'
       - 'scripts/thunderbird_*.py'
       - 'packaging/systemd/**'
       - 'tests/owner_service_*'
@@ -120,6 +121,18 @@ jobs:
             --thunderbird-archive build/thunderbird.tar.xz --xvfb /usr/bin/Xvfb \
             > build/owner-inbox/peer-mail.json
           jq -e '.provider_acks == 2 and .exact_raw_bytes_verified and .messages_after_ack == 0' build/owner-inbox/peer-mail.json
+
+      - name: Export the proven Linux mailbox runtime for the routed Core trial
+        run: python3 -I -B scripts/export_mail_custody.py
+
+      - name: Keep the signed-custody QA runtime
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: mail-custody-runtime-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build/mail-custody-runtime.tar.gz
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 14
 
       - name: Keep the build, mailbox and cleanup receipts
         if: ${{ !cancelled() && hashFiles('build/stalwart-community/BUILD_OWNER.json') != '' }}
