@@ -23,16 +23,20 @@ export function read(path, maximum) {
     if (!st.isFile() || st.uid !== process.getuid() || (st.mode & 0o077) || st.size < 1 || st.size > maximum) {
       throw new MailError('input must be a nonempty, owner-private regular file within the size limit');
     }
-    const bytes = Buffer.alloc(st.size);
-    let offset = 0;
-    while (offset < bytes.length) {
-      const count = readSync(fd, bytes, offset, bytes.length - offset);
-      if (!count) throw new MailError('input changed while reading');
-      offset += count;
-    }
-    if (readSync(fd, Buffer.alloc(1), 0, 1)) throw new MailError('input changed while reading');
-    return bytes;
+    return readExact(fd, st.size);
   } finally { closeSync(fd); }
+}
+
+export function readExact(fd, size) {
+  const bytes = Buffer.alloc(size);
+  let offset = 0;
+  while (offset < bytes.length) {
+    const count = readSync(fd, bytes, offset, bytes.length - offset);
+    if (!count) throw new MailError('input changed while reading');
+    offset += count;
+  }
+  if (readSync(fd, Buffer.alloc(1), 0, 1)) throw new MailError('input changed while reading');
+  return bytes;
 }
 
 export function syncDirectory(path) {

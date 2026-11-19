@@ -168,6 +168,7 @@ def send(args):
                            (op,raw_hash,len(raw),profile,peer,core_owner,raw,invite,cfg))
             elif raw_hash is not None:
                 require(raw_hash==row['digest'])
+        del raw
         flush_directory(owner)
         # Only the chosen mail occupies its lock while Core is waiting for providers.
         spool = owner/'selected-sends'
@@ -179,34 +180,39 @@ def send(args):
             owned(os.fstat(lock.fileno()))
             fcntl.flock(lock,fcntl.LOCK_EX)
             row = db.execute('SELECT * FROM selections WHERE id=?',(op,)).fetchone()
-            paths = [active/'message.eml', active/'invitation', active/'core.json']
+            invitation, config = active/'invitation', active/'core.json'
+            # Older versions staged a named draft here. The durable selection
+            # owns its original bytes until the native seal has committed.
+            (active/'message.eml').unlink(missing_ok=True)
             if row['result'] is not None:
                 result = json.loads(row['result'])
             else:
-                reserved(paths[2], row['config'].encode())
+                reserved(config, row['config'].encode())
                 command = [args.node,'--no-warnings',SIGNAL/'cli.mjs','send','--profile',row['profile'],
-                           '--id',op,'--core-config',paths[2],'--core-owner-key',row['owner'],
+                           '--id',op,'--core-config',config,'--core-owner-key',row['owner'],
                            '--peer-bundle-sha256',row['peer']]
-                def invoke(*arguments):
-                    done = subprocess.run([*command,*arguments],stdin=subprocess.DEVNULL,stdout=subprocess.PIPE,
+                expected_digest, expected_size = row['digest'], row['size']
+                def invoke(*arguments, body=None):
+                    done = subprocess.run([*command,*arguments],input=body,
+                                          stdin=subprocess.DEVNULL if body is None else None,stdout=subprocess.PIPE,
                                           stderr=subprocess.DEVNULL,pass_fds=(lock.fileno(),),timeout=1280)
                     if done.returncode:
                         raise RuntimeError('selected send pending')
                     reply = json.loads(done.stdout)
-                    require(reply['operation']=='send' and reply['message_sha256']==row['digest']
-                            and reply['message_bytes']==row['size'] and HEX.fullmatch(reply['packet_sha256']))
+                    require(reply['operation']=='send' and reply['message_sha256']==expected_digest
+                            and reply['message_bytes']==expected_size and HEX.fullmatch(reply['packet_sha256']))
                     return reply
                 if row['raw'] is not None:
-                    reserved(paths[0],row['raw'])
-                    reserved(paths[1],row['invitation'])
-                    prepared = invoke('--prepare-only','--input',paths[0],'--invitation',paths[1])
+                    reserved(invitation,row['invitation'])
+                    prepared = invoke('--prepare-only','--stdin-size',str(expected_size),'--stdin-sha256',expected_digest,
+                                      '--invitation',invitation,body=row['raw'])
                     require(prepared['status']=='prepared')
                     # The native profile owns the exact ciphertext and invitation
                     # now. Drop the extra draft before waiting on any provider.
                     with db:
                         db.execute('UPDATE selections SET raw=NULL,invitation=NULL WHERE id=?',(op,))
-                for path in paths[:2]:
-                    path.unlink(missing_ok=True)
+                del row
+                invitation.unlink(missing_ok=True)
                 flush_directory(active)
                 result = invoke('--resume')
                 require(result['confirmed_providers']==2 and HEX.fullmatch(result['message_id']))
@@ -214,7 +220,7 @@ def send(args):
                 with db:
                     db.execute('UPDATE selections SET result=?,raw=NULL,invitation=NULL,config=NULL WHERE id=?',
                                (json.dumps(result),op))
-            for path in paths:
+            for path in (invitation, config):
                 path.unlink(missing_ok=True)
             flush_directory(active)
     return result
