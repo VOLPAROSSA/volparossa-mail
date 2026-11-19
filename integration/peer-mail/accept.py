@@ -59,9 +59,18 @@ def accept(args, password):
     require(re.fullmatch(r"[0-9a-f]{64}", handoff.name), "invalid Core message directory")
     directory(args.connection.parent)
     cfg = json.loads(read(args.connection, 8192))
-    required = {"server", "username", "accountId", "mailboxId", "controlSocket", "identity", "passphraseFile"}
-    require(isinstance(cfg, dict) and set(cfg) == required and all(type(v) is str and v for v in cfg.values()),
-            "invalid owner connection")
+    jmap = {"server", "username", "accountId", "mailboxId"}
+    core = {"controlSocket": "socket", "identity": "identity", "passphraseFile": "passphrase"}
+    require(isinstance(cfg, dict) and all(type(v) is str and v for v in cfg.values()), "invalid owner connection")
+    if set(cfg) == jmap | {"coreConfig"}:
+        route = Path(cfg["coreConfig"])
+        directory(route.parent)
+        owner = json.loads(read(route, 8192))
+        require(isinstance(owner, dict) and all(type(owner.get(k)) is str and owner[k] for k in core.values()),
+                "invalid owner Core configuration")
+        cfg.update({key: owner[field] for key, field in core.items()})
+    else:
+        require(set(cfg) == jmap | core.keys(), "invalid owner connection")
     for key in ("controlSocket", "identity", "passphraseFile"):
         p = Path(cfg[key])
         require(p.is_absolute() and p.resolve(strict=True) == p, "invalid Core path")
