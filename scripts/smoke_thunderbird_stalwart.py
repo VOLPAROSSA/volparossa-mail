@@ -23,7 +23,7 @@ from smoke_stalwart import require
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ("smoke_stalwart.py", "smoke_thunderbird_stalwart.py", "thunderbird_import_ui.py",
-           "thunderbird_import_observer.py", "stalwart_owner_smtp.py")
+           "thunderbird_import_observer.py", "stalwart_owner_smtp.py", "thunderbird_owner_inbox.py")
 PRIVATE = Path("/opt/work/private")
 PREFERENCES = {
     "marionette.port": 2828, "mail.shell.checkDefaultClient": False,
@@ -52,13 +52,16 @@ def retire(process):
     return False
 
 
-def mailbox(admin, password, *, smtp=False):
+def mailbox(admin, password, *, smtp=False, inbox=False):
     domain = server.created(server.call("fixture-admin", admin, "x:Domain/set", {"create": {"fixture": {
         "name": "volparossa.test", "isEnabled": True, "certificateManagement": {"@type": "Manual"},
         "dnsManagement": {"@type": "Manual"}, "dkimManagement": {"@type": "Manual"}}}}), "fixture")
     user = server.account_object(domain, password)
     if smtp:
         user["permissions"]["enabledPermissions"].update({"emailReceive": True, "jmapEmailQuery": True})
+    if inbox:
+        from thunderbird_owner_inbox import READ_PERMISSIONS
+        user["permissions"]["enabledPermissions"].update(dict.fromkeys(READ_PERMISSIONS, True))
     account = server.created(server.call("fixture-admin", admin, "x:Account/set",
         {"create": {"fixture": user}}), "fixture")
     owner = "owner@volparossa.test"
@@ -83,7 +86,7 @@ def stored_message(owner, password, account, destination, email_id):
     return saved
 
 
-def exercise(report, processes, log, *, smtp=False):
+def exercise(report, processes, log, *, smtp=False, inbox=False):
     import stalwart_owner_smtp as receiver
     from thunderbird_import_observer import EXPECTED, Observer
     from thunderbird_import_ui import run, wait_for
@@ -101,7 +104,7 @@ def exercise(report, processes, log, *, smtp=False):
                    "STALWART_RECOVERY_ADMIN": "fixture-admin:" + admin}
     report["phase"] = "mailbox-provision"
     original = server.start_server(environment, log, admin, processes)
-    owner, account, destination = mailbox(admin, password, smtp=smtp)
+    owner, account, destination = mailbox(admin, password, smtp=smtp, inbox=inbox)
     message = PRIVATE / "fixture.eml"
     message.write_bytes(server.MESSAGE)
     profile = PRIVATE / "profile"
@@ -114,6 +117,16 @@ def exercise(report, processes, log, *, smtp=False):
         processes.append(child)
         return child
 
+    def start_client(directory):
+        child = launch(["dbus-run-session", "--", "/opt/thunderbird/thunderbird", "--no-remote",
+                        "--profile", str(directory), "--marionette", "--remote-allow-system-access"])
+        wait_for(lambda: port_open(2828), 30)
+        return child
+
+    def join_client(child):
+        require(child.wait(timeout=30) == 0 and retire(child) and not port_open(2828), "thunderbird-quit")
+        processes.remove(child)
+
     report["phase"] = "display"
     launch(["/opt/Xvfb", ":143", "-screen", "0", "1280x960x24", "-nolisten", "tcp"])
     wait_for(lambda: Path("/tmp/.X11-unix/X143").exists())
@@ -121,6 +134,9 @@ def exercise(report, processes, log, *, smtp=False):
         if smtp:
             report["phase"] = "normal-mailbox-start"
             receiver.configure(admin)
+            if inbox:
+                import thunderbird_owner_inbox as reader
+                ca = reader.configure(admin, PRIVATE)
             require(retire(original), "bootstrap-stop")
             processes.remove(original)
             del environment["STALWART_RECOVERY_MODE"], environment["STALWART_RECOVERY_ADMIN"]
@@ -130,14 +146,11 @@ def exercise(report, processes, log, *, smtp=False):
         thread.start()
         try:
             report["phase"] = "thunderbird-ui"
-            client = launch(["dbus-run-session", "--", "/opt/thunderbird/thunderbird", "--no-remote",
-                             "--profile", str(profile), "--marionette", "--remote-allow-system-access"])
-            wait_for(lambda: port_open(2828), 30)
+            client = start_client(profile)
             report["application"] = run("http://127.0.0.1:" + str(observer.server_port), owner, password,
                                         account, destination, message, observer.events)
             report["phase"] = "client-exit"
-            require(client.wait(timeout=30) == 0 and retire(client) and not port_open(2828), "thunderbird-quit")
-            processes.remove(client)
+            join_client(client)
             require(not observer.failed and [e["operation"] for e in observer.events] == EXPECTED
                     and [e["delivered_status"] for e in observer.events] == [200, 200, 200, 200, 503, 200],
                     "observed-operations")
@@ -188,12 +201,19 @@ def exercise(report, processes, log, *, smtp=False):
         report["smtp"] = {"after_thunderbird_exit": True, "recovery_admin_removed": True,
             **envelope, "original_bytes": len(receiver.MESSAGE), "original_sha256": hashlib.sha256(receiver.MESSAGE).hexdigest(),
             "inbox_read_after_restart": True}
+    if inbox:
+        report["phase"] = "imap-tls"
+        fresh = reader.open_profile(PRIVATE, ca, PREFERENCES)
+        report["phase"] = "imap-thunderbird-start"
+        client = start_client(fresh)
+        report["inbox"] = reader.read(owner, password, report)
+        join_client(client)
     report.update(phase="complete", same_sqlite_reopened=True, wrong_password_status=401,
                   original_account_metadata_and_mime=True, message_bytes=len(server.MESSAGE),
                   message_sha256=hashlib.sha256(server.MESSAGE).hexdigest())
 
 
-def guest(host_namespace, *, smtp=False):
+def guest(host_namespace, *, smtp=False, inbox=False):
     report = {"version": 1, "kind": "thunderbird-stalwart-owner-restart", "phase": "namespace"}
     processes = []
     try:
@@ -202,7 +222,7 @@ def guest(host_namespace, *, smtp=False):
                 "namespace-boundary")
         PRIVATE.mkdir(mode=0o700)
         with (PRIVATE / "process.log").open("xb") as log:
-            exercise(report, processes, log, smtp=smtp)
+            exercise(report, processes, log, smtp=smtp, inbox=inbox)
     except Exception as exc:
         report["error_class"] = type(exc).__name__
         import traceback
@@ -223,7 +243,7 @@ def guest(host_namespace, *, smtp=False):
     return 0 if report["success"] else 1
 
 
-def namespace(work, stage, netns, *, smtp=False):
+def namespace(work, stage, netns, *, smtp=False, inbox=False):
     args = ["/usr/bin/bwrap", "--die-with-parent", "--new-session", "--unshare-user",
             "--uid", str(os.getuid()), "--gid", str(os.getgid()), "--unshare-net", "--unshare-pid",
             "--unshare-ipc", "--unshare-uts", "--cap-drop", "ALL", "--ro-bind", "/usr", "/usr",
@@ -234,10 +254,17 @@ def namespace(work, stage, netns, *, smtp=False):
         args.extend(["--ro-bind", str(stage / name), "/opt/" + name])
     return args + ["--bind", str(work), "/opt/work", "--chdir", "/opt/work", "--clearenv",
                    "--setenv", "PATH", "/usr/bin:/bin", "--setenv", "LANG", "C.UTF-8", "--",
-                   "/usr/bin/python3", "-B", "/opt/tools/smoke_thunderbird_stalwart.py", "--inside-smtp" if smtp else "--inside", netns]
+                   "/usr/bin/python3", "-B", "/opt/tools/smoke_thunderbird_stalwart.py", "--inside-inbox" if inbox else "--inside-smtp" if smtp else "--inside", netns]
 
 
-def verified_receipt(value, *, smtp=False):
+def verified_receipt(value, *, smtp=False, inbox=False):
+    if inbox:
+        expected = {"implicit_tls": True, "untrusted_certificate_rejected": True, "fresh_profile": True, "inbox_message_id": "after-quit@example.test",
+                    "subject_displayed": True, "message_body_displayed": True}
+        result = value.get("inbox")
+        require(isinstance(result, dict) and result.keys() == expected.keys() and
+                all(type(result[k]) is type(v) and result[k] == v for k, v in expected.items()), "imap-receipt")
+        value = {key: item for key, item in value.items() if key != "inbox"}
     if smtp:
         from stalwart_owner_smtp import check_receipt
         check_receipt(value.get("smtp"))
@@ -295,6 +322,10 @@ def host(args):
     plan = {"version": 1, "source_revision": revision, "thunderbird_sha512": pins["distribution_sha512"],
             "stalwart_sha256": args.stalwart_sha256, "xvfb_sha256": args.xvfb_sha256,
             "source_sha256": {name: hashlib.sha256(data).hexdigest() for name, data in sources.items()}}
+    if args.inbox:
+        plan["native_inbox"] = True
+        if args.execute:
+            require(all(shutil.which(tool) for tool in ("openssl", "certutil")), "imap-tls-tools")
     if args.smtp:
         plan["smtp_reception"] = True
     if not args.execute:
@@ -328,12 +359,12 @@ def host(args):
                 path.parent.mkdir(mode=0o700, exist_ok=True)
                 path.write_bytes(data)
             with (work / "private-boundary.log").open("xb") as log:
-                process = subprocess.Popen(namespace(work, stage, before["netns"], smtp=args.smtp), stdout=log,
+                process = subprocess.Popen(namespace(work, stage, before["netns"], smtp=args.smtp, inbox=args.inbox), stdout=log,
                                            stderr=subprocess.STDOUT, start_new_session=True)
                 try:
                     boundary["exit_status"] = process.wait(timeout=330)
                     if boundary["exit_status"] == 0:
-                        verified_receipt(json.loads((work / "ui-restart.json").read_text()), smtp=args.smtp)
+                        verified_receipt(json.loads((work / "ui-restart.json").read_text()), smtp=args.smtp, inbox=args.inbox)
                         boundary["receipt_verified"] = True
                 finally:
                     boundary["group_joined"] = retire(process)
@@ -355,6 +386,8 @@ def main():
     os.umask(0o077)
     if len(sys.argv) == 3 and sys.argv[1] in ("--inside", "--inside-smtp"):
         return guest(sys.argv[2], smtp=sys.argv[1] == "--inside-smtp")
+    if len(sys.argv) == 3 and sys.argv[1] == "--inside-inbox":
+        return guest(sys.argv[2], smtp=True, inbox=True)
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--thunderbird-archive", type=Path, required=True)
     parser.add_argument("--stalwart", type=Path, required=True)
@@ -364,7 +397,10 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--smtp", action="store_true", help="receive a synthetic SMTP message after Thunderbird exits")
     parser.add_argument("--execute", action="store_true")
-    return host(parser.parse_args())
+    parser.add_argument("--inbox", action="store_true", help="open the delivered message through native Thunderbird IMAP over TLS")
+    args = parser.parse_args()
+    args.smtp = args.smtp or args.inbox
+    return host(args)
 
 
 if __name__ == "__main__":
