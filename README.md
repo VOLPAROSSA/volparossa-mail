@@ -128,9 +128,9 @@ This used a disposable Community server in recovery mode. Add
 · [Cleanup and host checks](third_party/stalwart-mailbox-crash-recovery/boundary.json).
 
 The September run used the connector adapter directly. The November Thunderbird run
-above exercised the same JMAP operations through the interface. SMTP delivery, peer
-delivery, offline Internet reception and recovery of an installed background service
-remain open. [September adapter proof](third_party/stalwart-extension-smoke.json).
+above exercised the same JMAP operations through the interface. A separate local
+SMTP trial received mail after Thunderbird quit. Public Internet reception, peer
+delivery and recovery of an installed background service remain open. [September adapter proof](third_party/stalwart-extension-smoke.json).
 
 ## Source development
 
@@ -199,6 +199,19 @@ It then quits Thunderbird and reads the saved mail from the running server. Afte
 isolated Stalwart process crash, it reopens the same SQLite file, checks that a wrong
 password receives HTTP 401 and reads the original account, metadata and message bytes.
 The three JSON receipts record the verified inputs, observed sequence and cleanup.
+
+Add `--smtp` to the Thunderbird command above and choose a fresh output directory
+to exercise ordinary owner reception. The test configures Stalwart's normal mode
+on private loopback ports 2525 and 8080. After Thunderbird quits, a synthetic SMTP
+sender submits 267 MIME bytes to the local owner. Stalwart accepts the message
+with 250 and refuses both an unknown local recipient and an external relay
+recipient with 550. The owner reads the message in the Inbox, then recovers
+the same stored bytes, including the receiver's added headers, after Stalwart
+restarts. The disposable namespace has no external route.
+[SMTP and mailbox receipt](third_party/thunderbird-stalwart-owner-smtp/ui-restart.json)
+· [Executable inputs](third_party/thunderbird-stalwart-owner-smtp/inputs.json)
+· [Cleanup](third_party/thunderbird-stalwart-owner-smtp/boundary.json).
+
 
 The verified Thunderbird 157.0 run recovered all 313 bytes after both lifecycle
 checks. [UI and mailbox result](third_party/thunderbird-stalwart-mailbox-crash-recovery/ui-restart.json)
