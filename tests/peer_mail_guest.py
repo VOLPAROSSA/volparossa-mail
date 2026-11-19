@@ -182,6 +182,16 @@ def native_trial(work, providers, ca, user, password):
         records = call(user, password, "Email/query", {"accountId": account, "limit": 2})["ids"]
         assert len(records) == 1
     with owner_server(user, password) as account:
+        # With no local journal to consult, a mismatched but equal-sized candidate must
+        # fail while reading the real stored blob. The existing email stays in place.
+        wrong = work / "different.eml"
+        wrong.write_bytes(MESSAGE.replace(b"offline.", b"on-line."))
+        assert len(wrong.read_bytes()) == len(MESSAGE) and wrong.read_bytes() != MESSAGE
+        jmap = work / "selected-mailbox.json"
+        jmap.write_text(json.dumps({k: conf[k] for k in ("server", "username", "accountId", "mailboxId")}))
+        error = command([NODE, ROOT / "integration/peer-mail/import-mime.mjs", jmap, wrong, work / "other.json",
+                         sent["packet_sha256"]], password=password.encode(), expected=1)
+        assert b"peer_bytes_unverified" in error
         accepted = command(accept, password=password.encode())
         assert accepted["message_id"] == opaque_id and accepted["signal_packet_sha256"] == sent["packet_sha256"]
         assert accepted["message_sha256"] == digest(MESSAGE) and accepted["email_id"] == records[0]
@@ -191,7 +201,7 @@ def native_trial(work, providers, ca, user, password):
         native_inbox = open_in_thunderbird(work, ca, user, password)
     return {"schema": 2, "native_inbox": native_inbox, "message_bytes": len(MESSAGE), "message_sha256": digest(MESSAGE),
             "sender_command": "send", "sender_resumed_without_inputs": True, "offline_custodians": 2, "fetched_before_confirmation": 1, "lost_import_reply": True,
-            "same_email_after_restart": True, "exact_raw_bytes_verified": True, "provider_acks": 2,
+            "same_email_after_restart": True, "different_same_size_refused": True, "exact_raw_bytes_verified": True, "provider_acks": 2,
             "messages_after_ack": 0, "provider_transport": "isolated-local-stream"}
 
 
