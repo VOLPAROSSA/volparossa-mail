@@ -9,6 +9,8 @@ on:
       - 'extensions/volparossa-mail-host/**'
       - 'scripts/*stalwart*.py'
       - 'scripts/thunderbird_*.py'
+      - 'packaging/systemd/**'
+      - 'tests/owner_service_*'
       - 'third_party/stalwart/**'
       - 'third_party/stalwart-source.json'
       - 'third_party/stalwart-rust-toolchain.json'
@@ -38,15 +40,15 @@ jobs:
         with:
           python-version: '3.12.14'
 
+      - id: archive
+        uses: VOLPAROSSA/.github/actions/ubuntu-archive@e3f98bbc538f5df580b78c8a0d8bd932dfe3e381
+
       - name: Prepare the disposable display and verify namespace support
+        env:
+          ARCHIVE_CONFIG: ${{ steps.archive.outputs.config }}
         run: |
-          sources="$RUNNER_TEMP/owner-inbox.list"
-          printf 'deb [signed-by=/usr/share/keyrings/ubuntu-archive-keyring.gpg] https://mirrors.edge.kernel.org/ubuntu %s main universe\n' \
-            jammy jammy-updates jammy-security > "$sources"
-          apt_options=(-o "Dir::Etc::sourcelist=$sources" -o Dir::Etc::sourceparts=-
-            -o APT::Update::Error-Mode=any -o Acquire::Retries=2 -o Acquire::https::Timeout=20)
-          sudo apt-get "${apt_options[@]}" update -qq
-          sudo apt-get "${apt_options[@]}" install -y --no-install-recommends bubblewrap xvfb x11-utils x11-xkb-utils \
+          sudo apt-get -c "$ARCHIVE_CONFIG" update -qq
+          sudo apt-get -c "$ARCHIVE_CONFIG" install -y --no-install-recommends bubblewrap xvfb x11-utils x11-xkb-utils \
             dbus-x11 fonts-dejavu-core libgtk-3-0 libasound2 libdbus-glib-1-2 libxtst6 \
             libnss3-tools openssl clang libclang-dev pkg-config cmake gcc g++ make libssl-dev
           bwrap --unshare-user --unshare-pid --unshare-net --cap-drop ALL --ro-bind / / \
@@ -54,7 +56,7 @@ jobs:
           mkdir -p build/display
           cd build/display
           version=$(dpkg-query -W -f='${Version}' xvfb)
-          apt-get "${apt_options[@]}" download "xvfb=$version"
+          apt-get -c "$ARCHIVE_CONFIG" download "xvfb=$version"
           dpkg-deb -x ./*.deb package
           cmp package/usr/bin/Xvfb /usr/bin/Xvfb
 
@@ -76,6 +78,11 @@ jobs:
             --stalwart "$PWD/build/stalwart-community/target/debug/stalwart" \
             --stalwart-sha256 "$(jq -er .sha256 build/compiled.json)" --output build/owner-inbox
 
+      - name: Recover the installed mailbox automatically after process loss
+        run: |
+          bash tests/owner_service_actions.sh "$PWD/build/stalwart-community/target/debug/stalwart" \
+            "$(jq -er .sha256 build/compiled.json)" "$PWD/build/owner-inbox"
+
       - name: Keep the build, mailbox and cleanup receipts
         if: ${{ !cancelled() && hashFiles('build/stalwart-community/BUILD_OWNER.json') != '' }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -89,5 +96,6 @@ jobs:
             build/owner-inbox/inputs.json
             build/owner-inbox/ui-restart.json
             build/owner-inbox/boundary.json
+            build/owner-inbox/owner-service.json
           if-no-files-found: error
           retention-days: 14

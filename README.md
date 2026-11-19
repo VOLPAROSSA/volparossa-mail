@@ -60,6 +60,37 @@ SMTP plaintext from its receiver. Private offline Internet reception therefore r
 a separately implemented and verified receiving boundary. No confidential-hardware or
 always-available delivery claim is made.
 
+### Run an existing owner mailbox as a Linux service
+
+The supplied systemd unit runs Stalwart Community independently of Thunderbird.
+It accepts an existing, provisioned v0.16.24 SQLite mailbox. Stalwart reads the
+account, listeners and certificates already configured in that store. Review those
+listeners before starting it and use unprivileged ports for this service. The
+service runs under a dedicated account and restarts after an unexpected exit.
+
+From this checkout, install the unit and a verified Community executable on the
+owner's system. Keep the original server stopped during a migration. Use
+Stalwart's backup and restore procedure to prepare a consistent store at
+`/var/lib/volparossa-mail/store.sqlite` with its associated files owned by
+`volparossa-mail`. Copying an active SQLite file can lose uncheckpointed mail.
+
+```sh
+sudo systemd-sysusers packaging/systemd/volparossa-mail.conf
+sudo install -d -m 0700 -o volparossa-mail -g volparossa-mail /var/lib/volparossa-mail
+sudo install -D -m 0755 "$STALWART_BINARY" /usr/local/libexec/volparossa-mail/stalwart
+sudo install -m 0644 packaging/systemd/store.json /usr/local/libexec/volparossa-mail/
+sudo install -m 0644 packaging/systemd/volparossa-mail.service /etc/systemd/system/
+sudo systemctl daemon-reload
+# After restoring the provisioned store and checking its ownership and listeners:
+sudo systemctl enable --now volparossa-mail.service
+systemctl status volparossa-mail.service
+```
+
+The unit skips startup if the store is missing or empty. Use
+`sudo systemctl disable --now volparossa-mail.service` to stop automatic startup
+and leave the mailbox in place. External SMTP reception additionally needs a
+trusted receiving host, domain routing, suitable TLS and a reachable endpoint.
+
 ### First connector: choose, connect, import
 
 The [Mail host extension](extensions/volparossa-mail-host/manifest.json) provides an explicit
