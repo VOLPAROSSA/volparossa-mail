@@ -229,6 +229,23 @@ test("unknown, contradictory or abandoned imports yield no metadata lookup", asy
   assert.equal(calls.length, 5);
 });
 
+test("a different stored byte count leaves the import pending until the selected size is confirmed", async () => {
+  const saved = {id: "message_1", blobId: "stored_blob", mailboxIds: {inbox: true}, size: message.length - 1};
+  const {client, calls} = backend({readback: {accountId: "42", list: [saved], notFound: []}});
+  await client.connect();
+  await client.mailboxes("42", true);
+  await assert.rejects(client.importMessage({accountId: "42", mailboxId: "inbox", bytes: message, confirmed: true}),
+    code("import_readback_failed"));
+  saved.size = message.length + 1;
+  await assert.rejects(client.recheckImport("42", "inbox"), code("import_readback_failed"));
+  saved.size = message.length;
+  assert.equal((await client.recheckImport("42", "inbox")).size, message.length);
+  assert.equal(calls.filter(call => call.url.endsWith("/upload/42/")).length, 1);
+  assert.deepEqual(calls.slice(3).map(call => JSON.parse(call.request.body).methodCalls[0][0]),
+    ["Email/import", "Email/get", "Email/get", "Email/get"]);
+  client.disconnect();
+});
+
 test("wrong response correlation, duplicate mailboxes and inconsistent metadata fail closed", async () => {
   for (const options of [{id: "foreign"}, {method: "Email/get"}, {boxes: {accountId: "other", list: [], notFound: []}},
     {boxes: {...boxes(), list: [...boxes().list, ...boxes().list]}}]) {

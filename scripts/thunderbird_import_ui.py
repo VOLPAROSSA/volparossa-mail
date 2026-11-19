@@ -3,6 +3,7 @@
 
 import ctypes as ct
 import json
+import re
 import socket
 import subprocess
 import time
@@ -13,8 +14,8 @@ from smoke_stalwart import require
 def wait_for(predicate, seconds=15):
     deadline = time.monotonic() + seconds
     while time.monotonic() < deadline:
-        if predicate():
-            return
+        if result := predicate():
+            return result
         time.sleep(0.12)
     raise TimeoutError("ui-condition")
 
@@ -73,6 +74,8 @@ class Display:
         require(self.display, "x-display")
         self.x.XSync.argtypes = [ct.c_void_p, ct.c_int]
         self.x.XCloseDisplay.argtypes = [ct.c_void_p]
+        self.x.XGetInputFocus.argtypes = [ct.c_void_p, ct.POINTER(ct.c_ulong), ct.POINTER(ct.c_int)]
+        self.x.XSetInputFocus.argtypes = [ct.c_void_p, ct.c_ulong, ct.c_int, ct.c_ulong]
         self.x.XStringToKeysym.argtypes = [ct.c_char_p]
         self.x.XStringToKeysym.restype = ct.c_ulong
         self.x.XKeysymToKeycode.argtypes = [ct.c_void_p, ct.c_ulong]
@@ -80,6 +83,25 @@ class Display:
         self.test.XTestFakeMotionEvent.argtypes = [ct.c_void_p, ct.c_int, ct.c_int, ct.c_int, ct.c_ulong]
         for name in ("XTestFakeButtonEvent", "XTestFakeKeyEvent"):
             getattr(self.test, name).argtypes = [ct.c_void_p, ct.c_uint, ct.c_int, ct.c_ulong]
+
+    def focus_file_chooser(self):
+        tree = subprocess.check_output(["xwininfo", "-root", "-tree"], text=True, timeout=3)
+        names = re.findall(r'^\s*(0x[0-9a-f]+) "File Upload - VOLPAROSSA Mail host - Mozilla Thunderbird":', tree, re.MULTILINE)
+        if len(names) != 1:
+            return None
+        info = subprocess.run(["xwininfo", "-id", names[0]], capture_output=True, text=True, timeout=3)
+        if info.returncode or "Map State: IsViewable" not in info.stdout:
+            return None
+        window = int(names[0], 16)
+        self.x.XSetInputFocus(self.display, window, 2, 0)  # RevertToParent, CurrentTime.
+        self.x.XSync(self.display, 0)
+        return window if self.focused_window() == window else None
+
+    def focused_window(self):
+        window = ct.c_ulong()
+        revert = ct.c_int()
+        self.x.XGetInputFocus(self.display, ct.byref(window), ct.byref(revert))
+        return window.value
 
     def click(self, x, y):
         self.test.XTestFakeMotionEvent(self.display, -1, round(x), round(y), 0)
@@ -148,15 +170,22 @@ def interact(driver, screen, origin, owner, password, account, mailbox, message,
     wait_for(lambda: page("return !document.getElementById('mailbox').disabled"))
     page(FIELD, "#mailbox", mailbox)
     click("#message-file")
-    wait_for(lambda: "File Upload" in subprocess.check_output(["xwininfo", "-root", "-tree"], text=True, timeout=3))
+    chooser = wait_for(screen.focus_file_chooser)
     screen.key("Control_L", True)
     screen.press("l")
     screen.key("Control_L", False)
     time.sleep(0.2)
     for character in str(message):
         screen.press({"/": "slash", "-": "minus", ".": "period"}.get(character, character))
+    # GTK may first complete the typed path. Allow it to consume the key
+    # before confirming again, and only send that key to the focused chooser.
     screen.press("Return")
-    wait_for(lambda: page("return document.getElementById('message-file').files.length===1"))
+    try:
+        wait_for(lambda: screen.focused_window() != chooser, 2)
+    except TimeoutError:
+        if screen.focused_window() == chooser:
+            screen.press("Return")
+    wait_for(lambda: page("return document.getElementById('message-file').files[0]?.name") == message.name)
     click("#import-confirmed")
     click("#import")
     wait_for(lambda: page("return !document.getElementById('recheck-import').hidden"), 20)
