@@ -71,6 +71,17 @@ os.kill(os.getppid(), signal.SIGKILL)
         'address':accounts['b'], 'core_owner_key':owners['b'], 'peer_bundle_sha256':fingerprints['b']}
     assert json.loads((books['a']/'address-book.json').read_bytes())['contacts'][0] == legacy
     assert call(replaced(cmd,'--profile',root/'a'),1)['status'] == 'different_contact_already_paired'
+    # A contact created by the original setup already points to these files.
+    # Register it through the owner command before putting the exchange away.
+    book_path = books['a']/'address-book.json'
+    book = json.loads(book_path.read_bytes())
+    managed = book['contacts'][-1]
+    old_entry = {k:v for k,v in managed.items() if k not in ('invitation_hex','core')}
+    book['contacts'][-1] = dict(old_entry, invitation=str(root/'a-contact.invitation'),
+                                core_config=str(root/'a-contact-config.json'))
+    book_path.write_text(json.dumps(book))
+    assert call(cmd)['status'] == 'already_paired'
+    assert json.loads(book_path.read_bytes())['contacts'] == [legacy, managed]
     for path in (root/'a-contact.invitation',root/'a-contact-config.json'):
         path.unlink()
     operation = hashlib.sha256(b'complete mail after ordinary contact registration').hexdigest()
@@ -93,6 +104,7 @@ os.kill(os.getppid(), signal.SIGKILL)
                         '--core-config',root/'providers/a/core.json')
     assert call(restored)['status']=='paired'
     assert {p.name for p in fetch('managed-no-extra-deposit')} == {p.name for p in messages}
-    return dict(native_contacts_verified=True, independent_signal_and_core_mismatches_refused=True,
+    return dict(native_contacts_verified=True, legacy_registration_survived_exchange_removal=True,
+                independent_signal_and_core_mismatches_refused=True,
                 concurrent_pairing_idempotent=True, interrupted_contact_pairing_recovered=True, contact_removal_and_repair=True,
                 original_selected_send_survived_contact_removal=True, original_mail_opened_with_managed_contact=True)

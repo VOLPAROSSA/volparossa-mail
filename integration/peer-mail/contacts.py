@@ -68,6 +68,9 @@ def pair(args, address, previous, book):
         if (previous["profile"] != str(profile) or previous["peer_bundle_sha256"] != fingerprint
                 or previous["core_owner_key"] != owner_key or contact_route(previous) != (grant, cfg)):
             raise ContactError("different_contact_already_paired")
+        if "invitation" in previous:
+            entry["address"] = previous["address"]
+            book["contacts"][book["contacts"].index(previous)] = entry
     else:
         book["contacts"].append(entry)
     encoded = (json.dumps(book, ensure_ascii=True, indent=2) + "\n").encode()
@@ -91,7 +94,9 @@ def pair(args, address, previous, book):
                        "--core-owner-key", owner_key], "signal_pair_refused")
     if receipt != {"operation":"pair", "bundle_sha256":fingerprint}:
         raise ContactError("signal_pair_refused")
-    return ("already_paired", None) if previous else ("paired", encoded)
+    if previous and "invitation_hex" in previous:
+        return "already_paired", None
+    return ("already_paired" if previous else "paired"), encoded
 
 
 def list_contacts(owner):
