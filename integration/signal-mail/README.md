@@ -173,3 +173,10 @@ sha256sum --check <<'EOF'
 aa18600f1ab7d1f88d01e785fb3c9bb8cd73868196a05f0a1e4c9fef2d9b6dd0  docs/evidence/native-owner-inbox-44565728767.zip
 EOF
 ```
+
+On Mail `440ddb19`, registering an existing legacy contact saved its verified
+grant. The sender removed the original exchange files and delivered a message
+using the saved contact. Both providers returned signed custody receipts, and
+the recipient recovered the original MIME bytes. The native Thunderbird and
+Stalwart trial also passed on this revision.
+[Legacy contact trial](https://github.com/VOLPAROSSA/volparossa-mail/actions/runs/45408311633) · [Native Inbox trial](https://github.com/VOLPAROSSA/volparossa-mail/actions/runs/45408310961)
