@@ -102,8 +102,9 @@ This command uses the existing native Signal pairing and Core's local
 the selected Core paths in the owner's mode-0600 address book. The original
 exchange files can then be put away. The default owner directory is
 `$XDG_CONFIG_HOME/volparossa/mail`, or `~/.config/volparossa/mail`. Pass
-`--owner DIR` to use a different private directory. Existing path-based contacts
-continue to work.
+`--owner DIR` to use a different private directory. To put away the exchange
+files for an existing path-based contact, repeat the verified pair command while
+the files are available. It converts that entry and preserves the other contacts.
 
 ```sh
 python3 integration/peer-mail/contacts.py list
