@@ -155,3 +155,28 @@ removes the address book. Successful JSON carries `status=provider_custody`,
 operation returns exit code 1 with `status=retry_selected_send`; its retry
 retains the authorised private route. The command finds Node on PATH or accepts
 its explicit location with `--node`.
+
+### Contact registration and delivery trials
+
+Both GitHub Actions runs used Mail commit
+`c60df60ca7476b8962cfc28f926f743a5d4d0ff1` and Core commit
+`e5242afee22cd5edd4305a1b37bd2f3c199786d1`.
+
+- The sender recovered after interruption between native Signal pairing and address registration. Two simultaneous registrations agreed on one contact. Removing the contact disabled new private deliveries, and the original operation resumed with its original destination. [Sender run](https://github.com/VOLPAROSSA/volparossa-mail/actions/runs/44565728630) · [Original ZIP, 817 bytes](../../docs/evidence/paired-mail-send-44565728630.zip)
+- Two owners registered each other and exchanged a saved draft and a newly composed message through two mailbox providers. Thunderbird 157 opened both in the recipient’s Inbox over verified TLS. Each message retained its original bytes and eight-byte attachment and had two verified provider acknowledgements. [Thunderbird run](https://github.com/VOLPAROSSA/volparossa-mail/actions/runs/44565728767) · [Original ZIP, 22,179 bytes](../../docs/evidence/native-owner-inbox-44565728767.zip)
+
+Run this command from the repository root to verify both original archives.
+
+```sh
+sha256sum --check <<'EOF'
+8a67e8620861e01da733e6a40d52cd8df63fad148307068759518e67f14f3419  docs/evidence/paired-mail-send-44565728630.zip
+aa18600f1ab7d1f88d01e785fb3c9bb8cd73868196a05f0a1e4c9fef2d9b6dd0  docs/evidence/native-owner-inbox-44565728767.zip
+EOF
+```
+
+On Mail `440ddb19`, registering an existing legacy contact saved its verified
+grant. The sender removed the original exchange files and delivered a message
+using the saved contact. Both providers returned signed custody receipts, and
+the recipient recovered the original MIME bytes. The native Thunderbird and
+Stalwart trial also passed on this revision.
+[Legacy contact trial](https://github.com/VOLPAROSSA/volparossa-mail/actions/runs/45408311633) · [Native Inbox trial](https://github.com/VOLPAROSSA/volparossa-mail/actions/runs/45408310961)
