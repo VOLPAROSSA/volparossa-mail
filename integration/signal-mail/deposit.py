@@ -33,6 +33,14 @@ def private(path, directory=False):
     owned(path.lstat(), directory)
 
 
+def checked_executable(path):
+    require(path.is_absolute() and path.resolve() == path)
+    binary = path.stat()
+    require(stat.S_ISREG(binary.st_mode) and binary.st_uid in (0, os.getuid())
+            and binary.st_mode & 0o111 and not binary.st_mode & 0o022)
+    return path
+
+
 def read(path, maximum):
     require(path.is_absolute() and path.parent == path.parent.resolve())
     with os.fdopen(os.open(path, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK), 'rb') as handle:
@@ -96,9 +104,8 @@ def send(directory, config_file, owner):
                                      and cfg['remoteOwner'] == owner))
         exe, socket, identity, password = (Path(cfg[k]) for k in ('executable', 'socket', 'identity', 'passphrase'))
         require(all(p.is_absolute() and p.resolve() == p for p in (exe, socket, identity, password)))
-        binary = exe.stat()
-        require(stat.S_ISREG(binary.st_mode) and binary.st_uid in (0, os.getuid())
-                and binary.st_mode & 0o111 and not binary.st_mode & 0o022 and stat.S_ISSOCK(socket.stat().st_mode))
+        checked_executable(exe)
+        require(stat.S_ISSOCK(socket.stat().st_mode))
         private(identity)
         private(password)
         if os.path.lexists(manifest):

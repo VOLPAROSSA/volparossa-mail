@@ -83,27 +83,38 @@ opaque `message_id`. Recipient import and read status are separate evidence.
 
 ## Send a draft to its explicitly paired email address
 
-The Thunderbird host can hand a complete original draft to the address-aware
-sender. Keep an owner-private (0700) directory containing a mode-0600
-`address-book.json`. Its address belongs to the sending owner. Each contact
-associates one explicit mailbox address with an already paired local profile,
-the independently verified Signal bundle fingerprint and the independently
-verified Core owner key. Use the actual canonical paths and keys from pairing.
+On each device, initialize a private Signal profile with `cli.mjs init` as
+described above and exchange the two public bundles. Confirm the contact's
+email address, bundle fingerprint and Core owner key through an independent
+authenticated channel. From the Mail checkout, register that contact with the
+original invitation issued for your Core sender identity.
 
-```json
-{
-  "version": 1,
-  "address": "alice@example.test",
-  "contacts": [{
-    "address": "bob@example.test",
-    "profile": "/private/path/to/alice-bob-profile",
-    "peer_bundle_sha256": "<64 lowercase hex digits>",
-    "core_owner_key": "<64 lowercase hex digits>",
-    "invitation": "/private/path/to/original-invitation",
-    "core_config": "/private/path/to/core.json"
-  }]
-}
+```sh
+python3 integration/peer-mail/contacts.py pair \
+  --from alice@example.test --address bob@example.test \
+  --profile "$profile" --peer-bundle "$handoff/peer.bundle" \
+  --trusted-bundle-sha256 "$peer_fingerprint" --core-owner-key "$peer_core_key" \
+  --invitation "$handoff/recipient.invitation" --core-config "$private_core_config"
 ```
+
+This command uses the existing native Signal pairing and Core's local
+`content mailbox verify-invitation` check. It saves the signed invitation and
+the selected Core paths in the owner's mode-0600 address book. The original
+exchange files can then be put away. The default owner directory is
+`$XDG_CONFIG_HOME/volparossa/mail`, or `~/.config/volparossa/mail`. Pass
+`--owner DIR` to use a different private directory. To put away the exchange
+files for an existing path-based contact, repeat the verified pair command while
+the files are available. It converts that entry and preserves the other contacts.
+
+```sh
+python3 integration/peer-mail/contacts.py list
+python3 integration/peer-mail/contacts.py remove --address bob@example.test \
+  --trusted-bundle-sha256 "$peer_fingerprint"
+```
+
+Removal disables the address for new private deliveries. An already selected
+operation keeps its original destination and ciphertext. Repeat the verified
+pair command to authorize the address again.
 
 ```sh
 python3 integration/peer-mail/send_selected.py --owner "$owner_directory" \

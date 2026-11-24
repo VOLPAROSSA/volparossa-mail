@@ -78,42 +78,19 @@ def pair(work, providers):
             )["identity_public_key_hex"]
         )
         command([NODE, SIGNAL, "init", "--profile", profile, "--bundle", bundle])
-    for profile, peer, key in zip(profiles, reversed(bundles), reversed(keys)):
-        command(
-            [
-                NODE,
-                SIGNAL,
-                "pair",
-                "--profile",
-                profile,
-                "--peer-bundle",
-                peer,
-                "--trusted-bundle-sha256",
-                digest(peer.read_bytes()),
-                "--core-owner-key",
-                key,
-            ]
-        )
-    owner = Path(os.environ["HOME"]) / ".config/volparossa/mail"
-    owner.mkdir(mode=0o700, parents=True)
-    (owner / "address-book.json").write_text(
-        json.dumps(
-            {
-                "version": 1,
-                "address": "sender@example.test",
-                "contacts": [
-                    {
-                        "address": "owner@volparossa.test",
-                        "profile": str(profiles[0]),
-                        "peer_bundle_sha256": digest(bundles[1].read_bytes()),
-                        "core_owner_key": keys[1],
-                        "invitation": providers[0]["sendInvitation"],
-                        "core_config": str(work / "providers/a/core.json"),
-                    }
-                ],
-            }
-        )
-    )
+    addresses = ("sender@example.test", "owner@volparossa.test")
+    owners = (Path(os.environ["HOME"]) / ".config/volparossa/mail", work / "recipient-contacts")
+    for side, peer in ((0, 1), (1, 0)):
+        fingerprint = digest(bundles[peer].read_bytes())
+        paired = command([
+            "/usr/bin/python3", "-I", "-B", ROOT / "integration/peer-mail/contacts.py", "pair",
+            "--owner", owners[side], "--from", addresses[side], "--address", addresses[peer],
+            "--profile", profiles[side], "--peer-bundle", bundles[peer], "--trusted-bundle-sha256", fingerprint,
+            "--core-owner-key", keys[peer], "--invitation", providers[side]["sendInvitation"],
+            "--core-config", work / "providers" / ("a", "b")[side] / "core.json", "--node", NODE,
+        ])
+        assert paired == {"status":"paired", "address":addresses[peer], "core_owner_key":keys[peer],
+                          "peer_bundle_sha256":fingerprint}
     return profiles[1]
 
 
@@ -435,6 +412,7 @@ def trial(work, compose):
         "oversize_encrypted_message_refused_before_custody": compose,
         "native_toolbar_and_send_clicked": True,
         "packaged_addon_installed": True,
+        "owner_registered_both_contacts": True,
         "no_message_before_click": True,
         "offline_provider_count": 2,
         "receiver_inbox": inbox,
