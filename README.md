@@ -15,7 +15,8 @@ Stalwart mailbox checks the complete message before acknowledging both providers
 The owner can pick up messages once, or leave the receiver running to collect
 new mail after reconnection. Thunderbird opens them in its ordinary Inbox.
 [Install the paired-mail add-on](extensions/volparossa-peer-draft/README.md) ·
-[Configure the receiver](integration/peer-mail/README.md)
+[Configure the receiver](integration/peer-mail/README.md) ·
+[Read the Thunderbird delivery results](docs/evidence/README.md)
 
 **Development integration, not a finished mail client.** No production account, mail
 server, DNS record or network participation is activated by this repository.
